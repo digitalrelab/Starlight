@@ -1,7 +1,9 @@
 import { ArrowDown01Icon, Tick02Icon } from "@hugeicons-pro/core-stroke-rounded";
 import { Select as BaseSelect } from "@base-ui/react";
 import type { ReactElement, ReactNode } from "react";
+import { cn } from "cn";
 import { Icon } from "./icon.tsx";
+import { popupSurface } from "./popup.ts";
 
 interface RootProps<Value extends string> {
   readonly value: Value;
@@ -31,7 +33,7 @@ const Trigger = ({ id, render, children }: TriggerProps) => (
 const Popup = ({ children }: { readonly children: ReactNode }) => (
   <BaseSelect.Portal>
     <BaseSelect.Positioner className="z-overlay outline-none">
-      <BaseSelect.Popup className="min-w-(--anchor-width) origin-(--transform-origin) rounded-lg bg-surface-overlay p-1.5 shadow-overlay outline-none transition-[opacity,scale] data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0">
+      <BaseSelect.Popup className={cn(popupSurface, "min-w-(--anchor-width) p-1.5")}>
         <BaseSelect.List>{children}</BaseSelect.List>
       </BaseSelect.Popup>
     </BaseSelect.Positioner>

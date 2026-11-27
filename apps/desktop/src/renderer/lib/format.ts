@@ -23,7 +23,8 @@ const recencies = [
   [30, "Previous 30 days"],
 ] as const;
 
-export const formatRecency = (epochMs: number, now = new Date()) => {
+export const formatRecency = (epochMs: number) => {
+  const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
   const days = Math.ceil((today - epochMs) / DAY_MS);
   return recencies.find(([within]) => days <= within)?.[1] ?? "Older";

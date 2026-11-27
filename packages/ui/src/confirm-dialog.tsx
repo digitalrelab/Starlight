@@ -4,12 +4,12 @@ import { AlertDialog } from "@base-ui/react";
 import { cn } from "cn";
 import { HoldButton } from "./hold-button.tsx";
 import { Icon } from "./icon.tsx";
+import { scaleMotion } from "./popup.ts";
 
 const row =
   "flex h-11 w-full shrink-0 items-center gap-3 rounded-md px-dialog-row text-left outline-none highlighted:wash-neutral-subtle-hovered focus-visible:ring-2 focus-visible:ring-selected focus-visible:ring-inset";
 
-const motion =
-  "transition-[opacity,scale] duration-200 data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[ending-style]:duration-150 data-[ending-style]:ease-in data-[starting-style]:scale-95 data-[starting-style]:opacity-0";
+const timing = "duration-200 data-[ending-style]:duration-150 data-[ending-style]:ease-in";
 
 export interface ConfirmDialogProps {
   readonly open: boolean;
@@ -32,12 +32,18 @@ export const ConfirmDialog = ({
 }: ConfirmDialogProps) => (
   <AlertDialog.Root open={open} onOpenChange={onOpenChange}>
     <AlertDialog.Portal>
-      <AlertDialog.Backdrop className="fixed inset-0 z-overlay bg-blanket transition-opacity duration-200 data-[ending-style]:opacity-0 data-[ending-style]:duration-150 data-[starting-style]:opacity-0" />
+      <AlertDialog.Backdrop
+        className={cn(
+          "fixed inset-0 z-overlay bg-blanket transition-opacity data-[ending-style]:opacity-0 data-[starting-style]:opacity-0",
+          timing,
+        )}
+      />
       <AlertDialog.Viewport className="fixed inset-0 z-overlay flex flex-col items-center p-4 before:max-h-[clamp(0rem,12vh_-_1rem,7rem)] before:grow after:grow">
         <AlertDialog.Popup
           className={cn(
             "flex w-120 max-w-full flex-col overflow-hidden rounded-xl bg-surface-overlay shadow-overlay outline-none",
-            motion,
+            scaleMotion,
+            timing,
           )}
         >
           <AlertDialog.Title className="sr-only">{action}</AlertDialog.Title>

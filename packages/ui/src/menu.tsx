@@ -3,6 +3,7 @@ import { ContextMenu as BaseContextMenu, Menu as BaseMenu } from "@base-ui/react
 import { cn } from "cn";
 import { type ComponentProps, createContext, type ReactNode, use, useRef, useState } from "react";
 import { Icon } from "./icon.tsx";
+import { popupSurface } from "./popup.ts";
 
 const POSITIONING = { align: "start", sideOffset: 4, collisionPadding: 8 } as const;
 
@@ -16,13 +17,19 @@ interface FilterState {
 
 const FilterContext = createContext<FilterState>({ query: "", width: null, lock: () => {} });
 
-const Filter = ({ children }: { readonly children: (reset: (open: boolean) => void) => ReactNode }) => {
+type OpenChange<Details> = (open: boolean, details: Details) => void;
+
+type Track = <Details>(onOpenChange?: OpenChange<Details>) => OpenChange<Details>;
+
+const Filter = ({ children }: { readonly children: (track: Track) => ReactNode }) => {
   const [query, setQuery] = useState("");
   const [width, setWidth] = useState<number | null>(null);
-  const reset = (open: boolean) => {
-    if (!open) return;
-    setQuery("");
-    setWidth(null);
+  const track: Track = (onOpenChange) => (open, details) => {
+    if (open) {
+      setQuery("");
+      setWidth(null);
+    }
+    onOpenChange?.(open, details);
   };
   return (
     <BaseMenu.FilterProvider
@@ -33,7 +40,7 @@ const Filter = ({ children }: { readonly children: (reset: (open: boolean) => vo
       }}
     >
       <FilterContext value={{ query, width, lock: (next) => setWidth((current) => current ?? next) }}>
-        {children(reset)}
+        {children(track)}
       </FilterContext>
     </BaseMenu.FilterProvider>
   );
@@ -43,7 +50,9 @@ const Body = ({ children }: { readonly children: ReactNode }) => {
   const filter = use(FilterContext);
   const list = useRef<HTMLDivElement>(null);
   return (
-    <BaseMenu.Popup className="flex max-h-(--available-height) min-w-48 origin-(--transform-origin) flex-col overflow-hidden rounded-lg bg-surface-overlay shadow-overlay outline-none transition-[opacity,scale] data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0">
+    <BaseMenu.Popup
+      className={cn(popupSurface, "flex max-h-(--available-height) min-w-48 flex-col overflow-hidden")}
+    >
       <BaseMenu.Input
         aria-label="Filter"
         placeholder="Filter…"
@@ -67,18 +76,7 @@ const Body = ({ children }: { readonly children: ReactNode }) => {
 };
 
 const Root = ({ onOpenChange, ...props }: ComponentProps<typeof BaseMenu.Root>) => (
-  <Filter>
-    {(reset) => (
-      <BaseMenu.Root
-        modal={false}
-        onOpenChange={(open, details) => {
-          reset(open);
-          onOpenChange?.(open, details);
-        }}
-        {...props}
-      />
-    )}
-  </Filter>
+  <Filter>{(track) => <BaseMenu.Root modal={false} onOpenChange={track(onOpenChange)} {...props} />}</Filter>
 );
 
 const Popup = ({ children }: { readonly children: ReactNode }) => (
@@ -108,17 +106,7 @@ const Separator = () => (
 );
 
 const ContextRoot = ({ onOpenChange, ...props }: ComponentProps<typeof BaseContextMenu.Root>) => (
-  <Filter>
-    {(reset) => (
-      <BaseContextMenu.Root
-        onOpenChange={(open, details) => {
-          reset(open);
-          onOpenChange?.(open, details);
-        }}
-        {...props}
-      />
-    )}
-  </Filter>
+  <Filter>{(track) => <BaseContextMenu.Root onOpenChange={track(onOpenChange)} {...props} />}</Filter>
 );
 
 const ContextTrigger = ({ onContextMenu, ...props }: ComponentProps<typeof BaseContextMenu.Trigger>) => (

@@ -1,6 +1,7 @@
 import { Popover as BasePopover } from "@base-ui/react";
 import type { ComponentProps } from "react";
 import { cn } from "cn";
+import { popupSurface } from "./popup.ts";
 
 export const Popover = BasePopover.Root;
 export const PopoverTrigger = BasePopover.Trigger;
@@ -24,10 +25,8 @@ export const PopoverContent = ({ side, align, className, ...props }: PopoverCont
     >
       <BasePopover.Popup
         className={cn(
-          "flex max-h-(--available-height) origin-(--transform-origin) flex-col overflow-hidden rounded-lg p-3",
-          "bg-surface-overlay text-default shadow-overlay outline-none transition-[opacity,scale]",
-          "data-[ending-style]:scale-95 data-[ending-style]:opacity-0",
-          "data-[starting-style]:scale-95 data-[starting-style]:opacity-0",
+          popupSurface,
+          "flex max-h-(--available-height) flex-col overflow-hidden p-3 text-default",
           className,
         )}
         {...props}
