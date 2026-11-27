@@ -1,5 +1,6 @@
 {
   "name": "starlight",
+  "version": "0.0.0",
   "private": true,
   "workspaces": {
     "packages": [
@@ -13,6 +14,7 @@
       "electron": "45.5.0",
       "electron-vite": "6.0.0",
       "electron-builder": "26.18.0",
+      "electron-updater": "6.8.11",
       "vite": "npm:@voidzero-dev/vite-plus-core@8.3.8001",
       "@vitejs/plugin-react": "6.3.0",
       "react": "19.3.1",

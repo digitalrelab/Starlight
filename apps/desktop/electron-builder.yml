@@ -8,4 +8,14 @@ files:
 asar: true
 mac:
   category: public.app-category.productivity
-  target: [dmg]
+  hardenedRuntime: false
+  target:
+    - target: dmg
+      arch: arm64
+    - target: zip
+      arch: arm64
+publish:
+  provider: github
+  owner: digitalrelab
+  repo: Starlight
+  releaseType: release

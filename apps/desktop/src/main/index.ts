@@ -3,6 +3,7 @@ import { app, BrowserWindow, ipcMain, MessageChannelMain } from "electron";
 import { Channel } from "../shared/channels.ts";
 import { superviseHost } from "./host.ts";
 import { serveShell } from "./shell.ts";
+import { startUpdater } from "./updater.ts";
 import { createWindow } from "./window.ts";
 
 if (!app.isPackaged) app.setPath("userData", join(app.getAppPath(), ".data"));
@@ -25,6 +26,7 @@ const main = async () => {
   });
 
   createWindow();
+  startUpdater();
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
