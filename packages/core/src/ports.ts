@@ -58,7 +58,7 @@ export interface ProbedFacts {
 }
 
 export interface ProcessedFacts {
-  readonly placeholder: string;
+  readonly placeholder: string | null;
   readonly palette: Palette;
   readonly traits: ReadonlyArray<Property>;
 }
