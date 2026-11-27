@@ -1,5 +1,11 @@
-import { HostRpcs, type SettingsPatch, ShellRpcs, type WorkspaceId } from "@starlight/contracts";
-import { Context, type Effect, Layer, ManagedRuntime } from "effect";
+import {
+  type EntryChange,
+  HostRpcs,
+  type SettingsPatch,
+  ShellRpcs,
+  type WorkspaceId,
+} from "@starlight/contracts";
+import { Context, Effect, Layer, ManagedRuntime, Stream } from "effect";
 import { RpcClient, type RpcClientError } from "effect/rpc";
 import { layerProtocolPort } from "./transport.ts";
 
@@ -34,6 +40,16 @@ export const createClient = (ports: PortSources) => {
     entries: {
       list: (workspaceId: string, path: string) =>
         host((c) => c.ListEntries({ workspaceId: id(workspaceId), path })),
+      watch: (workspaceId: string, onChange: (change: EntryChange) => void) => {
+        const fiber = runtime.runFork(
+          Host.use((c) =>
+            c
+              .WatchEntries({ workspaceId: id(workspaceId) })
+              .pipe(Stream.runForEach((change) => Effect.sync(() => onChange(change)))),
+          ).pipe(Effect.catchCause((cause) => Effect.logWarning("Entries watch ended", cause))),
+        );
+        return () => fiber.interruptUnsafe();
+      },
     },
     media: {
       list: (workspaceId: string, path: string) =>

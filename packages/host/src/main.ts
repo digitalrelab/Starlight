@@ -4,6 +4,7 @@ import { CoreLive } from "@starlight/core";
 import { Effect, Layer, Queue, Schema } from "effect";
 import { ImageProbeLive } from "./adapters/image-probe/index.ts";
 import { NodeFileSystemLive } from "./adapters/node-file-system.ts";
+import { ParcelFileWatcherLive } from "./adapters/parcel-file-watcher.ts";
 import { SqliteLive } from "./adapters/sqlite/index.ts";
 import { ThumbnailTokensLive } from "./adapters/thumbnail-tokens.ts";
 import { HostServerLive } from "./rpc/server.ts";
@@ -39,6 +40,7 @@ const HostLive = CoreLive.pipe(
   Layer.provide(
     Layer.mergeAll(
       NodeFileSystemLive,
+      ParcelFileWatcherLive,
       ImageProbeLive,
       ThumbnailTokensLive(thumbnailKey),
       SqliteLive(dataDir),

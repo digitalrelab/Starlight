@@ -11,7 +11,7 @@ export const EntryIcon = ({ entry, className, ...props }: Props) => {
   return (
     <Icon
       icon={isDir ? FolderIcon : File01Icon}
-      className={cn(isDir ? "text-accent" : "text-muted", className)}
+      className={cn(isDir ? "text-brand" : "text-subtle", className)}
       {...props}
     />
   );

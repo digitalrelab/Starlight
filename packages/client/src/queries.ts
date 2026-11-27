@@ -2,6 +2,22 @@ import { mutationOptions, queryOptions, type QueryClient } from "@tanstack/react
 import type { SettingsPatch } from "@starlight/contracts";
 import type { StarlightClient } from "./client.ts";
 
+const directoryKey = (workspaceId: string) => ["directory", workspaceId] as const;
+
+const parentOf = (path: string) => path.slice(0, Math.max(0, path.lastIndexOf("/")));
+
+const listingsAffectedBy = (paths: ReadonlyArray<string>) => {
+  const changed = new Set(paths);
+  const parents = new Set(paths.map(parentOf));
+  return (directory: string) => {
+    if (parents.has(directory)) return true;
+    for (let path = directory; ; path = parentOf(path)) {
+      if (changed.has(path)) return true;
+      if (path === "") return false;
+    }
+  };
+};
+
 const createQueries = (client: StarlightClient) => ({
   recentWorkspaces: () =>
     queryOptions({ queryKey: ["recentWorkspaces"], queryFn: () => client.workspaces.recent() }),
@@ -11,13 +27,13 @@ const createQueries = (client: StarlightClient) => ({
 
   entries: (workspaceId: string, path: string) =>
     queryOptions({
-      queryKey: ["entries", workspaceId, path],
+      queryKey: [...directoryKey(workspaceId), path, "entries"],
       queryFn: () => client.entries.list(workspaceId, path),
     }),
 
   media: (workspaceId: string, path: string) =>
     queryOptions({
-      queryKey: ["media", workspaceId, path],
+      queryKey: [...directoryKey(workspaceId), path, "media"],
       queryFn: () => client.media.list(workspaceId, path),
     }),
 
@@ -55,10 +71,26 @@ const createMutations = (client: StarlightClient, queryClient: QueryClient, quer
   },
 });
 
+const createSubscriptions = (client: StarlightClient, queryClient: QueryClient) => ({
+  entries: (workspaceId: string) =>
+    client.entries.watch(workspaceId, (change) => {
+      const affected = change._tag === "Changed" ? listingsAffectedBy(change.paths) : () => true;
+      void queryClient.invalidateQueries({
+        queryKey: directoryKey(workspaceId),
+        predicate: ({ queryKey: [, , directory] }) => typeof directory === "string" && affected(directory),
+      });
+    }),
+});
+
 export const createQueryOptions = (client: StarlightClient, queryClient: QueryClient) => {
   const queries = createQueries(client);
-  return { queries, mutations: createMutations(client, queryClient, queries) };
+  return {
+    queries,
+    mutations: createMutations(client, queryClient, queries),
+    subscriptions: createSubscriptions(client, queryClient),
+  };
 };
 
 export type Queries = ReturnType<typeof createQueries>;
 export type Mutations = ReturnType<typeof createMutations>;
+export type Subscriptions = ReturnType<typeof createSubscriptions>;

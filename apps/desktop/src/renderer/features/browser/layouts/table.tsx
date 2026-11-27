@@ -30,7 +30,7 @@ export const TableLayout = ({ entries, selected, onSelect, onOpen }: LayoutProps
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className={cn(COLUMNS, "border-b border-border px-4 py-1.5 text-[11px] font-medium text-muted")}>
+      <div className={cn(COLUMNS, "border-b border-default px-4 py-1.5 text-xs font-medium text-subtle")}>
         <span>Name</span>
         <span className="text-right">Size</span>
         <span>Modified</span>
@@ -53,19 +53,21 @@ export const TableLayout = ({ entries, selected, onSelect, onOpen }: LayoutProps
                 className={cn(
                   COLUMNS,
                   "absolute inset-x-2 items-center rounded-md px-2",
-                  row.index === selected ? "bg-selected" : "hover:bg-hover",
+                  row.index === selected
+                    ? "bg-selected hover:bg-selected-hovered"
+                    : "hover:bg-neutral-subtle-hovered",
                   entry.hidden && "opacity-50",
                 )}
                 style={{ height: ROW_HEIGHT, transform: `translateY(${row.start}px)` }}
               >
                 <span className="flex min-w-0 items-center gap-2">
-                  <EntryIcon entry={entry} className="shrink-0" />
+                  <EntryIcon entry={entry} />
                   <span className="truncate">{entry.name}</span>
                 </span>
-                <span className="text-right text-muted tabular-nums">
+                <span className="text-right text-subtle tabular-nums">
                   {entry.kind === "directory" ? "—" : formatSize(entry.size)}
                 </span>
-                <span className="truncate text-muted tabular-nums">{formatDate(entry.modifiedAt)}</span>
+                <span className="truncate text-subtle tabular-nums">{formatDate(entry.modifiedAt)}</span>
               </div>
             );
           })}

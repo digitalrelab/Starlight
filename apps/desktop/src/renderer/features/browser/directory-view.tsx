@@ -18,7 +18,7 @@ export const DirectoryView = ({ workspaceId, path, entries, layout, onOpen }: Pr
   );
 
   if (entries.length === 0) {
-    return <div className="flex flex-1 items-center justify-center text-muted">Empty folder</div>;
+    return <div className="flex flex-1 items-center justify-center text-subtle">Empty folder</div>;
   }
 
   const onKeyDown = (event: KeyboardEvent) => {
@@ -41,7 +41,7 @@ export const DirectoryView = ({ workspaceId, path, entries, layout, onOpen }: Pr
           onOpen={onOpen}
         />
       </Suspense>
-      <footer className="border-t border-border px-4 py-1 text-[11px] text-muted">
+      <footer className="border-t border-default px-4 py-1 text-xs text-subtle">
         {entries.length.toLocaleString()} {entries.length === 1 ? "item" : "items"}
       </footer>
     </div>

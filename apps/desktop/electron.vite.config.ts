@@ -12,7 +12,6 @@ const renderer = resolve(root, "src/renderer");
 export default defineConfig({
   main: {
     build: {
-      externalizeDeps: false,
       rolldownOptions: {
         input: {
           index: resolve(root, "src/main/index.ts"),

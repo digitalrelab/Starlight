@@ -25,7 +25,7 @@ export const SegmentedControl = <Value extends string>({
     onValueChange={([next]) => {
       if (next !== undefined) onValueChange(next);
     }}
-    className={cn("flex h-7 items-center gap-0.5 rounded-md bg-hover p-0.5", className)}
+    className={cn("flex h-control items-center gap-0.5 rounded-md bg-neutral p-0.5", className)}
     {...props}
   />
 );
@@ -46,9 +46,9 @@ export const SegmentedControlItem = <Value extends string>({
       value={value}
       aria-label={label}
       className={cn(
-        "flex h-6 min-w-6 items-center justify-center rounded px-1 text-muted focus-ring",
-        "transition-colors duration-100 hover:text-fg",
-        "data-[pressed]:bg-panel data-[pressed]:text-fg data-[pressed]:shadow-xs",
+        "flex h-control-sm min-w-control-sm items-center justify-center rounded-sm px-1 text-subtle focus-ring",
+        "transition-colors hover:text-default",
+        "data-[pressed]:bg-surface-raised data-[pressed]:text-default data-[pressed]:shadow-xs",
       )}
     >
       <Icon icon={icon} size={14} />

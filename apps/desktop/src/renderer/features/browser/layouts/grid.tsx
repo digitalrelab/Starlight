@@ -153,9 +153,8 @@ const Tile = memo(({ index, entry, media, left, width, height, selected, onSelec
       onDoubleClick={() => onOpen(entry)}
       title={entry.name}
       className={cn(
-        "absolute top-0 overflow-hidden rounded-md bg-hover",
-        "outline-offset-[-3px] outline-accent",
-        selected && "outline-3",
+        "absolute top-0 overflow-hidden rounded-md bg-neutral",
+        selected && "ring-3 ring-selected",
         entry.hidden && "opacity-50",
       )}
       style={{ left, width, height }}
@@ -165,7 +164,7 @@ const Tile = memo(({ index, entry, media, left, width, height, selected, onSelec
           <Icon
             icon={Image01Icon}
             size={24}
-            className="absolute top-1/2 left-1/2 -translate-1/2 text-muted opacity-40"
+            className="absolute top-1/2 left-1/2 -translate-1/2 text-subtlest"
           />
           <img
             src={thumbnailUrl(media.thumbnail, Math.max(width, height) * window.devicePixelRatio)}
@@ -179,7 +178,7 @@ const Tile = memo(({ index, entry, media, left, width, height, selected, onSelec
       ) : (
         <div className="flex size-full flex-col items-center justify-center gap-2 p-3">
           <EntryIcon entry={entry} size={40} strokeWidth={1.25} />
-          <span className="w-full truncate text-center text-[12px]">{entry.name}</span>
+          <span className="w-full truncate text-center text-sm">{entry.name}</span>
         </div>
       )}
     </div>

@@ -1,6 +1,13 @@
-import type { DirectoryError, Entry, WorkspaceId } from "@starlight/contracts";
-import { Context, Effect, Layer } from "effect";
-import { FileSystemPort } from "./ports.ts";
+import type {
+  DirectoryError,
+  Entry,
+  EntryChange,
+  FileSystemError,
+  WorkspaceId,
+  WorkspaceNotFound,
+} from "@starlight/contracts";
+import { Context, Effect, Layer, Option, Result, Stream } from "effect";
+import { type FileWatchEvent, FileSystemPort, FileWatcherPort } from "./ports.ts";
 import { joinRelative } from "./relative-path.ts";
 import { Workspaces } from "./workspaces.ts";
 
@@ -12,6 +19,18 @@ const byKindThenName = (a: Entry, b: Entry) => {
   return aDir - bDir || collator.compare(a.name, b.name);
 };
 
+const MAX_CHANGED_PATHS = 1024;
+
+const resync: EntryChange = { _tag: "Resync" };
+
+const toChange =
+  (relativize: (absolute: string) => Option.Option<string>) =>
+  (event: FileWatchEvent): Result.Result<EntryChange, void> => {
+    if (event._tag === "Resync" || event.paths.length > MAX_CHANGED_PATHS) return Result.succeed(resync);
+    const paths = event.paths.flatMap((absolute) => Option.toArray(relativize(absolute)));
+    return paths.length === 0 ? Result.failVoid : Result.succeed({ _tag: "Changed", paths });
+  };
+
 export class Entries extends Context.Service<
   Entries,
   {
@@ -19,11 +38,15 @@ export class Entries extends Context.Service<
       workspaceId: WorkspaceId,
       path: string,
     ) => Effect.Effect<ReadonlyArray<Entry>, DirectoryError>;
+    readonly watch: (
+      workspaceId: WorkspaceId,
+    ) => Stream.Stream<EntryChange, WorkspaceNotFound | FileSystemError>;
   }
 >()("@starlight/core/Entries") {
   static readonly layer = Layer.effect(Entries)(
     Effect.gen(function* () {
       const fs = yield* FileSystemPort;
+      const watcher = yield* FileWatcherPort;
       const workspaces = yield* Workspaces;
 
       return Entries.of({
@@ -38,6 +61,16 @@ export class Entries extends Context.Service<
             }))
             .sort(byKindThenName);
         }),
+
+        watch: (workspaceId) =>
+          workspaces.get(workspaceId).pipe(
+            Effect.map((workspace) =>
+              watcher
+                .watch(workspace.rootPath)
+                .pipe(Stream.filterMap(toChange((absolute) => workspaces.relativize(workspace, absolute)))),
+            ),
+            Stream.unwrap,
+          ),
       });
     }),
   );

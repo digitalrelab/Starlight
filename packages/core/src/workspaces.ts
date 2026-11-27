@@ -18,6 +18,7 @@ export class Workspaces extends Context.Service<
     readonly open: (path: string) => Effect.Effect<Workspace, NotADirectory | FileSystemError, CurrentActor>;
     readonly recent: Effect.Effect<ReadonlyArray<Workspace>>;
     readonly get: (id: WorkspaceId) => Effect.Effect<Workspace, WorkspaceNotFound>;
+    readonly relativize: (workspace: Workspace, absolute: string) => Option.Option<string>;
     readonly resolveDirectory: (
       id: WorkspaceId,
       relative: string,
@@ -33,6 +34,11 @@ export class Workspaces extends Context.Service<
 
       const isWithin = (root: string, candidate: string) =>
         candidate === root || candidate.startsWith(root.endsWith(path.sep) ? root : root + path.sep);
+
+      const relativize = (workspace: Workspace, absolute: string) =>
+        isWithin(workspace.rootPath, absolute)
+          ? Option.some(path.relative(workspace.rootPath, absolute).split(path.sep).join("/"))
+          : Option.none();
 
       const get = (id: WorkspaceId) =>
         store.findById(id).pipe(
@@ -55,19 +61,18 @@ export class Workspaces extends Context.Service<
         }),
         recent: store.recent(RECENT_LIMIT),
         get,
+        relativize,
         resolveDirectory: Effect.fn("Workspaces.resolveDirectory")(function* (id, relative) {
-          const { rootPath } = yield* get(id);
-          const lexical = path.resolve(rootPath, relative);
-          if (!isWithin(rootPath, lexical)) return yield* new PathOutsideWorkspace({ path: relative });
+          const workspace = yield* get(id);
+          const lexical = path.resolve(workspace.rootPath, relative);
+          if (!isWithin(workspace.rootPath, lexical))
+            return yield* new PathOutsideWorkspace({ path: relative });
           const absolute = yield* fs.realPath(lexical);
-          if (!isWithin(rootPath, absolute)) return yield* new PathOutsideWorkspace({ path: relative });
-          const resolved = {
-            absolute,
-            relative: path.relative(rootPath, absolute).split(path.sep).join("/"),
-          };
+          const inside = relativize(workspace, absolute);
+          if (Option.isNone(inside)) return yield* new PathOutsideWorkspace({ path: relative });
           const info = yield* fs.stat(absolute);
-          if (info.kind !== "directory") return yield* new NotADirectory({ path: resolved.relative });
-          return resolved;
+          if (info.kind !== "directory") return yield* new NotADirectory({ path: inside.value });
+          return { absolute, relative: inside.value };
         }),
       });
     }),
