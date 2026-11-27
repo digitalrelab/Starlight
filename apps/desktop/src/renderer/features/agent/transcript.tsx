@@ -10,20 +10,21 @@ interface Props {
   readonly className?: string;
 }
 
-const Reply = ({ text, reveal }: { readonly text: string; readonly reveal: boolean }) => (
-  <Markdown source={useRevealedText(text, reveal)} />
-);
+const Reply = ({ text, pending }: { readonly text: string; readonly pending: boolean }) => {
+  const shown = useRevealedText(text);
+  return pending && shown === "" ? <Shimmer>Thinking…</Shimmer> : <Markdown source={shown} />;
+};
 
 const Message = ({
   role,
   text,
   pending,
-}: Pick<ChatMessage, "role" | "text"> & { readonly pending: boolean }) => {
-  if (role === "user") {
-    return <p className="max-w-[80%] self-end rounded-lg bg-neutral px-3 py-2 whitespace-pre-wrap">{text}</p>;
-  }
-  return pending && text === "" ? <Shimmer>Thinking…</Shimmer> : <Reply text={text} reveal={pending} />;
-};
+}: Pick<ChatMessage, "role" | "text"> & { readonly pending: boolean }) =>
+  role === "user" ? (
+    <p className="max-w-[80%] self-end rounded-lg bg-neutral px-3 py-2 whitespace-pre-wrap">{text}</p>
+  ) : (
+    <Reply text={text} pending={pending} />
+  );
 
 export const Transcript = ({ messages, draft, failure, className }: Props) => {
   const { viewport, content } = useStickToBottom(messages.findLast((message) => message.role === "user")?.id);

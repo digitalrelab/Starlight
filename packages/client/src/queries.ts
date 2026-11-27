@@ -51,7 +51,11 @@ const createQueries = (client: StarlightClient) => ({
     queryOptions({ queryKey: ["conversations"], queryFn: () => client.conversations.list() }),
 
   conversation: (id: string) =>
-    queryOptions({ queryKey: ["conversation", id], queryFn: () => client.conversations.get(id) }),
+    queryOptions({
+      queryKey: ["conversation", id],
+      queryFn: () => client.conversations.get(id),
+      staleTime: Infinity,
+    }),
 
   update: () =>
     queryOptions({
@@ -111,18 +115,22 @@ const createSubscriptions = (client: StarlightClient, queryClient: QueryClient, 
     const { queryKey } = queries.conversation(id);
     const update = (change: (detail: ConversationDetail) => ConversationDetail) =>
       queryClient.setQueryData(queryKey, (detail) => detail && change(detail));
+    const has = (detail: ConversationDetail, messageId: string) =>
+      detail.messages.some((message) => message.id === messageId);
 
     return client.conversations.watch(id, (event) => {
       switch (event._tag) {
+        case "Snapshot":
+          return queryClient.setQueryData(queryKey, event.detail);
         case "Draft":
-          return update((detail) => ({ ...detail, draft: event.draft, failure: null }));
+          return update((detail) =>
+            has(detail, event.draft.id) ? detail : { ...detail, draft: event.draft, failure: null },
+          );
         case "MessageAdded":
           void queryClient.invalidateQueries(queries.conversations());
           return update((detail) => ({
             ...detail,
-            messages: detail.messages.some((message) => message.id === event.message.id)
-              ? detail.messages
-              : [...detail.messages, event.message],
+            messages: has(detail, event.message.id) ? detail.messages : [...detail.messages, event.message],
             draft: detail.draft?.id === event.message.id ? null : detail.draft,
           }));
         case "TurnFailed":

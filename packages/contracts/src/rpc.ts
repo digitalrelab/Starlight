@@ -85,6 +85,7 @@ export class HostRpcs extends RpcGroup.make(
   Rpc.make("WatchConversation", {
     payload: { conversationId: ConversationId },
     success: ConversationEvent,
+    error: ConversationNotFound,
     stream: true,
   }),
 ) {}

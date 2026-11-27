@@ -42,7 +42,7 @@ export class Conversations extends Context.Service<
       id: ConversationId | null,
       text: string,
     ) => Effect.Effect<Conversation, ConversationNotFound | ConversationBusy | NoAgentProvider, CurrentActor>;
-    readonly watch: (id: ConversationId) => Stream.Stream<ConversationEvent>;
+    readonly watch: (id: ConversationId) => Stream.Stream<ConversationEvent, ConversationNotFound>;
   }
 >()("@starlight/core/Conversations") {
   static readonly layer = Layer.effect(Conversations)(
@@ -134,15 +134,17 @@ export class Conversations extends Context.Service<
               return [stored, yield* driverFor(stored.conversation.provider)] as const;
             });
 
+      const get = (id: ConversationId) =>
+        Effect.map(find(id), ({ conversation, messages }): ConversationDetail => ({
+          conversation,
+          messages,
+          draft: drafts.get(id) ?? null,
+          failure: failures.get(id) ?? null,
+        }));
+
       return Conversations.of({
         list: store.list,
-        get: (id) =>
-          Effect.map(find(id), ({ conversation, messages }) => ({
-            conversation,
-            messages,
-            draft: drafts.get(id) ?? null,
-            failure: failures.get(id) ?? null,
-          })),
+        get,
         send: Effect.fn("Conversations.send")(function* (id, text) {
           const draft: Draft = { id: yield* ids.next, text: "" };
           if (id !== null) {
@@ -173,15 +175,16 @@ export class Conversations extends Context.Service<
         }),
         watch: (id) =>
           Stream.unwrap(
-            Effect.map(PubSub.subscribe(events), (subscription) => {
-              const draft = drafts.get(id);
-              const live = Stream.fromSubscription(subscription).pipe(
-                Stream.filter((published) => published.conversationId === id),
-                Stream.map((published) => published.event),
+            Effect.gen(function* () {
+              const subscription = yield* PubSub.subscribe(events);
+              const detail = yield* get(id);
+              return Stream.concat(
+                Stream.make({ _tag: "Snapshot", detail } as const),
+                Stream.fromSubscription(subscription).pipe(
+                  Stream.filter((published) => published.conversationId === id),
+                  Stream.map((published) => published.event),
+                ),
               );
-              return draft === undefined
-                ? live
-                : Stream.concat(Stream.make({ _tag: "Draft", draft } as const), live);
             }),
           ),
       });

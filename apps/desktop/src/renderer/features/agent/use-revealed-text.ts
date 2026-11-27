@@ -4,8 +4,8 @@ const CATCH_UP_MS = 160;
 
 const isHighSurrogate = (code: number) => code >= 0xd800 && code <= 0xdbff;
 
-export const useRevealedText = (text: string, reveal: boolean) => {
-  const [length, setLength] = useState(() => (reveal ? 0 : text.length));
+export const useRevealedText = (text: string) => {
+  const [length, setLength] = useState(text.length);
   const shown = useRef(length);
 
   useEffect(() => {
