@@ -99,7 +99,7 @@ interface SettingsProps {
 }
 
 const Settings = ({ media, onOpenChange }: SettingsProps) => (
-  <Popover onOpenChange={(open) => onOpenChange(open)}>
+  <Popover onOpenChange={onOpenChange}>
     <PopoverTrigger render={<IconButton label="Playback settings" icon={Settings02Icon} />} />
     <PopoverContent side="top" align="end" className="w-64 gap-1 p-1.5">
       <Setting label="Speed">
