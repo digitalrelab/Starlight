@@ -4,7 +4,14 @@
 
 @custom-variant highlighted {
   &:hover:not(:disabled, [data-disabled]),
-  &[data-popup-open] {
+  &[aria-expanded="true"] {
+    @slot;
+  }
+}
+
+@custom-variant engaged {
+  &:has(> [data-popup-open]),
+  &:has([aria-expanded="true"]) {
     @slot;
   }
 }
