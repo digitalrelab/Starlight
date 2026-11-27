@@ -34,7 +34,7 @@ function ConversationPage() {
           placeholder="Reply…"
           autoFocus
           disabled={detail.draft !== null || send.isPending}
-          onSubmit={(text) => send.mutate({ conversationId, text })}
+          onSubmit={(text) => send.mutateAsync({ conversationId, text })}
         />
         {send.error ? <p className="text-sm text-danger">{send.error.message}</p> : null}
       </div>

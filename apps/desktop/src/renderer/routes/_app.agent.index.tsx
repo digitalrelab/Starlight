@@ -28,13 +28,11 @@ function Agent() {
             autoFocus
             disabled={send.isPending}
             onSubmit={(text) =>
-              send.mutate(
-                { conversationId: null, text },
-                {
-                  onSuccess: (conversation) =>
-                    navigate({ to: "/agent/$conversationId", params: { conversationId: conversation.id } }),
-                },
-              )
+              send
+                .mutateAsync({ conversationId: null, text })
+                .then((conversation) =>
+                  navigate({ to: "/agent/$conversationId", params: { conversationId: conversation.id } }),
+                )
             }
           />
           {send.error ? <p className="text-sm text-danger">{send.error.message}</p> : null}

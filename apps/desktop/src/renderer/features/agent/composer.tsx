@@ -6,7 +6,7 @@ interface Props {
   readonly placeholder: string;
   readonly disabled?: boolean;
   readonly autoFocus?: boolean;
-  readonly onSubmit: (text: string) => void;
+  readonly onSubmit: (text: string) => Promise<unknown>;
 }
 
 export const Composer = ({ placeholder, disabled = false, autoFocus = false, onSubmit }: Props) => {
@@ -15,8 +15,10 @@ export const Composer = ({ placeholder, disabled = false, autoFocus = false, onS
 
   const submit = () => {
     if (!ready) return;
-    onSubmit(text.trim());
-    setText("");
+    onSubmit(text.trim()).then(
+      () => setText(""),
+      () => undefined,
+    );
   };
 
   return (
