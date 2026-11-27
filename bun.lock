@@ -21,6 +21,7 @@
         "@starlight/contracts": "workspace:*",
         "@starlight/host": "workspace:*",
         "@starlight/markdown": "workspace:*",
+        "@starlight/media-player": "workspace:*",
         "@starlight/ui": "workspace:*",
         "@tailwindcss/vite": "catalog:",
         "@tanstack/react-query": "catalog:",
@@ -99,6 +100,21 @@
         "@lezer/markdown": "catalog:",
         "cn": "catalog:",
         "decode-named-character-reference": "catalog:",
+      },
+      "devDependencies": {
+        "@types/react": "catalog:",
+      },
+      "peerDependencies": {
+        "react": "catalog:",
+      },
+    },
+    "packages/media-player": {
+      "name": "@starlight/media-player",
+      "dependencies": {
+        "@hugeicons-pro/core-solid-rounded": "catalog:",
+        "@hugeicons-pro/core-stroke-rounded": "catalog:",
+        "@starlight/ui": "workspace:*",
+        "cn": "catalog:",
       },
       "devDependencies": {
         "@types/react": "catalog:",
@@ -626,6 +642,8 @@
     "@starlight/host": ["@starlight/host@workspace:packages/host"],
 
     "@starlight/markdown": ["@starlight/markdown@workspace:packages/markdown"],
+
+    "@starlight/media-player": ["@starlight/media-player@workspace:packages/media-player"],
 
     "@starlight/ui": ["@starlight/ui@workspace:packages/ui"],
 
