@@ -1,6 +1,6 @@
 import { Image01Icon } from "@hugeicons-pro/core-stroke-rounded";
 import { type Entry, entryKey, type Media } from "@starlight/client";
-import { cn, Icon } from "@starlight/ui";
+import { cn, Icon, ScrollArea } from "@starlight/ui";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { type KeyboardEvent, memo, useEffect, useEffectEvent, useLayoutEffect, useMemo, useRef } from "react";
@@ -89,12 +89,7 @@ export const GridLayout = ({ workspaceId, directory, entries, selected, onSelect
   };
 
   return (
-    <div
-      ref={scrollRef}
-      tabIndex={0}
-      onKeyDown={onKeyDown}
-      className="min-h-0 flex-1 overflow-y-auto outline-none [scrollbar-gutter:stable]"
-    >
+    <ScrollArea ref={scrollRef} tabIndex={0} onKeyDown={onKeyDown} className="flex-1">
       <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
         {virtualizer.getVirtualItems().map((item) => {
           const row = layout.rows[item.index];
@@ -132,7 +127,7 @@ export const GridLayout = ({ workspaceId, directory, entries, selected, onSelect
           );
         })}
       </div>
-    </div>
+    </ScrollArea>
   );
 };
 
