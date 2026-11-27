@@ -86,19 +86,11 @@ export default defineConfig({
       },
       {
         files: ["packages/ui/**"],
-        plugins: ["react"],
-        rules: {
-          ...reactCompiler,
-          ...forbid("@starlight/*", "effect", "effect/*", "@effect/*", "@tanstack/*", "node:*", "electron"),
-        },
+        rules: forbid("@starlight/*", "effect", "effect/*", "@effect/*", "@tanstack/*", "node:*", "electron"),
       },
       {
         files: ["packages/markdown/**"],
-        plugins: ["react"],
-        rules: {
-          ...reactCompiler,
-          ...forbid("@starlight/*", "effect", "effect/*", "@effect/*", "@tanstack/*", "node:*", "electron"),
-        },
+        rules: forbid("@starlight/*", "effect", "effect/*", "@effect/*", "@tanstack/*", "node:*", "electron"),
       },
       {
         files: ["apps/desktop/src/main/**", "apps/desktop/src/preload/**"],
@@ -113,22 +105,22 @@ export default defineConfig({
       },
       {
         files: ["apps/desktop/src/renderer/**"],
+        rules: forbid(
+          "@starlight/contracts",
+          "@starlight/core",
+          "@starlight/host",
+          "@starlight/host/*",
+          "effect",
+          "effect/*",
+          "@effect/*",
+          "node:*",
+          "electron",
+        ),
+      },
+      {
+        files: ["apps/desktop/src/renderer/**", "packages/ui/**", "packages/markdown/**"],
         plugins: ["react"],
-        rules: {
-          ...reactCompiler,
-          "react/incompatible-library": "off",
-          ...forbid(
-            "@starlight/contracts",
-            "@starlight/core",
-            "@starlight/host",
-            "@starlight/host/*",
-            "effect",
-            "effect/*",
-            "@effect/*",
-            "node:*",
-            "electron",
-          ),
-        },
+        rules: { ...reactCompiler, "react/incompatible-library": "off" },
       },
     ],
   },
