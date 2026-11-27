@@ -1,6 +1,7 @@
 export * from "./actor.ts";
 export * from "./agent.ts";
 export * from "./connection.ts";
+export * from "./conversation.ts";
 export * from "./disk.ts";
 export * from "./entry.ts";
 export * from "./errors.ts";

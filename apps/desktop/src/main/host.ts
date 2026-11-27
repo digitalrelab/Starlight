@@ -5,12 +5,14 @@ import { appData } from "./app-data.ts";
 
 const MIN_UPTIME_MS = 5_000;
 
-const fork = (env: Readonly<Record<string, string>>) =>
-  utilityProcess.fork(join(import.meta.dirname, "host.js"), [], {
+const fork = (env: Readonly<Record<string, string>>) => {
+  const { database, agent } = appData();
+  return utilityProcess.fork(join(import.meta.dirname, "host.js"), [], {
     serviceName: "Starlight Host",
     stdio: "inherit",
-    env: { ...process.env, ...env, STARLIGHT_DATABASE_PATH: appData().database },
+    env: { ...process.env, ...env, STARLIGHT_DATABASE_PATH: database, STARLIGHT_AGENT_PATH: agent },
   });
+};
 
 export const superviseHost = (env: Readonly<Record<string, string>>, onRestart: () => void) => {
   let stopping = false;

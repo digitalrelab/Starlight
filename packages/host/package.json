@@ -8,13 +8,17 @@
     "./file-token": "./src/file-token.ts"
   },
   "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "catalog:",
+    "@anthropic-ai/sdk": "catalog:",
     "@effect/platform-node": "catalog:",
     "@effect/sql-sqlite-node": "catalog:",
+    "@modelcontextprotocol/sdk": "catalog:",
     "@parcel/watcher": "catalog:",
     "@starlight/contracts": "workspace:*",
     "@starlight/core": "workspace:*",
     "effect": "catalog:",
-    "image-size": "catalog:"
+    "image-size": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:"

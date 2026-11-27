@@ -11,7 +11,8 @@
     "@fontsource-variable/geist": "catalog:",
     "@hugeicons-pro/core-stroke-rounded": "catalog:",
     "@hugeicons/react": "catalog:",
-    "cn": "catalog:"
+    "cn": "catalog:",
+    "marked": "catalog:"
   },
   "devDependencies": {
     "@types/react": "catalog:"
