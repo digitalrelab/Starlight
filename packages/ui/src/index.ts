@@ -9,4 +9,4 @@ export * from "./nav-section.tsx";
 export * from "./preference.ts";
 export * from "./select.tsx";
 export * from "./switch.tsx";
-export * from "./tooltip.tsx";
+export { Tooltip } from "./tooltip.tsx";
