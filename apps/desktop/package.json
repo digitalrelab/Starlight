@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "main": "./out/main/index.js",
+  "imports": {
+    "#*": "./src/*"
+  },
   "scripts": {
     "postinstall": "install-electron",
     "dev": "bun scripts/dev.ts",

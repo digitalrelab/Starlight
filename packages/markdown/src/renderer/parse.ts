@@ -1,6 +1,6 @@
 import { type Tree, TreeFragment } from "@lezer/common";
-import { changeBetween } from "../change.ts";
-import { parser } from "../dialect.ts";
+import { changeBetween } from "#change.ts";
+import { parser } from "#dialect.ts";
 
 export const createIncrementalParser = () => {
   let text: string | undefined;

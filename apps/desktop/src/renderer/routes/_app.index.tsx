@@ -1,8 +1,8 @@
 import { FolderOpenIcon } from "@hugeicons-pro/core-stroke-rounded";
 import { Button, Icon } from "@starlight/ui";
 import { createFileRoute } from "@tanstack/react-router";
-import { PageHeader } from "../features/shell/page-header.tsx";
-import { useOpenWorkspace } from "../features/workspaces/use-open-workspace.ts";
+import { PageHeader } from "#renderer/features/shell/page-header.tsx";
+import { useOpenWorkspace } from "#renderer/features/workspaces/use-open-workspace.ts";
 
 export const Route = createFileRoute("/_app/")({
   component: Home,

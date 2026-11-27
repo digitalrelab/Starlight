@@ -1,7 +1,7 @@
 import type { Update } from "@starlight/client";
 import { Button } from "@starlight/ui";
 import { useMutation } from "@tanstack/react-query";
-import { useStarlight } from "../../lib/context.ts";
+import { useStarlight } from "#renderer/lib/context.ts";
 
 export const UpdateAction = ({ update }: { readonly update: Update }) => {
   const { mutations } = useStarlight();

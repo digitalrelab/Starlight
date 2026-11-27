@@ -1,5 +1,5 @@
 import { ipcRenderer, webFrame } from "electron";
-import { Channel } from "../shared/channels.ts";
+import { Channel } from "#shared/channels.ts";
 
 window.addEventListener("message", (event) => {
   if (event.source !== window) return;

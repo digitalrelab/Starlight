@@ -1,9 +1,9 @@
 import { Item } from "@starlight/ui";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { ProviderRow } from "../features/providers/provider-row.tsx";
-import { SettingsPage } from "../features/settings/settings-page.tsx";
-import { useStarlight } from "../lib/context.ts";
+import { ProviderRow } from "#renderer/features/providers/provider-row.tsx";
+import { SettingsPage } from "#renderer/features/settings/settings-page.tsx";
+import { useStarlight } from "#renderer/lib/context.ts";
 
 export const Route = createFileRoute("/settings/providers")({
   loader: ({ context: { queryClient, queries } }) => queryClient.ensureQueryData(queries.agentProviders()),

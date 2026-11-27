@@ -1,6 +1,6 @@
 import { type Entry, type FileSource, mediaTypeOf } from "@starlight/client";
-import { fileUrl } from "../../../shared/files.ts";
-import { previewUrl } from "../../../shared/previews.ts";
+import { fileUrl } from "#shared/files.ts";
+import { previewUrl } from "#shared/previews.ts";
 
 type Presentation = "image" | "preview" | "video" | "markdown" | "none";
 

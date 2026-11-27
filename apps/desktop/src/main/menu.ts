@@ -1,6 +1,6 @@
 import { BrowserWindow, Menu, type MenuItemConstructorOptions } from "electron";
-import { Channel } from "../shared/channels.ts";
-import type { ZoomStep } from "../shared/zoom.ts";
+import { Channel } from "#shared/channels.ts";
+import type { ZoomStep } from "#shared/zoom.ts";
 
 const zoomItem = (label: string, accelerator: string, step: ZoomStep): MenuItemConstructorOptions => ({
   label,

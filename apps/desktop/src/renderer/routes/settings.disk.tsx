@@ -1,8 +1,8 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { DiskBreakdown } from "../features/settings/disk-breakdown.tsx";
-import { SettingsPage } from "../features/settings/settings-page.tsx";
-import { useStarlight } from "../lib/context.ts";
+import { DiskBreakdown } from "#renderer/features/settings/disk-breakdown.tsx";
+import { SettingsPage } from "#renderer/features/settings/settings-page.tsx";
+import { useStarlight } from "#renderer/lib/context.ts";
 
 export const Route = createFileRoute("/settings/disk")({
   loader: ({ context: { queryClient, queries } }) => queryClient.ensureQueryData(queries.diskUsage()),

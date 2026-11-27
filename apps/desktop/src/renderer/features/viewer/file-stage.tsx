@@ -2,11 +2,11 @@ import type { Entry, EntryRef, FileSource } from "@starlight/client";
 import { cn, ScrollArea } from "@starlight/ui";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { type ReactNode, Suspense, useState } from "react";
-import { fileUrl } from "../../../shared/files.ts";
-import { previewUrl } from "../../../shared/previews.ts";
-import { useStarlight } from "../../lib/context.ts";
-import { reveal } from "../../lib/reveal.ts";
-import { type ItemKind, KindIcon, itemKindOf } from "../files/kind-icon.tsx";
+import { fileUrl } from "#shared/files.ts";
+import { previewUrl } from "#shared/previews.ts";
+import { useStarlight } from "#renderer/lib/context.ts";
+import { reveal } from "#renderer/lib/reveal.ts";
+import { type ItemKind, KindIcon, itemKindOf } from "#renderer/features/files/kind-icon.tsx";
 import { MarkdownEditor, markdownText } from "./markdown-file.ts";
 import { pictureUrl, presentationOf } from "./presentation.ts";
 
