@@ -6,7 +6,8 @@ import { formatDate, formatSize } from "#renderer/lib/format.ts";
 import { KindIcon, itemKindOf } from "#renderer/features/files/kind-icon.tsx";
 import { useRevealFocus } from "#renderer/features/browser/selection.ts";
 import { type ItemHandlers, listProps, type Step, useItem } from "./events.ts";
-import { fieldFor, type LayoutProps } from "./types.ts";
+import { draftOf, fieldFor } from "./naming-slot.ts";
+import type { LayoutProps } from "./types.ts";
 
 const ROW_HEIGHT = 26;
 const COLUMNS = "grid grid-cols-[minmax(0,1fr)_96px_168px] gap-4";
@@ -16,7 +17,7 @@ const NAME = "flex min-w-0 items-center gap-2";
 const step: Step = (from, key) => (key === "ArrowDown" ? from + 1 : key === "ArrowUp" ? from - 1 : undefined);
 
 export const TableLayout = ({ entries, selection, naming, onHover, onOpen }: LayoutProps) => {
-  const draft = naming?.entry === null ? naming : null;
+  const draft = draftOf(naming);
   const scrollRef = useRef<HTMLDivElement>(null);
   const virtualizer = useVirtualizer({
     count: entries.length,

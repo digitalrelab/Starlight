@@ -24,10 +24,10 @@ export const ListingMenu = ({ directory, entries, selection, children }: Props) 
         render={<div className="contents" />}
         onContextMenu={(event) => {
           const index = itemIndexAt(event.target);
-          const entry = (index !== null && entries[index]) || null;
+          const entry = index === null ? undefined : entries[index];
           if (index !== null && entry && !selection.has(selectionId(entry)))
             selection.select(index, { toggle: false, extend: false });
-          setTarget(entry);
+          setTarget(entry ?? null);
         }}
       >
         {children}

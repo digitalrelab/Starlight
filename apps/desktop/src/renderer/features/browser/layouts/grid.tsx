@@ -10,7 +10,8 @@ import { listProps, type Step } from "./events.ts";
 import { dropLeading, justify, nearestInRow, shelve, stack } from "./rows.ts";
 import { KindIcon } from "#renderer/features/files/kind-icon.tsx";
 import { DraftChip, FolderChip, TILE_CHROME, TILE_INSET, Tile, tilePreviewUrl } from "./tile.tsx";
-import { fieldFor, type LayoutProps } from "./types.ts";
+import { draftOf, fieldFor } from "./naming-slot.ts";
+import type { LayoutProps } from "./types.ts";
 import { usePreviewsAhead } from "./use-preview.ts";
 
 const TARGET_ROW_HEIGHT = 200;
@@ -101,7 +102,7 @@ export const GridLayout = ({
   onHover,
   onOpen,
 }: LayoutProps) => {
-  const draft = naming?.entry === null ? naming : null;
+  const draft = draftOf(naming);
   const scrollRef = useRef<HTMLDivElement>(null);
   const width = useElementWidth(scrollRef);
   const media = useMedia(projectId, directory, entries);
