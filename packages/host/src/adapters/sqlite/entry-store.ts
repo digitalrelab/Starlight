@@ -3,6 +3,7 @@ import { EntryStore, type StoredEntry } from "@starlight/core";
 import { Array as Arr, Effect, Layer, Schema } from "effect";
 import { SqlClient, SqlSchema } from "effect/sql";
 import { BATCH_SIZE, batched } from "./batched.ts";
+import { containing, startingWith } from "./like.ts";
 
 const Row = Schema.Struct({
   id: EntryId,
@@ -46,6 +47,32 @@ export const SqliteEntryStoreLive = Layer.effect(EntryStore)(
       `,
     });
 
+    const search = SqlSchema.findAll({
+      Request: Schema.Struct({ query: Schema.String, limit: Schema.Number }),
+      Result: Schema.Struct({
+        source: SourceId,
+        id: EntryId,
+        name: Schema.String,
+        kind: EntryKind,
+        parent_name: Schema.NullOr(Schema.String),
+      }),
+      execute: ({ query, limit }) => sql`
+        WITH RECURSIVE concealed (source, id) AS (
+          SELECT source, id FROM entries WHERE hidden = 1
+          UNION ALL
+          SELECT entries.source, entries.id FROM entries
+          JOIN concealed ON entries.source = concealed.source AND entries.parent = concealed.id
+        )
+        SELECT entries.source, entries.id, entries.name, entries.kind, parents.name AS parent_name
+        FROM entries
+        LEFT JOIN entries AS parents ON parents.source = entries.source AND parents.id = entries.parent
+        WHERE entries.name LIKE ${containing(query)} ESCAPE '\\'
+        AND (entries.source, entries.id) NOT IN (SELECT source, id FROM concealed)
+        ORDER BY entries.name NOT LIKE ${startingWith(query)} ESCAPE '\\', length(entries.name)
+        LIMIT ${limit}
+      `,
+    });
+
     const children = SqlSchema.findAll({
       Request: Schema.Struct({ source: Schema.String, directory: Schema.String }),
       Result: Row,
@@ -83,6 +110,18 @@ export const SqliteEntryStoreLive = Layer.effect(EntryStore)(
 
     return EntryStore.of({
       roots: Effect.orDie(roots(undefined)),
+      search: (query, limit) =>
+        search({ query, limit }).pipe(
+          Effect.map((rows) =>
+            rows.map(({ source, id, name, kind, parent_name }) => ({
+              ref: { source, id },
+              name,
+              kind,
+              parentName: parent_name,
+            })),
+          ),
+          Effect.orDie,
+        ),
       children: (source, directory) =>
         children({ source, directory }).pipe(
           Effect.map((rows) => rows.map(toEntry)),

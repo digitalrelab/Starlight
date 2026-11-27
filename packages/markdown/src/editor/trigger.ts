@@ -66,7 +66,7 @@ const storeOf = <Value>(initial: Value) => {
 
 const latestIn = <Value>(tr: Transaction, type: StateEffectType<Value>, fallback: Value) => {
   const effect = tr.effects.findLast((each) => each.is(type));
-  return effect ? (effect.value as Value) : fallback;
+  return effect ? effect.value : fallback;
 };
 
 const tooltipAt = (pos: number): Tooltip => ({

@@ -94,7 +94,7 @@ interface ItemProps extends Omit<ComponentProps<typeof BaseMenu.Item>, "classNam
 
 const Item = ({ icon, children, ...props }: ItemProps) => (
   <BaseMenu.Item className={listItem} {...props}>
-    <Icon icon={icon} className="shrink-0" />
+    <Icon icon={icon} />
     {children}
   </BaseMenu.Item>
 );

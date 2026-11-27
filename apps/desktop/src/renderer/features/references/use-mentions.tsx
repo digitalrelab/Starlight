@@ -24,7 +24,7 @@ const GROUPS = ["Folders", "Files", "Chats"] as const;
 interface MentionChoice extends TriggerOption {
   readonly group: (typeof GROUPS)[number];
   readonly url: string;
-  readonly parent?: string;
+  readonly parentName?: string;
 }
 
 const choiceOf = (match: ReferenceMatch): MentionChoice => {
@@ -37,9 +37,9 @@ const choiceOf = (match: ReferenceMatch): MentionChoice => {
     key: url,
     url,
     group: match.kind === "directory" ? "Folders" : "Files",
-    leading: <KindIcon kind={itemKindOf(match)} size={16} />,
+    leading: <KindIcon kind={itemKindOf(match)} />,
     label: match.name,
-    parent: match.parent,
+    parentName: match.parentName,
   };
 };
 
@@ -49,7 +49,7 @@ const choicesOf = (matches: ReadonlyArray<ReferenceMatch>) => {
   const choices = matches.map(choiceOf).toSorted((a, b) => groupRank(a) - groupRank(b));
   const counts = Map.groupBy(choices, ({ label }) => label);
   return choices.map((choice) =>
-    (counts.get(choice.label)?.length ?? 0) > 1 ? { ...choice, detail: choice.parent } : choice,
+    (counts.get(choice.label)?.length ?? 0) > 1 ? { ...choice, detail: choice.parentName } : choice,
   );
 };
 

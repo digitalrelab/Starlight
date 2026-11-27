@@ -87,11 +87,6 @@ export interface SourceDriver {
   readonly parent: (id: EntryId) => EntryId;
   readonly trail: (root: EntryId, id: EntryId) => ReadonlyArray<SourceCrumb>;
   readonly stat: (id: EntryId) => Effect.Effect<SourceEntry, SourceError>;
-  readonly search: (
-    roots: ReadonlyArray<EntryId>,
-    query: string,
-    limit: number,
-  ) => Effect.Effect<ReadonlyArray<SourceEntry>>;
   readonly list: (id: EntryId) => Effect.Effect<ReadonlyArray<SourceEntry>, SourceError>;
   readonly write: (id: EntryId, content: Uint8Array) => Effect.Effect<SourceEntry, SourceError>;
   readonly watch: (root: EntryId) => Stream.Stream<SourceChange, SourceError>;
@@ -135,10 +130,18 @@ export interface StoredEntry extends SourceEntry {
   readonly fileId: FileId | null;
 }
 
+export interface EntryMatch {
+  readonly ref: EntryRef;
+  readonly name: string;
+  readonly kind: EntryKind;
+  readonly parentName: string | null;
+}
+
 export class EntryStore extends Context.Service<
   EntryStore,
   {
     readonly roots: Effect.Effect<ReadonlyArray<EntryRef>>;
+    readonly search: (query: string, limit: number) => Effect.Effect<ReadonlyArray<EntryMatch>>;
     readonly children: (source: SourceId, directory: EntryId) => Effect.Effect<ReadonlyArray<StoredEntry>>;
     readonly withKeys: (
       source: SourceId,
