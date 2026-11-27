@@ -37,7 +37,12 @@ export class EntryIndex extends Context.Service<
       located: LocatedDirectory,
       files: ReadonlyArray<SourceEntry>,
     ) => Effect.Effect<ReadonlyArray<IdentifiedEntry>>;
-    readonly sync: (driver: SourceDriver, directory: EntryRef, deep: boolean) => Effect.Effect<Synced>;
+    readonly sync: (
+      driver: SourceDriver,
+      directory: EntryRef,
+      deep: boolean,
+      roots: ReadonlyArray<EntryId>,
+    ) => Effect.Effect<Synced>;
     readonly forget: (source: SourceId, ids: ReadonlyArray<EntryId>) => Effect.Effect<void>;
     readonly roots: Effect.Effect<ReadonlyArray<EntryRef>>;
     readonly drop: (root: EntryRef, keep: ReadonlyArray<EntryId>) => Effect.Effect<void>;
@@ -153,7 +158,7 @@ export class EntryIndex extends Context.Service<
             return fileId ? [{ ...file, fileId }] : [];
           });
         }),
-        sync: Effect.fn("EntryIndex.sync")(function* (driver, directory, deep) {
+        sync: Effect.fn("EntryIndex.sync")(function* (driver, directory, deep, roots) {
           const listed = yield* Effect.option(driver.list(directory.id));
           if (Option.isNone(listed)) return { missing: [], subdirectories: [] };
           const kinds = new Map(listed.value.map((entry) => [entry.id, entry.kind]));
@@ -177,7 +182,7 @@ export class EntryIndex extends Context.Service<
           const directories = others.filter((entry) => entry.kind === "directory");
           yield* Effect.forEach(
             directories.filter((entry) => entry.ignored),
-            (entry) => drop({ source: directory.source, id: entry.id }, []),
+            (entry) => drop({ source: directory.source, id: entry.id }, roots),
             { discard: true },
           );
           return {
