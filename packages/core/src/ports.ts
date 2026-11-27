@@ -24,6 +24,7 @@ import type {
   SampleFailed,
   Project,
   ProjectId,
+  UsagePeak,
 } from "@starlight/contracts";
 import { FileVersion } from "@starlight/contracts";
 import { Context, Data, type Effect, type Option, type Stream } from "effect";
@@ -197,6 +198,30 @@ export class AuditLog extends Context.Service<
   AuditLog,
   { readonly record: (entry: AuditRecord) => Effect.Effect<void> }
 >()("@starlight/core/AuditLog") {}
+
+export interface UsageSample {
+  readonly at: number;
+  readonly provider: AgentProviderId;
+  readonly label: string;
+  readonly usedPercent: number;
+  readonly resetsAt: number;
+  readonly durationMs: number;
+}
+
+export interface UsageWindows {
+  readonly now: number;
+  readonly minDurationMs: number;
+}
+
+export class UsageStore extends Context.Service<
+  UsageStore,
+  {
+    readonly record: (samples: ReadonlyArray<UsageSample>) => Effect.Effect<void>;
+    readonly forget: (before: number) => Effect.Effect<void>;
+    readonly open: (windows: UsageWindows) => Effect.Effect<ReadonlyArray<UsageSample>>;
+    readonly peaks: (windows: UsageWindows) => Effect.Effect<ReadonlyArray<UsagePeak>>;
+  }
+>()("@starlight/core/UsageStore") {}
 
 export class CurrentActor extends Context.Service<CurrentActor, Actor>()("@starlight/core/CurrentActor") {}
 

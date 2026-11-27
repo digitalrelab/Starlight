@@ -14,6 +14,20 @@ export const formatSize = (bytes: number) => {
 
 export const formatDate = (epochMs: number) => dateFormat.format(epochMs);
 
+const weekdayFormat = new Intl.DateTimeFormat(undefined, { weekday: "short" });
+const dayFormat = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" });
+const dayTimeFormat = new Intl.DateTimeFormat(undefined, {
+  weekday: "short",
+  hour: "numeric",
+  minute: "2-digit",
+});
+
+export const formatWeekday = (epochMs: number) => weekdayFormat.format(epochMs);
+
+export const formatDay = (epochMs: number) => dayFormat.format(epochMs);
+
+export const formatDayTime = (epochMs: number) => dayTimeFormat.format(epochMs);
+
 const MINUTE_MS = 60 * 1000;
 const HOUR_MS = 60 * MINUTE_MS;
 const DAY_MS = 24 * HOUR_MS;

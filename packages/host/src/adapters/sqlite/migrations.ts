@@ -223,4 +223,19 @@ export const migrations = Migrator.fromRecord({
       END
     `;
   }),
+  "0014_usage_samples": Effect.gen(function* () {
+    const sql = yield* SqlClient.SqlClient;
+    yield* sql`
+      CREATE TABLE usage_samples (
+        at INTEGER NOT NULL,
+        provider TEXT NOT NULL,
+        label TEXT NOT NULL,
+        used_percent REAL NOT NULL,
+        resets_at INTEGER NOT NULL,
+        duration_ms INTEGER NOT NULL
+      )
+    `;
+    yield* sql`CREATE INDEX usage_samples_by_window ON usage_samples (resets_at, provider, label, at)`;
+    yield* sql`CREATE INDEX usage_samples_by_age ON usage_samples (at)`;
+  }),
 });

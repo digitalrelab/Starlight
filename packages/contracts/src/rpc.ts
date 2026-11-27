@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 import { Rpc, RpcGroup } from "effect/rpc";
-import { AgentProvider, AgentProviderId, AgentProviderUsage, ModelChoice } from "./agent.ts";
+import { AgentProvider, AgentProviderUsage, ModelChoice, UsageHistory } from "./agent.ts";
 import { Chat, ChatBusy, ChatDetail, ChatEvent, ChatId, ChatNotFound, ModelUnavailable } from "./chat.ts";
 import { DiskUsage } from "./disk.ts";
 import { EntryLocation } from "./reference.ts";
@@ -114,6 +114,13 @@ export class HostRpcs extends RpcGroup.make(
   Rpc.make("GetAgentUsage", {
     success: Schema.Array(AgentProviderUsage),
   }),
+  Rpc.make("WatchAgentUsage", {
+    success: Schema.Array(AgentProviderUsage),
+    stream: true,
+  }),
+  Rpc.make("GetUsageHistory", {
+    success: UsageHistory,
+  }),
   Rpc.make("ListChats", {
     payload: { projectId: Schema.NullOr(ProjectId) },
     success: Schema.Array(Chat),
@@ -154,10 +161,6 @@ export class HostRpcs extends RpcGroup.make(
     payload: { chatId: ChatId },
     success: ChatEvent,
     error: ChatNotFound,
-    stream: true,
-  }),
-  Rpc.make("WatchSettledTurns", {
-    success: AgentProviderId,
     stream: true,
   }),
 ) {}

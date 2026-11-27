@@ -8,6 +8,7 @@ import {
   Files,
   MediaLibrary,
   Projects,
+  Usage,
 } from "@starlight/core";
 import { Effect, Layer } from "effect";
 import { RpcServer } from "effect/rpc";
@@ -21,6 +22,7 @@ const HandlersLive = HostRpcs.toLayer(
     const agentProviders = yield* AgentProviders;
     const chats = yield* Chats;
     const search = yield* EntrySearch;
+    const usage = yield* Usage;
     return HostRpcs.of({
       CreateProject: ({ root }) => projects.create(root),
       ListProjects: () => projects.list,
@@ -41,7 +43,9 @@ const HandlersLive = HostRpcs.toLayer(
       WriteFile: ({ projectId, file, content, base }) => files.write(projectId, file, content, base),
       ListAgentProviders: () => agentProviders.list,
       PrepareAgentProviders: () => agentProviders.prepare,
-      GetAgentUsage: () => agentProviders.usage,
+      GetAgentUsage: () => usage.read,
+      WatchAgentUsage: () => usage.reads,
+      GetUsageHistory: () => usage.history,
       ListChats: ({ projectId }) => chats.list(projectId),
       GetChat: ({ chatId }) => chats.get(chatId),
       StartChat: ({ projectId, text, model }) => chats.start(projectId, text, model),
@@ -49,7 +53,6 @@ const HandlersLive = HostRpcs.toLayer(
       RenameChat: ({ chatId, title }) => chats.rename(chatId, title),
       DeleteChat: ({ chatId }) => chats.remove(chatId),
       WatchChat: ({ chatId }) => chats.watch(chatId),
-      WatchSettledTurns: () => chats.settledTurns,
     });
   }),
 );

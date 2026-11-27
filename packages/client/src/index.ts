@@ -26,6 +26,10 @@ export type {
   Swatch,
   Update,
   UpdaterState,
+  UsageHistory,
+  UsagePeak,
+  UsagePoint,
+  UsageSeries,
   UsageWindow,
 } from "@starlight/contracts";
 export {

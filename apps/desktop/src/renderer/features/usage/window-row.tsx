@@ -1,7 +1,7 @@
 import type { UsageWindow } from "@starlight/client";
 import { cn, Item, Tooltip } from "@starlight/ui";
 import { formatSpan } from "#renderer/lib/format.ts";
-import { FULL_PERCENT, type Pace, paceOf, type UsageTone } from "./usage-pace.ts";
+import { FULL_PERCENT, type Pace, paceOf, type UsageTone } from "./pace.ts";
 
 const FILL: Record<UsageTone, string> = {
   neutral: "bg-neutral-bold",
