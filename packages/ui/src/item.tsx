@@ -1,15 +1,10 @@
 import { useRender } from "@base-ui/react";
 import { cn } from "cn";
 import type { ComponentProps } from "react";
+import { Card } from "./card.tsx";
 
 const List = ({ className, ...props }: ComponentProps<"div">) => (
-  <div
-    className={cn(
-      "flex flex-col divide-y divide-default overflow-hidden rounded-lg border border-default bg-surface-raised px-4 shadow-xs",
-      className,
-    )}
-    {...props}
-  />
+  <Card className={cn("flex flex-col divide-y divide-default overflow-hidden px-4", className)} {...props} />
 );
 
 const Root = ({ render, className, ...props }: useRender.ComponentProps<"div">) =>

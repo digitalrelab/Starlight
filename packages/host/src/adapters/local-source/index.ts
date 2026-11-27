@@ -22,6 +22,7 @@ const toEntry = (path: string, s: Stats): SourceEntry => {
     name,
     kind: kindOf(s),
     size: s.size,
+    createdAt: s.birthtimeMs,
     modifiedAt: s.mtimeMs,
     hidden: name.startsWith("."),
   };

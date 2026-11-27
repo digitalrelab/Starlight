@@ -2,7 +2,7 @@ import type { ChatMessage, Draft } from "@starlight/client";
 import { Markdown } from "@starlight/markdown";
 import { ScrollArea } from "@starlight/ui";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { useEffect, useRef } from "react";
+import { type Ref, useEffect, useImperativeHandle, useRef } from "react";
 import { useRevealedText } from "./use-revealed-text.ts";
 
 const ESTIMATED_MESSAGE_HEIGHT = 120;
@@ -10,11 +10,16 @@ const MESSAGE_GAP = 24;
 const EDGE_SPACE = 32;
 const AT_END_WITHIN_PX = 48;
 
+export interface TranscriptHandle {
+  readonly scrollToEnd: () => void;
+}
+
 interface Props {
   readonly messages: ReadonlyArray<ChatMessage>;
   readonly draft: Draft | null;
   readonly failure: string | null;
   readonly className: string;
+  readonly ref: Ref<TranscriptHandle>;
 }
 
 const Reply = ({ text, pending }: { readonly text: string; readonly pending: boolean }) => {
@@ -50,9 +55,8 @@ const RowContent = ({ role, text, pending }: Omit<Row, "id"> & { readonly pendin
   }
 };
 
-export const Transcript = ({ messages, draft, failure, className }: Props) => {
+export const Transcript = ({ messages, draft, failure, className, ref }: Props) => {
   const viewport = useRef<HTMLDivElement>(null);
-  const lastUserMessage = messages.findLast((message) => message.role === "user")?.id;
   const rows: ReadonlyArray<Row> = [
     ...messages,
     ...(draft ? [{ id: draft.id, role: "assistant" as const, text: draft.text }] : []),
@@ -71,7 +75,8 @@ export const Transcript = ({ messages, draft, failure, className }: Props) => {
     followOnAppend: true,
     scrollEndThreshold: AT_END_WITHIN_PX,
   });
-  useEffect(() => virtualizer.scrollToEnd(), [virtualizer, lastUserMessage]);
+  useImperativeHandle(ref, () => ({ scrollToEnd: () => virtualizer.scrollToEnd() }), [virtualizer]);
+  useEffect(() => virtualizer.scrollToEnd(), [virtualizer]);
 
   return (
     <ScrollArea className="flex-1" ref={viewport} contentClassName={className}>

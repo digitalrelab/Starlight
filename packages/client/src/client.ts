@@ -81,6 +81,8 @@ export const createClient = (ports: PortSources) => {
     files: {
       source: (projectId: string, file: EntryRef) =>
         host((c) => c.GetFileSource({ projectId: id(projectId), file })),
+      details: (projectId: string, file: EntryRef) =>
+        host((c) => c.GetFileDetails({ projectId: id(projectId), file })),
       write: (projectId: string, file: EntryRef, content: Uint8Array, base: FileVersion) =>
         host((c) => c.WriteFile({ projectId: id(projectId), file, content, base })),
     },

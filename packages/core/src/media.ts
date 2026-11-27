@@ -1,9 +1,12 @@
-import type { DirectoryError, EntryRef, Media, MediaUpdate, ProjectId } from "@starlight/contracts";
+import type { DirectoryError, EntryId, EntryRef, Media, MediaUpdate, ProjectId } from "@starlight/contracts";
 import { Context, Effect, Layer, Stream } from "effect";
 import { FileIdentities } from "./file-identities.ts";
 import { Catalog } from "./catalog.ts";
-import { FileTokens } from "./ports.ts";
+import { FileTokens, type SourceChange } from "./ports.ts";
 import { Projects } from "./projects.ts";
+
+const touches = (directory: EntryId) => (change: SourceChange) =>
+  change._tag === "Resync" || change.directories.includes(directory);
 
 export class MediaLibrary extends Context.Service<
   MediaLibrary,
@@ -36,6 +39,22 @@ export class MediaLibrary extends Context.Service<
         return { driver, directory, dimensions, media: files.filter((entry) => dimensions.has(entry.id)) };
       });
 
+      const processDirectory = (projectId: ProjectId, requested: EntryRef) =>
+        Stream.unwrap(
+          Effect.map(locate(projectId, requested), ({ driver, directory, media }) =>
+            catalog.process(driver, directory, media).pipe(
+              Stream.map((batch) =>
+                batch.flatMap(({ entry, facts }): ReadonlyArray<MediaUpdate> =>
+                  facts
+                    ? [{ ref: { source: directory.source, id: entry.id }, placeholder: facts.placeholder }]
+                    : [],
+                ),
+              ),
+              Stream.filter((updates) => updates.length > 0),
+            ),
+          ),
+        );
+
       return MediaLibrary.of({
         list: Effect.fn("MediaLibrary.list")(function* (projectId, requested) {
           if (!requested) return [];
@@ -60,21 +79,10 @@ export class MediaLibrary extends Context.Service<
           requested === null
             ? Stream.empty
             : Stream.unwrap(
-                Effect.map(locate(projectId, requested), ({ driver, directory, media }) =>
-                  catalog.process(driver, directory, media).pipe(
-                    Stream.map((batch) =>
-                      batch.flatMap(({ entry, facts }): ReadonlyArray<MediaUpdate> =>
-                        facts
-                          ? [
-                              {
-                                ref: { source: directory.source, id: entry.id },
-                                placeholder: facts.placeholder,
-                              },
-                            ]
-                          : [],
-                      ),
-                    ),
-                    Stream.filter((updates) => updates.length > 0),
+                Effect.map(projects.locateDirectory(projectId, requested), ({ mount, driver, directory }) =>
+                  driver.watch(mount.root.id).pipe(
+                    Stream.filter(touches(directory.id)),
+                    Stream.switchMap(() => processDirectory(projectId, requested)),
                   ),
                 ),
               ),
