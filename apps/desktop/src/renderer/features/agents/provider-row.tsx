@@ -2,13 +2,9 @@ import type { AgentProvider } from "@starlight/client";
 import { Button } from "@starlight/ui";
 import { SettingRow } from "../settings/setting-row.tsx";
 
-const capitalize = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);
-
 const describe = ({ status }: AgentProvider) =>
   status._tag === "Ready"
-    ? [status.account, status.plan && capitalize(status.plan), status.version && `v${status.version}`]
-        .filter(Boolean)
-        .join(" · ")
+    ? [status.account, status.plan, status.version && `v${status.version}`].filter(Boolean).join(" · ")
     : status.message;
 
 interface Props {

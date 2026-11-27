@@ -49,16 +49,14 @@ const findExecutable = Effect.findFirst(installLocations, isExecutable).pipe(
   Effect.flatMap((found) => (Option.isSome(found) ? Effect.succeed(found) : fromLoginShell)),
 );
 
-const notReady = (reason: "NotInstalled" | "SignedOut" | "Failed", message: string): AgentProviderStatus => ({
-  _tag: "NotReady",
-  reason,
-  message,
-});
+const notReady = (message: string): AgentProviderStatus => ({ _tag: "NotReady", message });
+
+const planLabel = (plan: string) => plan.charAt(0).toUpperCase() + plan.slice(1);
 
 const status: Effect.Effect<AgentProviderStatus> = Effect.gen(function* () {
   const executable = yield* findExecutable;
   if (Option.isNone(executable)) {
-    return notReady("NotInstalled", "Install Claude Code, then sign in with `claude auth login`.");
+    return notReady("Install Claude Code, then sign in with `claude auth login`.");
   }
   const [version, auth] = yield* Effect.all(
     [
@@ -69,13 +67,13 @@ const status: Effect.Effect<AgentProviderStatus> = Effect.gen(function* () {
     ],
     { concurrency: "unbounded" },
   );
-  if (!auth.loggedIn) return notReady("SignedOut", "Sign in with `claude auth login` in a terminal.");
+  if (!auth.loggedIn) return notReady("Sign in with `claude auth login` in a terminal.");
   return {
     _tag: "Ready",
     version: version.split(" ")[0] ?? version,
     ...(auth.email ? { account: auth.email } : {}),
-    ...(auth.subscriptionType ? { plan: auth.subscriptionType } : {}),
+    ...(auth.subscriptionType ? { plan: planLabel(auth.subscriptionType) } : {}),
   } satisfies AgentProviderStatus;
-}).pipe(Effect.catch((error) => Effect.succeed(notReady("Failed", error.message))));
+}).pipe(Effect.catch((error) => Effect.succeed(notReady(error.message))));
 
 export const claudeCodeDriver: AgentProviderDriver = { name: "Claude Code", status };

@@ -9,10 +9,7 @@ export const AgentProviderStatus = Schema.Union([
     plan: Schema.optionalKey(Schema.String),
     version: Schema.optionalKey(Schema.String),
   }),
-  Schema.TaggedStruct("NotReady", {
-    reason: Schema.Literals(["NotInstalled", "SignedOut", "Failed"]),
-    message: Schema.String,
-  }),
+  Schema.TaggedStruct("NotReady", { message: Schema.String }),
 ]);
 export type AgentProviderStatus = typeof AgentProviderStatus.Type;
 
