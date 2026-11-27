@@ -1,18 +1,18 @@
 import { BrowserWindow, Menu, type MenuItemConstructorOptions, type WebContents } from "electron";
 import { Channel } from "#shared/channels.ts";
 import {
-  HISTORY_DIRECTIONS,
+  HISTORY_STEPS,
   type HistoryAvailability,
   type HistoryDirection,
   historyDirections,
 } from "#shared/history.ts";
 
 const canStep = ({ navigationHistory }: WebContents, direction: HistoryDirection) =>
-  navigationHistory.canGoToOffset(HISTORY_DIRECTIONS[direction].offset);
+  navigationHistory.canGoToOffset(HISTORY_STEPS[direction].offset);
 
 const step = (webContents: WebContents, direction: HistoryDirection) => {
   if (canStep(webContents, direction)) {
-    webContents.navigationHistory.goToOffset(HISTORY_DIRECTIONS[direction].offset);
+    webContents.navigationHistory.goToOffset(HISTORY_STEPS[direction].offset);
   }
 };
 
@@ -20,8 +20,8 @@ export const historyMenu: MenuItemConstructorOptions = {
   label: "Go",
   submenu: historyDirections.map((direction) => ({
     id: direction,
-    label: HISTORY_DIRECTIONS[direction].label,
-    accelerator: `CommandOrControl+${HISTORY_DIRECTIONS[direction].key}`,
+    label: HISTORY_STEPS[direction].label,
+    accelerator: `CommandOrControl+${HISTORY_STEPS[direction].key}`,
     click: () => {
       const window = BrowserWindow.getFocusedWindow();
       if (window) step(window.webContents, direction);
