@@ -12,10 +12,7 @@ const support = markdown({ extensions, codeLanguages: languages });
 
 const isMarkdown = (type: NodeType) => type.prop(languageDataProp) === support.language.data;
 
-const codeHighlighter: Highlighter = {
-  style: (tags) => classHighlighter.style(tags),
-  scope: (type) => !isMarkdown(type),
-};
+const codeHighlighter: Highlighter = { ...classHighlighter, scope: (type) => !isMarkdown(type) };
 
 const markupHighlighter = HighlightStyle.define(
   [

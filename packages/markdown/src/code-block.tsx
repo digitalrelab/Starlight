@@ -46,18 +46,9 @@ export const CodeBlock = memo(({ code, language }: Props) => {
 
   useEffect(() => {
     if (!isPending || !language) return;
-    let isCurrent = true;
     loadHighlighter()
       .then((module) => module.loadLanguage(language))
-      .then(
-        () => {
-          if (isCurrent) loaded();
-        },
-        () => undefined,
-      );
-    return () => {
-      isCurrent = false;
-    };
+      .then(loaded, () => undefined);
   }, [isPending, language]);
 
   return (

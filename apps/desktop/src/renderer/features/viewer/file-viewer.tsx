@@ -3,7 +3,7 @@ import type { Entry, EntryRef } from "@starlight/client";
 import { Button, Icon, IconButton, Theater } from "@starlight/ui";
 import { type KeyboardEvent, useEffect, useEffectEvent, useMemo, useRef } from "react";
 import { useStarlight } from "../../lib/context.ts";
-import { documentText, isReadable, loadEditor } from "./document-text.ts";
+import { isTooLarge, loadEditor, markdownText } from "./markdown-file.ts";
 import { FileStage } from "./file-stage.tsx";
 import { pictureUrl, presentationIcons, presentationOf } from "./presentation.ts";
 
@@ -40,12 +40,12 @@ const usePrefetch = (
       if (!entry) continue;
       const presentation = presentationOf(entry.name);
       if (presentation === "none") continue;
-      if (presentation === "markdown" && !isReadable(entry)) continue;
+      if (presentation === "markdown" && isTooLarge(entry)) continue;
       void queryClient.query(queries.fileSource(workspaceId, directory, entry.ref)).then(
         (source) => {
           if (presentation === "markdown") {
             void loadEditor();
-            return queryClient.prefetchQuery(documentText(source));
+            return queryClient.prefetchQuery(markdownText(source));
           }
           if (presentation !== "video") new Image().src = pictureUrl(source, presentation);
         },

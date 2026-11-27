@@ -157,8 +157,7 @@
     @apply font-semibold;
   }
 
-  .tok-keyword,
-  .tok-operator.tok-definition {
+  .tok-keyword {
     @apply text-accent-purple;
   }
 

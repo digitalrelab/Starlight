@@ -1,6 +1,6 @@
 import type { SyntaxNode, Tree } from "@lezer/common";
 import { cn } from "cn";
-import { type CSSProperties, createElement, Fragment, memo, type ReactNode, useMemo, useState } from "react";
+import { createElement, Fragment, memo, type ReactNode, useMemo, useState } from "react";
 import { CodeBlock } from "./code-block.tsx";
 import { createIncrementalParser } from "./parse.ts";
 import { autolinkUrl, decodeEntity, referenceKey, safeUrl, unescape } from "./text.ts";
@@ -125,7 +125,7 @@ const image = (node: SyntaxNode, source: Source) => {
 const inlineCode = (node: SyntaxNode, source: Source) => {
   const [open, close] = node.getChildren("CodeMark");
   let code = source.text.slice(open?.to ?? node.from, close?.from ?? node.to).replace(LINE_BREAK, " ");
-  if (code.length > 2 && code.startsWith(" ") && code.endsWith(" ") && code.trim() !== "") {
+  if (code.startsWith(" ") && code.endsWith(" ") && code.trim() !== "") {
     code = code.slice(1, -1);
   }
   return <code key={node.from}>{code}</code>;
@@ -240,9 +240,7 @@ const orderedList = (node: SyntaxNode, source: Source) => {
   );
 };
 
-type Alignment = CSSProperties["textAlign"];
-
-const alignmentOf = (cell: string): Alignment => {
+const alignmentOf = (cell: string) => {
   const left = cell.startsWith(":");
   const right = cell.endsWith(":");
   if (left && right) return "center";
@@ -372,9 +370,7 @@ interface BlockProps {
 const Block = memo(
   ({ node, source }: BlockProps) => block(node, source),
   (previous, next) =>
-    previous.text === next.text &&
-    previous.node.from === next.node.from &&
-    hasSameEntries(previous.source.references, next.source.references),
+    previous.text === next.text && hasSameEntries(previous.source.references, next.source.references),
 );
 
 export interface MarkdownProps {

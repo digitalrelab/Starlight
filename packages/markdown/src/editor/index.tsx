@@ -13,7 +13,7 @@ export interface MarkdownEditorProps {
   readonly onChange?: (read: () => string) => void;
 }
 
-const configured = (label: string, editable: boolean) => [
+const settingsOf = (label: string, editable: boolean) => [
   EditorView.contentAttributes.of({ "aria-label": label }),
   EditorView.editable.of(editable),
   EditorState.readOnly.of(!editable),
@@ -31,6 +31,7 @@ export const MarkdownEditor = ({
 }: MarkdownEditorProps) => {
   const host = useRef<HTMLDivElement>(null);
   const view = useRef<EditorView>(null);
+  const synced = useRef(value);
   const [initial] = useState({ value, label, editable });
   const [settings] = useState(() => new Compartment());
   const changed = useEffectEvent((read: () => string) => onChange?.(read));
@@ -43,7 +44,7 @@ export const MarkdownEditor = ({
         doc: initial.value,
         extensions: [
           writing,
-          settings.of(configured(initial.label, initial.editable)),
+          settings.of(settingsOf(initial.label, initial.editable)),
           EditorView.updateListener.of((update) => {
             if (update.transactions.some(isLocal)) changed(() => update.state.sliceDoc());
           }),
@@ -58,12 +59,13 @@ export const MarkdownEditor = ({
   }, [initial, settings]);
 
   useEffect(() => {
-    view.current?.dispatch({ effects: settings.reconfigure(configured(label, editable)) });
+    view.current?.dispatch({ effects: settings.reconfigure(settingsOf(label, editable)) });
   }, [settings, label, editable]);
 
   useEffect(() => {
     const editor = view.current;
-    if (!editor) return;
+    if (!editor || value === synced.current) return;
+    synced.current = value;
     const change = changeBetween(editor.state.sliceDoc(), value);
     if (!change) return;
     editor.dispatch({
