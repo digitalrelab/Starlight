@@ -31,8 +31,8 @@ const describe = (part: Part, bytes: number, total: number) =>
 interface UsageBarProps {
   readonly usage: DiskUsage;
   readonly total: number;
-  readonly active: Part["key"] | null;
-  readonly onActive: (key: Part["key"] | null) => void;
+  readonly active: keyof DiskUsage | null;
+  readonly onActive: (key: keyof DiskUsage | null) => void;
 }
 
 const UsageBar = ({ usage, total, active, onActive }: UsageBarProps) => (
@@ -73,7 +73,7 @@ const ClearPreviews = ({ bytes }: { readonly bytes: number }) => {
 };
 
 export const DiskBreakdown = ({ usage }: { readonly usage: DiskUsage }) => {
-  const [active, setActive] = useState<Part["key"] | null>(null);
+  const [active, setActive] = useState<keyof DiskUsage | null>(null);
   const total = PARTS.reduce((sum, part) => sum + usage[part.key], 0);
   return (
     <Item.List>
