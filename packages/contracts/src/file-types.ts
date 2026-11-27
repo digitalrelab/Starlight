@@ -17,7 +17,7 @@ export const FileKind = Schema.Literals([
 ]);
 export type FileKind = typeof FileKind.Type;
 
-const KIND_EXTENSIONS: Readonly<Record<Exclude<FileKind, "other">, ReadonlyArray<string>>> = {
+const KIND_EXTENSIONS: Readonly<Record<FileKind, ReadonlyArray<string>>> = {
   image: [
     "jpg",
     "jpeg",
@@ -91,12 +91,11 @@ const KIND_EXTENSIONS: Readonly<Record<Exclude<FileKind, "other">, ReadonlyArray
     "ma",
     "mb",
   ],
+  other: [],
 };
 
 const KIND_BY_EXTENSION: ReadonlyMap<string, FileKind> = new Map(
-  Object.entries(KIND_EXTENSIONS).flatMap(([kind, extensions]) =>
-    extensions.map((extension) => [extension, kind as FileKind] as const),
-  ),
+  FileKind.literals.flatMap((kind) => KIND_EXTENSIONS[kind].map((extension) => [extension, kind] as const)),
 );
 
 const MEDIA_TYPES: Readonly<Record<string, string>> = {
