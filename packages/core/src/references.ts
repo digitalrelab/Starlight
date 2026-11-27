@@ -27,13 +27,12 @@ const PREVIEWED = new Set<FileKind>(["image", "video"]);
 const sameEntry = (a: ReferenceMatch, b: ReferenceMatch) =>
   a._tag === "Entry" && b._tag === "Entry" && a.ref.source === b.ref.source && a.ref.id === b.ref.id;
 
-const rootsOf = ({ id, name, mounts }: Project) =>
+const rootsOf = ({ name, mounts }: Project) =>
   mounts.map((mount): ReferenceMatch => ({
     _tag: "Entry",
     ref: mount.root,
     name: mount.name,
     kind: "directory",
-    project: id,
     parentName: name,
   }));
 
@@ -66,21 +65,8 @@ export class References extends Context.Service<
       const owned = (all: ReadonlyArray<Project>, { ref, name, kind, parentName }: EntryMatch) =>
         projects.driverFor(ref.source).pipe(
           Effect.map((driver): ReadonlyArray<ReferenceMatch> => {
-            for (const project of all) {
-              const mount = mountOf(project, driver, ref);
-              if (mount)
-                return [
-                  {
-                    _tag: "Entry",
-                    ref,
-                    name,
-                    kind,
-                    project: project.id,
-                    parentName: parentName ?? mount.name,
-                  },
-                ];
-            }
-            return [];
+            const mount = all.flatMap((project) => mountOf(project, driver, ref) ?? []).at(0);
+            return mount ? [{ _tag: "Entry", ref, name, kind, parentName: parentName ?? mount.name }] : [];
           }),
           Effect.orElseSucceed((): ReadonlyArray<ReferenceMatch> => []),
         );
