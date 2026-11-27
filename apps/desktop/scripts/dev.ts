@@ -10,9 +10,9 @@ const FORWARDED_SIGNALS = ["SIGINT", "SIGTERM", "SIGHUP"] as const;
 const root = join(import.meta.dirname, "..");
 const pidFile = join(root, ".data", "dev.pid");
 
-const isAlive = (group: number) => {
+const signalGroup = (group: number, signal: NodeJS.Signals | 0) => {
   try {
-    process.kill(-group, 0);
+    process.kill(-group, signal);
     return true;
   } catch {
     return false;
@@ -36,10 +36,10 @@ const recordedGroup = () => {
 };
 
 const terminate = async (group: number) => {
-  if (isAlive(group)) process.kill(-group, "SIGTERM");
+  if (!signalGroup(group, "SIGTERM")) return;
   const deadline = Date.now() + STOP_TIMEOUT_MS;
-  while (isAlive(group) && Date.now() < deadline) await sleep(POLL_MS);
-  if (isAlive(group)) process.kill(-group, "SIGKILL");
+  while (signalGroup(group, 0) && Date.now() < deadline) await sleep(POLL_MS);
+  signalGroup(group, "SIGKILL");
 };
 
 const previous = recordedGroup();
@@ -57,7 +57,7 @@ if (!process.argv.includes("--stop")) {
   for (const signal of FORWARDED_SIGNALS) {
     process.on(signal, () => {
       stopping = true;
-      if (isAlive(group)) process.kill(-group, signal);
+      signalGroup(group, signal);
     });
   }
   child.on("exit", async (code) => {
