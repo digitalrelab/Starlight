@@ -6,7 +6,7 @@ import type {
   Workspace,
   WorkspaceId,
 } from "@starlight/contracts";
-import { Context, type Effect, type Option } from "effect";
+import { Context, type Effect, type Option, type Stream } from "effect";
 
 export interface FileStat {
   readonly kind: EntryKind;
@@ -26,6 +26,17 @@ export class FileSystemPort extends Context.Service<
     readonly readDirectory: (path: string) => Effect.Effect<ReadonlyArray<DirectoryEntry>, FileSystemError>;
   }
 >()("@starlight/core/FileSystemPort") {}
+
+export type FileWatchEvent =
+  | { readonly _tag: "Changed"; readonly paths: ReadonlyArray<string> }
+  | { readonly _tag: "Resync" };
+
+export class FileWatcherPort extends Context.Service<
+  FileWatcherPort,
+  {
+    readonly watch: (path: string) => Stream.Stream<FileWatchEvent, FileSystemError>;
+  }
+>()("@starlight/core/FileWatcherPort") {}
 
 export class WorkspaceStore extends Context.Service<
   WorkspaceStore,

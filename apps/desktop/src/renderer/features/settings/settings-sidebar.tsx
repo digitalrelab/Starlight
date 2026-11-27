@@ -5,12 +5,12 @@ import { Link } from "@tanstack/react-router";
 export const SettingsSidebar = () => (
   <>
     <NavItem render={<Link to="/" />}>
-      <Icon icon={ArrowLeft01Icon} className="shrink-0" />
+      <Icon icon={ArrowLeft01Icon} />
       Back to app
     </NavItem>
     <NavSection title="Settings">
       <NavItem render={<Link to="/settings/appearance" />}>
-        <Icon icon={PaintBoardIcon} className="shrink-0" />
+        <Icon icon={PaintBoardIcon} />
         Appearance
       </NavItem>
     </NavSection>

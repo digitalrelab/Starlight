@@ -26,11 +26,11 @@ export const Prose = ({ html, className }: ProseProps) => {
   return (
     <div
       className={cn(
-        "text-[13px] leading-5 *:first:mt-0",
+        "text-base *:first:mt-0",
         "[&_:is(h1,h2,h3,h4)]:mt-3 [&_:is(h1,h2,h3,h4)]:mb-1 [&_:is(h1,h2,h3,h4)]:font-medium",
-        "[&_:is(h3,h4)]:text-[11px] [&_:is(h3,h4)]:text-muted",
+        "[&_:is(h3,h4)]:text-xs [&_:is(h3,h4)]:text-subtle",
         "[&_ol]:list-decimal [&_ul]:list-disc [&_:is(ol,ul)]:pl-4 [&_li]:my-0.5 [&_p]:my-1",
-        "[&_code]:font-mono [&_code]:text-[12px] [&_strong]:font-medium",
+        "[&_code]:font-mono [&_code]:text-sm [&_strong]:font-medium",
         className,
       )}
     >

@@ -10,7 +10,7 @@ export const createWindow = () => {
     show: false,
     titleBarStyle: "hiddenInset",
     trafficLightPosition: { x: 14, y: 13 },
-    backgroundColor: nativeTheme.shouldUseDarkColors ? "#0a0b0d" : "#f4f5f7",
+    backgroundColor: nativeTheme.shouldUseDarkColors ? "#12131c" : "#f0f1f5",
     webPreferences: {
       preload: join(import.meta.dirname, "../preload/index.cjs"),
       sandbox: true,

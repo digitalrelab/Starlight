@@ -13,8 +13,8 @@ export const Tooltip = ({ label, side = "top", children }: Props) => (
   <BaseTooltip.Root>
     <BaseTooltip.Trigger render={children} />
     <BaseTooltip.Portal>
-      <BaseTooltip.Positioner side={side} sideOffset={6}>
-        <BaseTooltip.Popup className="origin-(--transform-origin) rounded-md border border-border bg-panel px-2 py-1 text-[12px] text-fg shadow-md transition-[opacity,scale] duration-100 data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[instant]:transition-none data-[starting-style]:scale-95 data-[starting-style]:opacity-0">
+      <BaseTooltip.Positioner side={side} sideOffset={6} className="z-tooltip">
+        <BaseTooltip.Popup className="origin-(--transform-origin) rounded-md bg-surface-overlay px-2 py-1 text-sm text-default shadow-overlay transition-[opacity,scale] data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[instant]:transition-none data-[starting-style]:scale-95 data-[starting-style]:opacity-0">
           {label}
         </BaseTooltip.Popup>
       </BaseTooltip.Positioner>

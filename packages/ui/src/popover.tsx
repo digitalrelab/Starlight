@@ -15,11 +15,17 @@ export interface PopoverContentProps extends Omit<ComponentProps<typeof BasePopo
 
 export const PopoverContent = ({ side, align, className, ...props }: PopoverContentProps) => (
   <BasePopover.Portal>
-    <BasePopover.Positioner side={side} align={align} sideOffset={6} collisionPadding={8}>
+    <BasePopover.Positioner
+      side={side}
+      align={align}
+      sideOffset={6}
+      collisionPadding={8}
+      className="z-floating"
+    >
       <BasePopover.Popup
         className={cn(
-          "max-h-(--available-height) origin-(--transform-origin) overflow-y-auto rounded-lg border border-border",
-          "bg-panel p-3 text-fg shadow-lg outline-none transition-[opacity,scale] duration-150",
+          "max-h-(--available-height) origin-(--transform-origin) overflow-y-auto rounded-lg p-3",
+          "bg-surface-overlay text-default shadow-overlay outline-none transition-[opacity,scale]",
           "data-[ending-style]:scale-95 data-[ending-style]:opacity-0",
           "data-[starting-style]:scale-95 data-[starting-style]:opacity-0",
           className,

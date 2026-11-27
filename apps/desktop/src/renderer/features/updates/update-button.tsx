@@ -14,7 +14,7 @@ export const UpdateButton = ({ className }: { readonly className?: string }) => 
       <IconButton
         icon={RefreshDotIcon}
         label="Update available"
-        className={cn("text-accent hover:text-accent data-[popup-open]:text-accent", className)}
+        className={cn("text-brand hover:text-brand data-[popup-open]:text-brand", className)}
         render={<PopoverTrigger />}
       />
       <PopoverContent
@@ -24,12 +24,7 @@ export const UpdateButton = ({ className }: { readonly className?: string }) => 
         className="flex w-80 flex-col gap-3"
       >
         <Prose html={update.releaseNotes} />
-        <Button
-          variant="primary"
-          className="self-end"
-          onClick={() => install.mutate()}
-          disabled={install.isPending}
-        >
+        <Button className="self-end" onClick={() => install.mutate()} disabled={install.isPending}>
           Restart to update
         </Button>
       </PopoverContent>

@@ -11,6 +11,9 @@
     "preview": "electron-vite preview",
     "package": "electron-vite build && electron-builder"
   },
+  "dependencies": {
+    "@parcel/watcher": "catalog:"
+  },
   "devDependencies": {
     "@hugeicons-pro/core-stroke-rounded": "catalog:",
     "@starlight/client": "workspace:*",

@@ -13,3 +13,9 @@ export const Entry = Schema.Struct({
   hidden: Schema.Boolean,
 });
 export type Entry = typeof Entry.Type;
+
+export const EntryChange = Schema.Union([
+  Schema.TaggedStruct("Changed", { paths: Schema.Array(RelativePath) }),
+  Schema.TaggedStruct("Resync", {}),
+]);
+export type EntryChange = typeof EntryChange.Type;
