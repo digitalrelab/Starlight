@@ -22,7 +22,7 @@ export const ScrollArea = ({
       ref={viewportRef}
       className="min-h-0 flex-1 overscroll-contain outline-none scroll-fade-y"
     >
-      <BaseScrollArea.Content ref={contentRef} className={contentClassName}>
+      <BaseScrollArea.Content ref={contentRef} className={contentClassName} style={{ minWidth: 0 }}>
         {children}
       </BaseScrollArea.Content>
     </BaseScrollArea.Viewport>

@@ -2,7 +2,7 @@ import { marked } from "marked";
 import { memo, useMemo } from "react";
 import { Prose } from "./prose.tsx";
 
-const OPTIONS = { async: false, gfm: true, breaks: true } as const;
+const OPTIONS = { async: false, breaks: true } as const;
 
 const Block = memo(({ raw }: { readonly raw: string }) => <Prose.Html html={marked.parse(raw, OPTIONS)} />);
 

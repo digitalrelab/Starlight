@@ -1,4 +1,4 @@
-import { type ComponentProps, createElement, Fragment, memo, type ReactNode, useMemo } from "react";
+import { type ComponentProps, createElement, Fragment, memo, type ReactNode } from "react";
 import { cn } from "cn";
 
 const RENDERED = new Set([
@@ -44,13 +44,8 @@ const Root = ({ className, ...props }: ComponentProps<"div">) => (
   />
 );
 
-const Html = memo(({ html }: { readonly html: string }) => (
-  <>
-    {useMemo(
-      () => Array.from(new DOMParser().parseFromString(html, "text/html").body.childNodes, toReact),
-      [html],
-    )}
-  </>
-));
+const Html = memo(({ html }: { readonly html: string }) =>
+  Array.from(new DOMParser().parseFromString(html, "text/html").body.childNodes, toReact),
+);
 
 export const Prose = { Root, Html };
