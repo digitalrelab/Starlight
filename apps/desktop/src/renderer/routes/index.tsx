@@ -1,18 +1,28 @@
+import { FolderOpenIcon } from "@hugeicons-pro/core-stroke-rounded";
+import { Button, Icon } from "@starlight/ui";
 import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader } from "../features/shell/page-header.tsx";
-import { OpenWorkspaceButton } from "../features/workspaces/open-workspace-button.tsx";
+import { useOpenWorkspace } from "../features/workspaces/use-open-workspace.ts";
 
 export const Route = createFileRoute("/")({
   component: Home,
 });
 
 function Home() {
+  const openWorkspace = useOpenWorkspace();
+
   return (
     <>
       <PageHeader />
-      <div className="flex flex-1 flex-col items-center justify-center gap-3 pb-11">
+      <div className="flex flex-1 flex-col items-center justify-center gap-3">
         <p className="text-muted">Open a folder to start.</p>
-        <OpenWorkspaceButton variant="primary" />
+        <Button variant="primary" onClick={openWorkspace.run} disabled={openWorkspace.pending}>
+          <Icon icon={FolderOpenIcon} />
+          Open Folder…
+        </Button>
+        {openWorkspace.error ? (
+          <p className="text-[12px] text-danger">{openWorkspace.error.message}</p>
+        ) : null}
       </div>
     </>
   );
