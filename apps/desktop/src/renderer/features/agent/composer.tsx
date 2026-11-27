@@ -51,8 +51,8 @@ export const Composer = ({ placeholder, disabled = false, autoFocus = false, too
           }}
           className="max-h-64 min-h-12 resize-none bg-transparent px-1 text-base outline-none field-sizing-content placeholder:text-subtlest"
         />
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex min-w-0 items-center">{tools}</div>
+        <div className="flex items-center justify-end gap-1">
+          {tools}
           <IconButton
             type="submit"
             icon={ArrowUp02Icon}
