@@ -41,4 +41,4 @@ const respond = async (absolute: string, range: string | null) => {
 };
 
 export const serveFiles = (key: Buffer) =>
-  serveLocalFiles(FILE_SCHEME, key, (path, request) => respond(path, request.headers.get("range")));
+  serveLocalFiles(FILE_SCHEME, key, ({ path }, request) => respond(path, request.headers.get("range")));

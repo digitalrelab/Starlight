@@ -1,11 +1,12 @@
-import { type CustomScheme, nativeImage, screen } from "electron";
+import { join } from "node:path";
+import { app, type CustomScheme, nativeImage, screen } from "electron";
 import { mediaTypeOf } from "../shared/media-types.ts";
 import { fitThumbnailSize, THUMBNAIL_SCHEME } from "../shared/thumbnails.ts";
 import { serveLocalFiles } from "./local-files.ts";
+import { createThumbnailCache } from "./thumbnail-cache.ts";
 
-const CONCURRENCY = 6;
-const MAX_POINTS = 1024;
 const JPEG_QUALITY = 85;
+const CACHE_LIMIT_BYTES = 2 * 1024 ** 3;
 const OPAQUE_TYPES = new Set(["image/jpeg", "image/heic", "image/heif"]);
 
 export const thumbnailScheme: CustomScheme = {
@@ -13,47 +14,27 @@ export const thumbnailScheme: CustomScheme = {
   privileges: { standard: true, secure: true },
 };
 
-const createLifoQueue = (concurrency: number) => {
-  const pending: Array<() => void> = [];
-  let active = 0;
-  const drain = () => {
-    while (active < concurrency) {
-      const job = pending.pop();
-      if (!job) return;
-      active++;
-      job();
-    }
-  };
-  return <A>(task: () => Promise<A>) =>
-    new Promise<A>((resolve, reject) => {
-      pending.push(() => {
-        void task()
-          .then(resolve, reject)
-          .finally(() => {
-            active--;
-            drain();
-          });
-      });
-      drain();
-    });
-};
+const isOpaque = (absolute: string) => OPAQUE_TYPES.has(mediaTypeOf(absolute) ?? "");
 
 const render = async (absolute: string, pixels: number) => {
-  const points = Math.min(MAX_POINTS, Math.ceil(pixels / screen.getPrimaryDisplay().scaleFactor));
+  const points = Math.ceil(pixels / screen.getPrimaryDisplay().scaleFactor);
   const image = await nativeImage.createThumbnailFromPath(absolute, { width: points, height: points });
-  if (image.isEmpty()) return new Response(null, { status: 404 });
-  const opaque = OPAQUE_TYPES.has(mediaTypeOf(absolute) ?? "");
-  return new Response(new Uint8Array(opaque ? image.toJPEG(JPEG_QUALITY) : image.toPNG()), {
-    headers: {
-      "content-type": opaque ? "image/jpeg" : "image/png",
-      "cache-control": "max-age=31536000, immutable",
-    },
-  });
+  if (image.isEmpty()) return null;
+  return new Uint8Array(isOpaque(absolute) ? image.toJPEG(JPEG_QUALITY) : image.toPNG());
 };
 
 export const serveThumbnails = (key: Buffer) => {
-  const enqueue = createLifoQueue(CONCURRENCY);
-  serveLocalFiles(THUMBNAIL_SCHEME, key, (path, request) =>
-    enqueue(() => render(path, fitThumbnailSize(Number(new URL(request.url).searchParams.get("size"))))),
-  );
+  const cache = createThumbnailCache(join(app.getPath("userData"), "thumbnails"), CACHE_LIMIT_BYTES);
+  void cache.prune();
+  serveLocalFiles(THUMBNAIL_SCHEME, key, async ({ path, version }, request) => {
+    const size = fitThumbnailSize(Number(new URL(request.url).searchParams.get("size")));
+    const bytes = await cache.resolve(JSON.stringify([path, version, size]), () => render(path, size));
+    if (!bytes) return new Response(null, { status: 404 });
+    return new Response(bytes, {
+      headers: {
+        "content-type": isOpaque(path) ? "image/jpeg" : "image/png",
+        "cache-control": "max-age=31536000, immutable",
+      },
+    });
+  });
 };
