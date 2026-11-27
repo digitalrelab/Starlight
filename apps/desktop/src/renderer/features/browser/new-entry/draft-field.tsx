@@ -1,9 +1,10 @@
-import type { EntryRef } from "@starlight/client";
+import type { CreatableKind, EntryRef } from "@starlight/client";
 import { Tooltip } from "@starlight/ui";
 import { useMutation } from "@tanstack/react-query";
 import { type SyntheticEvent, useRef, useState } from "react";
 import { KindIcon, itemKindOf } from "#renderer/features/files/kind-icon.tsx";
 import { useStarlight } from "#renderer/lib/context.ts";
+import { listOf } from "#renderer/features/browser/layouts/events.ts";
 import { type Draft, endDraft } from "./draft.ts";
 
 const stopPropagation = (event: SyntheticEvent) => event.stopPropagation();
@@ -17,7 +18,7 @@ interface Props {
   readonly projectId: string;
   readonly directory: EntryRef;
   readonly draft: Draft;
-  readonly onCreated: (created: { readonly ref: EntryRef; readonly kind: Draft["kind"] }) => void;
+  readonly onCreated: (created: { readonly ref: EntryRef; readonly kind: CreatableKind }) => void;
 }
 
 export const DraftField = ({ projectId, directory, draft, onCreated }: Props) => {
@@ -31,8 +32,7 @@ export const DraftField = ({ projectId, directory, draft, onCreated }: Props) =>
   const end = () => {
     ended.current = true;
     const input = ref.current;
-    if (input === document.activeElement)
-      input?.closest<HTMLElement>("[role=listbox]")?.focus({ preventScroll: true });
+    if (input && input === document.activeElement) listOf(input)?.focus({ preventScroll: true });
     endDraft(draft);
   };
 

@@ -46,10 +46,8 @@ const Filter = ({ children }: { readonly children: (track: Track) => ReactNode }
   );
 };
 
-type FinalFocus = ComponentProps<typeof BaseMenu.Popup>["finalFocus"];
-
 interface BodyProps {
-  readonly finalFocus?: FinalFocus;
+  readonly finalFocus?: ComponentProps<typeof BaseMenu.Popup>["finalFocus"];
   readonly children: ReactNode;
 }
 

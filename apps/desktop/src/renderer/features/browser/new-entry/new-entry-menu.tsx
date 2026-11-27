@@ -2,6 +2,7 @@ import { Add01Icon } from "@hugeicons-pro/core-stroke-rounded";
 import type { Entry, EntryRef } from "@starlight/client";
 import { ContextMenu, IconButton, Menu } from "@starlight/ui";
 import { type ComponentProps, type ReactNode, useRef } from "react";
+import { isOnItem } from "#renderer/features/browser/layouts/events.ts";
 import { BLUEPRINTS, type Blueprint, startDraft } from "./draft.ts";
 
 interface Props {
@@ -44,7 +45,7 @@ export const NewEntryMenu = (props: Props) => {
 };
 
 const skipItems: ComponentProps<typeof ContextMenu.Trigger>["onContextMenu"] = (event) => {
-  if (event.target instanceof Element && event.target.closest("[data-index]")) event.preventBaseUIHandler();
+  if (isOnItem(event.target)) event.preventBaseUIHandler();
 };
 
 export const NewEntryContextMenu = ({ children, ...props }: Props & { readonly children: ReactNode }) => {

@@ -1,8 +1,8 @@
 import { FolderIcon } from "@hugeicons-pro/core-stroke-rounded";
 import { type CreatableKind, type Entry, type EntryRef, entryKey } from "@starlight/client";
 import type { IconProps } from "@starlight/ui";
-import { MarkdownIcon } from "#renderer/features/files/markdown-icon.ts";
 import { useEffect } from "react";
+import { MarkdownIcon } from "#renderer/features/files/markdown-icon.ts";
 import { loadEditor } from "#renderer/features/viewer/markdown-file.ts";
 import { defineStore, useStore } from "#renderer/lib/store.ts";
 
