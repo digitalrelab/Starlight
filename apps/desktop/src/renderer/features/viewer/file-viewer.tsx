@@ -3,9 +3,10 @@ import type { Entry, EntryRef } from "@starlight/client";
 import { Button, Icon, IconButton, Theater } from "@starlight/ui";
 import { type KeyboardEvent, useEffect, useEffectEvent, useMemo, useRef } from "react";
 import { useStarlight } from "../../lib/context.ts";
-import { loadEditor, markdownText } from "./markdown-file.ts";
 import { FileStage } from "./file-stage.tsx";
-import { pictureUrl, presentationIcons, presentationOf } from "./presentation.ts";
+import { KindIcon, itemKindOf } from "../files/kind-icon.tsx";
+import { loadEditor, markdownText } from "./markdown-file.ts";
+import { pictureUrl, presentationOf } from "./presentation.ts";
 
 interface Props {
   readonly workspaceId: string;
@@ -107,7 +108,7 @@ export const FileViewer = ({
         <Theater.Title>
           {current ? (
             <>
-              <Icon icon={presentationIcons[presentationOf(current)]} className="text-subtle" />
+              <KindIcon kind={itemKindOf(current)} />
               <span className="truncate">{current.name}</span>
             </>
           ) : null}

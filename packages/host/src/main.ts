@@ -1,8 +1,10 @@
+import { randomUUID } from "node:crypto";
+import { mkdirSync } from "node:fs";
 import { NodeRuntime } from "@effect/platform-node";
 import { ClaudeCodeProvider, ConnectRequest, LocalSource } from "@starlight/contracts";
-import { AgentProviderDrivers, CoreLive, SourceDrivers } from "@starlight/core";
+import { AgentProviderDrivers, CoreLive, IdGenerator, SourceDrivers } from "@starlight/core";
 import { Effect, Layer, Queue, Schema } from "effect";
-import { claudeCodeDriver } from "./adapters/claude-code/index.ts";
+import { makeClaudeCodeDriver } from "./adapters/claude-code/index.ts";
 import { FileTokensLive } from "./adapters/file-tokens.ts";
 import { makeLocalSource } from "./adapters/local-source/index.ts";
 import { SqliteLive } from "./adapters/sqlite/index.ts";
@@ -30,7 +32,9 @@ const requireEnv = (name: string) => {
   return value;
 };
 
-const dataDir = requireEnv("STARLIGHT_DATA_DIR");
+const databasePath = requireEnv("STARLIGHT_DATABASE_PATH");
+const agentDir = requireEnv("STARLIGHT_AGENT_PATH");
+mkdirSync(agentDir, { recursive: true });
 const fileKey = Buffer.from(requireEnv("STARLIGHT_FILE_KEY"), "hex");
 
 const decodeConnect = Schema.decodeUnknownEffect(ConnectRequest);
@@ -38,12 +42,20 @@ const decodeConnect = Schema.decodeUnknownEffect(ConnectRequest);
 const SourceDriversLive = Layer.sync(SourceDrivers)(() => new Map([[LocalSource, makeLocalSource()]]));
 
 const AgentProviderDriversLive = Layer.succeed(AgentProviderDrivers)(
-  new Map([[ClaudeCodeProvider, claudeCodeDriver]]),
+  new Map([[ClaudeCodeProvider, makeClaudeCodeDriver(agentDir)]]),
 );
+
+const IdGeneratorLive = Layer.succeed(IdGenerator)({ next: Effect.sync(randomUUID) });
 
 const HostLive = CoreLive.pipe(
   Layer.provide(
-    Layer.mergeAll(SourceDriversLive, AgentProviderDriversLive, FileTokensLive(fileKey), SqliteLive(dataDir)),
+    Layer.mergeAll(
+      SourceDriversLive,
+      AgentProviderDriversLive,
+      IdGeneratorLive,
+      FileTokensLive(fileKey),
+      SqliteLive(databasePath),
+    ),
   ),
 );
 

@@ -1,4 +1,4 @@
-import { FolderOpenIcon, Settings01Icon } from "@hugeicons-pro/core-stroke-rounded";
+import { FolderOpenIcon, Navigation03Icon, Settings01Icon } from "@hugeicons-pro/core-stroke-rounded";
 import { IconButton, NavItem } from "@starlight/ui";
 import { Link } from "@tanstack/react-router";
 import { UpdateButton } from "../updates/update-button.tsx";
@@ -11,6 +11,9 @@ export const MainSidebar = () => {
   return (
     <>
       <div className="flex flex-col gap-1">
+        <NavItem icon={Navigation03Icon} render={<Link to="/agent" />}>
+          Agent
+        </NavItem>
         <NavItem icon={FolderOpenIcon} onClick={openWorkspace.run} disabled={openWorkspace.pending}>
           Open Folder…
         </NavItem>

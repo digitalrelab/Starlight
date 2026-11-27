@@ -1,13 +1,14 @@
 import type { Entry, EntryRef, FileSource } from "@starlight/client";
-import { cn, Icon, type IconProps } from "@starlight/ui";
+import { cn } from "@starlight/ui";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { lazy, type ReactNode, Suspense, useState } from "react";
 import { fileUrl } from "../../../shared/files.ts";
-import { thumbnailUrl } from "../../../shared/thumbnails.ts";
+import { previewUrl } from "../../../shared/previews.ts";
 import { useStarlight } from "../../lib/context.ts";
 import { reveal } from "../../lib/reveal.ts";
+import { type ItemKind, KindIcon, itemKindOf } from "../files/kind-icon.tsx";
 import { loadEditor, markdownText } from "./markdown-file.ts";
-import { pictureUrl, presentationIcons, presentationOf } from "./presentation.ts";
+import { pictureUrl, presentationOf } from "./presentation.ts";
 
 const MarkdownEditor = lazy(() => loadEditor().then(({ MarkdownEditor }) => ({ default: MarkdownEditor })));
 
@@ -16,9 +17,9 @@ const POSTER_PIXELS = 1024;
 
 const fill = "absolute inset-0 size-full object-contain";
 
-const Notice = ({ icon, children }: { readonly icon: IconProps["icon"]; readonly children: ReactNode }) => (
+const Notice = ({ kind, children }: { readonly kind: ItemKind; readonly children: ReactNode }) => (
   <div className="flex size-full flex-col items-center justify-center gap-3 text-subtle">
-    <Icon icon={icon} size={40} strokeWidth={1.25} />
+    <KindIcon kind={kind} size={40} />
     <p>{children}</p>
   </div>
 );
@@ -26,12 +27,12 @@ const Notice = ({ icon, children }: { readonly icon: IconProps["icon"]; readonly
 interface PictureProps {
   readonly name: string;
   readonly source: FileSource;
-  readonly presentation: "image" | "rendition";
+  readonly presentation: "image" | "preview";
 }
 
 const Picture = ({ name, source, presentation }: PictureProps) => {
   const [failed, setFailed] = useState(false);
-  if (failed) return <Notice icon={presentationIcons.image}>Can’t open this image</Notice>;
+  if (failed) return <Notice kind="image">Can’t open this image</Notice>;
   return (
     <div
       className="group/fitted absolute inset-0 m-auto"
@@ -42,7 +43,7 @@ const Picture = ({ name, source, presentation }: PictureProps) => {
       }
     >
       <img
-        src={thumbnailUrl(source.token, PLACEHOLDER_PIXELS)}
+        src={previewUrl(source.token, PLACEHOLDER_PIXELS)}
         alt=""
         draggable={false}
         className={cn(fill, "group-has-data-loaded/fitted:invisible")}
@@ -62,12 +63,12 @@ const Picture = ({ name, source, presentation }: PictureProps) => {
 
 const Video = ({ source }: { readonly source: FileSource }) => {
   const [failed, setFailed] = useState(false);
-  if (failed) return <Notice icon={presentationIcons.video}>Can’t play this video</Notice>;
+  if (failed) return <Notice kind="video">Can’t play this video</Notice>;
   return (
     <div className="flex size-full items-center justify-center">
       <video
         src={fileUrl(source.token)}
-        poster={thumbnailUrl(source.token, POSTER_PIXELS)}
+        poster={previewUrl(source.token, POSTER_PIXELS)}
         controls
         autoPlay
         onError={() => setFailed(true)}
@@ -79,7 +80,7 @@ const Video = ({ source }: { readonly source: FileSource }) => {
 
 const MarkdownFile = ({ name, source }: { readonly name: string; readonly source: FileSource }) => {
   const text = useQuery({ ...markdownText(source), placeholderData: keepPreviousData });
-  if (text.isError) return <Notice icon={presentationIcons.markdown}>Can’t open this file</Notice>;
+  if (text.isError) return <Notice kind="markdown">Can’t open this file</Notice>;
   if (text.data === undefined) return null;
   return (
     <Suspense fallback={null}>
@@ -101,8 +102,8 @@ export const FileStage = ({ workspaceId, directory, entry }: Props) => {
     ...queries.fileSource(workspaceId, directory, entry.ref),
     enabled: presentation !== "none",
   });
-  if (presentation === "none") return <Notice icon={presentationIcons.none}>No preview available</Notice>;
-  if (source.isError) return <Notice icon={presentationIcons[presentation]}>Can’t open this file</Notice>;
+  if (presentation === "none") return <Notice kind={itemKindOf(entry)}>No preview available</Notice>;
+  if (source.isError) return <Notice kind={itemKindOf(entry)}>Can’t open this file</Notice>;
   if (!source.data) return null;
   if (presentation === "video") return <Video source={source.data} />;
   if (presentation === "markdown") return <MarkdownFile name={entry.name} source={source.data} />;

@@ -15,6 +15,10 @@ import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as SettingsIndexRouteImport } from './routes/settings.index'
 import { Route as SettingsAppearanceRouteImport } from './routes/settings.appearance'
 import { Route as SettingsConnectionsRouteImport } from './routes/settings.connections'
+import { Route as SettingsDiskRouteImport } from './routes/settings.disk'
+import { Route as SettingsUpdatesRouteImport } from './routes/settings.updates'
+import { Route as AppAgentIndexRouteImport } from './routes/_app.agent.index'
+import { Route as AppAgentConversationIdRouteImport } from './routes/_app.agent.$conversationId'
 import { Route as AppWWorkspaceIdRouteImport } from './routes/_app.w.$workspaceId'
 
 const AppRoute = AppRouteImport.update({
@@ -46,6 +50,26 @@ const SettingsConnectionsRoute = SettingsConnectionsRouteImport.update({
   path: '/connections',
   getParentRoute: () => SettingsRoute,
 } as any)
+const SettingsDiskRoute = SettingsDiskRouteImport.update({
+  id: '/disk',
+  path: '/disk',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsUpdatesRoute = SettingsUpdatesRouteImport.update({
+  id: '/updates',
+  path: '/updates',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const AppAgentIndexRoute = AppAgentIndexRouteImport.update({
+  id: '/agent/',
+  path: '/agent/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAgentConversationIdRoute = AppAgentConversationIdRouteImport.update({
+  id: '/agent/$conversationId',
+  path: '/agent/$conversationId',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppWWorkspaceIdRoute = AppWWorkspaceIdRouteImport.update({
   id: '/w/$workspaceId',
   path: '/w/$workspaceId',
@@ -57,15 +81,23 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRouteWithChildren
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/connections': typeof SettingsConnectionsRoute
+  '/settings/disk': typeof SettingsDiskRoute
+  '/settings/updates': typeof SettingsUpdatesRoute
   '/settings/': typeof SettingsIndexRoute
+  '/agent/$conversationId': typeof AppAgentConversationIdRoute
   '/w/$workspaceId': typeof AppWWorkspaceIdRoute
+  '/agent/': typeof AppAgentIndexRoute
 }
 export interface FileRoutesByTo {
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/connections': typeof SettingsConnectionsRoute
+  '/settings/disk': typeof SettingsDiskRoute
+  '/settings/updates': typeof SettingsUpdatesRoute
   '/': typeof AppIndexRoute
   '/settings': typeof SettingsIndexRoute
+  '/agent/$conversationId': typeof AppAgentConversationIdRoute
   '/w/$workspaceId': typeof AppWWorkspaceIdRoute
+  '/agent': typeof AppAgentIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -73,9 +105,13 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRouteWithChildren
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/connections': typeof SettingsConnectionsRoute
+  '/settings/disk': typeof SettingsDiskRoute
+  '/settings/updates': typeof SettingsUpdatesRoute
   '/_app/': typeof AppIndexRoute
   '/settings/': typeof SettingsIndexRoute
+  '/_app/agent/$conversationId': typeof AppAgentConversationIdRoute
   '/_app/w/$workspaceId': typeof AppWWorkspaceIdRoute
+  '/_app/agent/': typeof AppAgentIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -84,24 +120,36 @@ export interface FileRouteTypes {
     | '/settings'
     | '/settings/appearance'
     | '/settings/connections'
+    | '/settings/disk'
+    | '/settings/updates'
     | '/settings/'
+    | '/agent/$conversationId'
     | '/w/$workspaceId'
+    | '/agent/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/settings/appearance'
     | '/settings/connections'
+    | '/settings/disk'
+    | '/settings/updates'
     | '/'
     | '/settings'
+    | '/agent/$conversationId'
     | '/w/$workspaceId'
+    | '/agent'
   id:
     | '__root__'
     | '/_app'
     | '/settings'
     | '/settings/appearance'
     | '/settings/connections'
+    | '/settings/disk'
+    | '/settings/updates'
     | '/_app/'
     | '/settings/'
+    | '/_app/agent/$conversationId'
     | '/_app/w/$workspaceId'
+    | '/_app/agent/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -153,6 +201,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsConnectionsRouteImport
       parentRoute: typeof SettingsRoute
     }
+    '/settings/disk': {
+      id: '/settings/disk'
+      path: '/disk'
+      fullPath: '/settings/disk'
+      preLoaderRoute: typeof SettingsDiskRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/updates': {
+      id: '/settings/updates'
+      path: '/updates'
+      fullPath: '/settings/updates'
+      preLoaderRoute: typeof SettingsUpdatesRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/_app/agent/': {
+      id: '/_app/agent/'
+      path: '/agent'
+      fullPath: '/agent/'
+      preLoaderRoute: typeof AppAgentIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/agent/$conversationId': {
+      id: '/_app/agent/$conversationId'
+      path: '/agent/$conversationId'
+      fullPath: '/agent/$conversationId'
+      preLoaderRoute: typeof AppAgentConversationIdRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/w/$workspaceId': {
       id: '/_app/w/$workspaceId'
       path: '/w/$workspaceId'
@@ -165,12 +241,16 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppIndexRoute: typeof AppIndexRoute
+  AppAgentConversationIdRoute: typeof AppAgentConversationIdRoute
   AppWWorkspaceIdRoute: typeof AppWWorkspaceIdRoute
+  AppAgentIndexRoute: typeof AppAgentIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppIndexRoute: AppIndexRoute,
+  AppAgentConversationIdRoute: AppAgentConversationIdRoute,
   AppWWorkspaceIdRoute: AppWWorkspaceIdRoute,
+  AppAgentIndexRoute: AppAgentIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
@@ -178,12 +258,16 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 interface SettingsRouteChildren {
   SettingsAppearanceRoute: typeof SettingsAppearanceRoute
   SettingsConnectionsRoute: typeof SettingsConnectionsRoute
+  SettingsDiskRoute: typeof SettingsDiskRoute
+  SettingsUpdatesRoute: typeof SettingsUpdatesRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
 }
 
 const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsAppearanceRoute: SettingsAppearanceRoute,
   SettingsConnectionsRoute: SettingsConnectionsRoute,
+  SettingsDiskRoute: SettingsDiskRoute,
+  SettingsUpdatesRoute: SettingsUpdatesRoute,
   SettingsIndexRoute: SettingsIndexRoute,
 }
 

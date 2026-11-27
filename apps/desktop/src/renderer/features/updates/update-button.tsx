@@ -1,8 +1,6 @@
 import { RefreshDotIcon } from "@hugeicons-pro/core-stroke-rounded";
-import type { Update } from "@starlight/client";
 import { Markdown } from "@starlight/markdown";
 import {
-  Button,
   cn,
   IconButton,
   Popover,
@@ -11,67 +9,34 @@ import {
   ProgressRing,
   ScrollArea,
 } from "@starlight/ui";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useStarlight } from "../../lib/context.ts";
-
-const LABELS = {
-  available: "Update available",
-  downloading: "Downloading update",
-  downloaded: "Restart to update",
-} as const;
-
-const FAILURES = {
-  download: "Couldn't download the update.",
-  install: "Couldn't install the update.",
-} as const;
-
-const UpdateAction = ({ update }: { readonly update: Update }) => {
-  const { mutations } = useStarlight();
-  const download = useMutation(mutations.downloadUpdate());
-  const install = useMutation(mutations.installUpdate());
-
-  switch (update.status) {
-    case "available":
-      return (
-        <Button onClick={() => download.mutate()} disabled={download.isPending}>
-          {update.failure ? "Try again" : "Download update"}
-        </Button>
-      );
-    case "downloading":
-      return (
-        <p className="flex h-control items-center px-2.5 text-subtle tabular-nums">
-          Downloading… {Math.round(update.progress * 100)}%
-        </p>
-      );
-    case "downloaded":
-      return (
-        <Button onClick={() => install.mutate()} disabled={install.isPending}>
-          {update.failure ? "Try again" : "Restart to update"}
-        </Button>
-      );
-  }
-};
+import { UpdateAction } from "./update-action.tsx";
+import { updateStatus } from "./update-status.ts";
 
 export const UpdateButton = ({ className }: { readonly className?: string }) => {
   const { queries } = useStarlight();
-  const { data: update } = useQuery(queries.update());
+  const { data: updater } = useQuery(queries.updater());
+  const update = updater?.update;
   if (!update) return null;
+
+  const { tone, label } = updateStatus(updater);
 
   return (
     <Popover>
       <span className={cn("relative inline-flex", className)}>
         <IconButton
           icon={RefreshDotIcon}
-          label={update.failure ? FAILURES[update.failure] : LABELS[update.status]}
+          label={label}
           className={
-            update.failure ? "text-danger highlighted:text-danger" : "text-brand highlighted:text-brand"
+            tone === "danger" ? "text-danger highlighted:text-danger" : "text-brand highlighted:text-brand"
           }
           render={<PopoverTrigger />}
         />
         {update.status === "downloading" ? (
           <ProgressRing
             value={update.progress}
-            label={LABELS.downloading}
+            label={label}
             className="pointer-events-none absolute inset-0 size-full text-brand"
           />
         ) : null}
@@ -89,7 +54,7 @@ export const UpdateButton = ({ className }: { readonly className?: string }) => 
           <Markdown value={update.releaseNotes} />
         </ScrollArea>
         <div className="flex items-center justify-end gap-3">
-          {update.failure ? <p className="mr-auto text-sm text-danger">{FAILURES[update.failure]}</p> : null}
+          {update.failure ? <p className="mr-auto text-sm text-danger">{label}</p> : null}
           <UpdateAction update={update} />
         </div>
       </PopoverContent>

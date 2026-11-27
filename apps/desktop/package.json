@@ -16,6 +16,7 @@
     "@parcel/watcher": "catalog:"
   },
   "devDependencies": {
+    "@hugeicons-pro/core-solid-rounded": "catalog:",
     "@hugeicons-pro/core-stroke-rounded": "catalog:",
     "@starlight/client": "workspace:*",
     "@starlight/contracts": "workspace:*",

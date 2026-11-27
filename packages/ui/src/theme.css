@@ -168,6 +168,9 @@
 }
 
 @theme {
+  --background-color-series-1: light-dark(#257de0, #338ced);
+  --background-color-series-2: light-dark(#f47230, #e76624);
+  --background-color-series-other: light-dark(#8e93a8, #6b6f80);
   --background-color-surface: light-dark(var(--neutral-25), var(--dark-neutral-100));
   --background-color-surface-sunken: light-dark(var(--neutral-50), var(--dark-neutral-0));
   --background-color-surface-raised: light-dark(white, var(--dark-neutral-150));

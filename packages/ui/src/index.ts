@@ -14,6 +14,7 @@ export * from "./progress-ring.tsx";
 export * from "./scroll-area.tsx";
 export * from "./segmented-control.tsx";
 export * from "./select.tsx";
+export * from "./status-pill.tsx";
 export * from "./switch.tsx";
 export * from "./theater.tsx";
 export { Tooltip } from "./tooltip.tsx";

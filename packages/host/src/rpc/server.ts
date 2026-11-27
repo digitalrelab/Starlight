@@ -1,5 +1,12 @@
 import { type Actor, HostRpcs } from "@starlight/contracts";
-import { AgentProviders, CurrentActor, Entries, MediaLibrary, Workspaces } from "@starlight/core";
+import {
+  AgentProviders,
+  Conversations,
+  CurrentActor,
+  Entries,
+  MediaLibrary,
+  Workspaces,
+} from "@starlight/core";
 import { Effect, Layer } from "effect";
 import { RpcServer } from "effect/rpc";
 
@@ -9,6 +16,7 @@ const HandlersLive = HostRpcs.toLayer(
     const entries = yield* Entries;
     const media = yield* MediaLibrary;
     const agentProviders = yield* AgentProviders;
+    const conversations = yield* Conversations;
     return HostRpcs.of({
       OpenWorkspace: ({ root }) => workspaces.open(root),
       AddMount: ({ workspaceId, root }) => workspaces.addMount(workspaceId, root),
@@ -19,6 +27,10 @@ const HandlersLive = HostRpcs.toLayer(
       ListMedia: ({ workspaceId, directory }) => media.list(workspaceId, directory),
       GetFileSource: ({ workspaceId, file }) => media.source(workspaceId, file),
       ListAgentProviders: () => agentProviders.list,
+      ListConversations: () => conversations.list,
+      GetConversation: ({ conversationId }) => conversations.get(conversationId),
+      SendMessage: ({ conversationId, text }) => conversations.send(conversationId, text),
+      WatchConversation: ({ conversationId }) => conversations.watch(conversationId),
     });
   }),
 );

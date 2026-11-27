@@ -1,6 +1,6 @@
 import { DirectoryMissing, type Entry, type EntryRef, entryKey } from "@starlight/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, type ErrorComponentProps, Link, Navigate } from "@tanstack/react-router";
+import { createFileRoute, type ErrorComponentProps, Navigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { Breadcrumbs } from "../features/browser/breadcrumbs.tsx";
 import {
@@ -14,6 +14,7 @@ import { DirectoryView } from "../features/browser/directory-view.tsx";
 import { layoutPreference } from "../features/browser/layout-preference.ts";
 import { LayoutSwitcher } from "../features/browser/layout-switcher.tsx";
 import { layouts } from "../features/browser/layouts/registry.ts";
+import { PageError } from "../features/shell/page-error.tsx";
 import { PageHeader } from "../features/shell/page-header.tsx";
 import { FileViewer } from "../features/viewer/file-viewer.tsx";
 import { AddMountButton } from "../features/workspaces/add-mount-button.tsx";
@@ -125,17 +126,5 @@ function BrowserError({ error }: ErrorComponentProps) {
   if (error instanceof DirectoryMissing) {
     return <Navigate from={Route.fullPath} search={toDirectorySearch(error.nearest)} replace />;
   }
-  return (
-    <>
-      <PageHeader />
-      <div className="flex flex-1 flex-col items-center justify-center gap-2">
-        <p className="max-w-md text-center text-subtle">
-          {error instanceof Error ? error.message : String(error)}
-        </p>
-        <Link to="/" className="text-link hover:underline">
-          Back
-        </Link>
-      </div>
-    </>
-  );
+  return <PageError error={error} />;
 }

@@ -1,4 +1,12 @@
-import { type EntryChange, type EntryRef, HostRpcs, ShellRpcs, type WorkspaceId } from "@starlight/contracts";
+import {
+  type ConversationEvent,
+  type ConversationId,
+  type EntryChange,
+  type EntryRef,
+  HostRpcs,
+  ShellRpcs,
+  type WorkspaceId,
+} from "@starlight/contracts";
 import { Context, Effect, Layer, ManagedRuntime, Stream } from "effect";
 import { RpcClient, type RpcClientError } from "effect/rpc";
 import { layerProtocolPort } from "./transport.ts";
@@ -23,7 +31,20 @@ export const createClient = (ports: PortSources) => {
   );
   const host = <A, E>(f: (client: HostClient) => Effect.Effect<A, E>) => runtime.runPromise(Host.use(f));
   const shell = <A, E>(f: (client: ShellClient) => Effect.Effect<A, E>) => runtime.runPromise(Shell.use(f));
+  const watch = <A, E>(
+    name: string,
+    stream: (client: HostClient) => Stream.Stream<A, E>,
+    onEvent: (event: A) => void,
+  ) => {
+    const fiber = runtime.runFork(
+      Host.use((c) => stream(c).pipe(Stream.runForEach((event) => Effect.sync(() => onEvent(event))))).pipe(
+        Effect.catchCause((cause) => Effect.logWarning(`${name} watch ended`, cause)),
+      ),
+    );
+    return () => fiber.interruptUnsafe();
+  };
   const id = (workspaceId: string) => workspaceId as WorkspaceId;
+  const conversation = (conversationId: string) => conversationId as ConversationId;
 
   return {
     workspaces: {
@@ -36,16 +57,8 @@ export const createClient = (ports: PortSources) => {
     entries: {
       list: (workspaceId: string, directory: EntryRef | null) =>
         host((c) => c.ListEntries({ workspaceId: id(workspaceId), directory })),
-      watch: (workspaceId: string, onChange: (change: EntryChange) => void) => {
-        const fiber = runtime.runFork(
-          Host.use((c) =>
-            c
-              .WatchEntries({ workspaceId: id(workspaceId) })
-              .pipe(Stream.runForEach((change) => Effect.sync(() => onChange(change)))),
-          ).pipe(Effect.catchCause((cause) => Effect.logWarning("Entries watch ended", cause))),
-        );
-        return () => fiber.interruptUnsafe();
-      },
+      watch: (workspaceId: string, onChange: (change: EntryChange) => void) =>
+        watch("Entries", (c) => c.WatchEntries({ workspaceId: id(workspaceId) }), onChange),
     },
     media: {
       list: (workspaceId: string, directory: EntryRef | null) =>
@@ -56,11 +69,34 @@ export const createClient = (ports: PortSources) => {
     agents: {
       providers: () => host((c) => c.ListAgentProviders()),
     },
+    conversations: {
+      list: () => host((c) => c.ListConversations()),
+      get: (conversationId: string) =>
+        host((c) => c.GetConversation({ conversationId: conversation(conversationId) })),
+      send: (conversationId: string | null, text: string) =>
+        host((c) =>
+          c.SendMessage({
+            conversationId: conversationId === null ? null : conversation(conversationId),
+            text,
+          }),
+        ),
+      watch: (conversationId: string, onEvent: (event: ConversationEvent) => void) =>
+        watch(
+          "Conversation",
+          (c) => c.WatchConversation({ conversationId: conversation(conversationId) }),
+          onEvent,
+        ),
+    },
     shell: {
       pickDirectory: () => shell((c) => c.PickDirectory()),
     },
+    disk: {
+      usage: () => shell((c) => c.GetDiskUsage()),
+      clearPreviews: () => shell((c) => c.ClearPreviews()),
+    },
     updates: {
-      watch: () => shell((c) => Stream.toAsyncIterableEffect(c.WatchUpdates())),
+      watch: () => shell((c) => Stream.toAsyncIterableEffect(c.WatchUpdater())),
+      check: () => shell((c) => c.CheckForUpdates()),
       download: () => shell((c) => c.DownloadUpdate()),
       install: () => shell((c) => c.InstallUpdate()),
     },

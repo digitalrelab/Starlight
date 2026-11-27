@@ -64,7 +64,7 @@ const subscribe = (url: string, listener: Listener) => {
   };
 };
 
-export const useThumbnail = (url: string, visible: boolean) => {
+export const usePreview = (url: string, visible: boolean) => {
   const [loaded, setLoaded] = useState<string>();
   const ready = loaded === url;
   useEffect(() => {

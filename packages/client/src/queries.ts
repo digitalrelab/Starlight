@@ -4,7 +4,7 @@ import {
   queryOptions,
   type QueryClient,
 } from "@tanstack/react-query";
-import type { EntryRef, Listing, Update } from "@starlight/contracts";
+import type { ConversationDetail, EntryRef, Listing, UpdaterState } from "@starlight/contracts";
 import type { StarlightClient } from "./client.ts";
 import { entryKey } from "./refs.ts";
 
@@ -47,12 +47,30 @@ const createQueries = (client: StarlightClient) => ({
       refetchOnWindowFocus: "always",
     }),
 
-  update: () =>
+  conversations: () =>
+    queryOptions({ queryKey: ["conversations"], queryFn: () => client.conversations.list() }),
+
+  conversation: (id: string) =>
     queryOptions({
-      queryKey: ["update"],
-      queryFn: streamedQuery<Update, Update | null>({
+      queryKey: ["conversation", id],
+      queryFn: () => client.conversations.get(id),
+      staleTime: Infinity,
+    }),
+
+  diskUsage: () =>
+    queryOptions({
+      queryKey: ["diskUsage"],
+      queryFn: () => client.disk.usage(),
+      staleTime: 0,
+      refetchOnWindowFocus: true,
+    }),
+
+  updater: () =>
+    queryOptions({
+      queryKey: ["updater"],
+      queryFn: streamedQuery<UpdaterState, UpdaterState | null>({
         streamFn: () => client.updates.watch(),
-        reducer: (_, update) => update,
+        reducer: (_, state) => state,
         initialValue: null,
       }),
       staleTime: Infinity,
@@ -62,9 +80,29 @@ const createQueries = (client: StarlightClient) => ({
 const createMutations = (client: StarlightClient, queryClient: QueryClient, queries: Queries) => ({
   pickDirectory: () => mutationOptions({ mutationFn: () => client.shell.pickDirectory() }),
 
+  checkForUpdates: () => mutationOptions({ mutationFn: () => client.updates.check() }),
+
   downloadUpdate: () => mutationOptions({ mutationFn: () => client.updates.download() }),
 
   installUpdate: () => mutationOptions({ mutationFn: () => client.updates.install() }),
+
+  sendMessage: () =>
+    mutationOptions({
+      mutationFn: ({
+        conversationId,
+        text,
+      }: {
+        readonly conversationId: string | null;
+        readonly text: string;
+      }) => client.conversations.send(conversationId, text),
+      onSuccess: () => queryClient.invalidateQueries(queries.conversations()),
+    }),
+
+  clearPreviews: () =>
+    mutationOptions({
+      mutationFn: () => client.disk.clearPreviews(),
+      onSettled: () => queryClient.invalidateQueries(queries.diskUsage()),
+    }),
 
   openWorkspace: () =>
     mutationOptions({
@@ -88,7 +126,34 @@ const createMutations = (client: StarlightClient, queryClient: QueryClient, quer
     }),
 });
 
-const createSubscriptions = (client: StarlightClient, queryClient: QueryClient) => ({
+const createSubscriptions = (client: StarlightClient, queryClient: QueryClient, queries: Queries) => ({
+  conversation: (id: string) => {
+    const { queryKey } = queries.conversation(id);
+    const update = (change: (detail: ConversationDetail) => ConversationDetail) =>
+      queryClient.setQueryData(queryKey, (detail) => detail && change(detail));
+    const has = (detail: ConversationDetail, messageId: string) =>
+      detail.messages.some((message) => message.id === messageId);
+
+    return client.conversations.watch(id, (event) => {
+      switch (event._tag) {
+        case "Snapshot":
+          return queryClient.setQueryData(queryKey, event.detail);
+        case "Draft":
+          return update((detail) =>
+            has(detail, event.draft.id) ? detail : { ...detail, draft: event.draft, failure: null },
+          );
+        case "MessageAdded":
+          void queryClient.invalidateQueries(queries.conversations());
+          return update((detail) => ({
+            ...detail,
+            messages: has(detail, event.message.id) ? detail.messages : [...detail.messages, event.message],
+            draft: detail.draft?.id === event.message.id ? null : detail.draft,
+          }));
+        case "TurnFailed":
+          return update((detail) => ({ ...detail, draft: null, failure: event.message }));
+      }
+    });
+  },
   entries: (workspaceId: string) =>
     client.entries.watch(workspaceId, (change) => {
       if (change._tag === "Resync") {
@@ -114,7 +179,7 @@ export const createQueryOptions = (client: StarlightClient, queryClient: QueryCl
   return {
     queries,
     mutations: createMutations(client, queryClient, queries),
-    subscriptions: createSubscriptions(client, queryClient),
+    subscriptions: createSubscriptions(client, queryClient, queries),
   };
 };
 
