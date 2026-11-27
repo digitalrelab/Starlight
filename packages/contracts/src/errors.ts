@@ -38,3 +38,6 @@ export const DirectoryError = Schema.Union([
   FileSystemError,
 ]);
 export type DirectoryError = typeof DirectoryError.Type;
+
+export const isMissingDirectory = (error: unknown) =>
+  error instanceof NotADirectory || (error instanceof FileSystemError && error.reason === "NotFound");

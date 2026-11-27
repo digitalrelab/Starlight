@@ -1,6 +1,6 @@
-import type { Entry } from "@starlight/client";
+import { type Entry, isMissingDirectory, parentOf } from "@starlight/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, type ErrorComponentProps, Link } from "@tanstack/react-router";
+import { createFileRoute, type ErrorComponentProps, Link, Navigate } from "@tanstack/react-router";
 import { useCallback, useEffect } from "react";
 import { Breadcrumbs } from "../features/browser/breadcrumbs.tsx";
 import { DirectoryView } from "../features/browser/directory-view.tsx";
@@ -38,7 +38,7 @@ function Browser() {
   const { queries, subscriptions } = useStarlight();
   useEffect(() => subscriptions.entries(workspaceId), [subscriptions, workspaceId]);
   const { data: workspace } = useSuspenseQuery(queries.workspace(workspaceId));
-  const { data: entries } = useSuspenseQuery(queries.entries(workspaceId, path));
+  const { data: entries, error, isFetching } = useSuspenseQuery(queries.entries(workspaceId, path));
   const [layout, setLayout] = useLayoutPreference(workspaceId);
 
   const onOpen = useCallback(
@@ -47,6 +47,8 @@ function Browser() {
     },
     [navigate],
   );
+
+  if (error && !isFetching) throw error;
 
   return (
     <>
@@ -66,6 +68,10 @@ function Browser() {
 }
 
 function BrowserError({ error }: ErrorComponentProps) {
+  const { path } = Route.useSearch();
+  if (path !== "" && isMissingDirectory(error)) {
+    return <Navigate from={Route.fullPath} search={{ path: parentOf(path) }} replace />;
+  }
   return (
     <>
       <PageHeader />

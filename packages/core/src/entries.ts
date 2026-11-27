@@ -1,14 +1,14 @@
-import type {
-  DirectoryError,
-  Entry,
-  EntryChange,
-  FileSystemError,
-  WorkspaceId,
-  WorkspaceNotFound,
+import {
+  type DirectoryError,
+  type Entry,
+  type EntryChange,
+  type FileSystemError,
+  joinRelative,
+  type WorkspaceId,
+  type WorkspaceNotFound,
 } from "@starlight/contracts";
 import { Context, Effect, Layer, Option, Result, Stream } from "effect";
 import { type FileWatchEvent, FileSystemPort, FileWatcherPort } from "./ports.ts";
-import { joinRelative } from "./relative-path.ts";
 import { Workspaces } from "./workspaces.ts";
 
 const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
