@@ -1,61 +1,33 @@
-import {
-  autocompletion,
-  type Completion,
-  type CompletionContext,
-  type CompletionResult,
-} from "@codemirror/autocomplete";
+import type { EditorState, TransactionSpec } from "@codemirror/state";
 import {
   Decoration,
   type DecorationSet,
   EditorView,
   MatchDecorator,
-  tooltips,
   ViewPlugin,
   type ViewUpdate,
   WidgetType,
 } from "@codemirror/view";
 
-export interface Mention {
-  readonly label: string;
-  readonly url: string;
-  readonly detail?: string | undefined;
-  readonly icon?: Node | undefined;
-}
-
-export interface Mentions {
-  readonly search: (query: string) => Promise<ReadonlyArray<Mention>>;
-  readonly recognizes: (url: string) => boolean;
-}
-
-interface MentionCompletion extends Completion {
-  readonly mention: Mention;
-}
-
-const TRIGGER = /@[^\s@[\]()]+/;
 const LINK = /\[((?:\\.|[^\]\\])+)\]\(([^)\s]+)\)/g;
 
 const escapeLabel = (label: string) => label.replace(/[\\[\]]/g, "\\$&");
 const unescapeLabel = (label: string) => label.replace(/\\(.)/g, "$1");
 
-const completions =
-  ({ search }: Mentions) =>
-  async (context: CompletionContext): Promise<CompletionResult | null> => {
-    const typed = context.matchBefore(TRIGGER);
-    if (!typed) return null;
-    if (typed.from > 0 && !/\s/.test(context.state.sliceDoc(typed.from - 1, typed.from))) return null;
-    const found = await search(typed.text.slice(1));
-    if (context.aborted) return null;
-    return {
-      from: typed.from,
-      filter: false,
-      options: found.map((mention): MentionCompletion => ({
-        label: mention.label,
-        apply: `[${escapeLabel(mention.label)}](${mention.url})`,
-        mention,
-        ...(mention.detail === undefined ? {} : { detail: mention.detail }),
-      })),
-    };
+export const insertLink = (
+  state: EditorState,
+  from: number,
+  to: number,
+  label: string,
+  url: string,
+): TransactionSpec => {
+  const link = `[${escapeLabel(label)}](${url})`;
+  const spaced = state.sliceDoc(to, to + 1) === " ";
+  return {
+    changes: { from, to, insert: spaced ? link : `${link} ` },
+    selection: { anchor: from + link.length + 1 },
   };
+};
 
 class Chip extends WidgetType {
   constructor(readonly label: string) {
@@ -74,7 +46,7 @@ class Chip extends WidgetType {
   }
 }
 
-const chips = ({ recognizes }: Mentions) => {
+export const mentionChips = (recognizes: (url: string) => boolean) => {
   const decorator = new MatchDecorator({
     regexp: LINK,
     decorate: (add, from, to, match) => {
@@ -99,16 +71,3 @@ const chips = ({ recognizes }: Mentions) => {
     },
   );
 };
-
-const iconOf = (completion: Completion) =>
-  (completion as MentionCompletion).mention.icon?.cloneNode(true) ?? null;
-
-export const mentions = (source: Mentions) => [
-  autocompletion({
-    override: [completions(source)],
-    icons: false,
-    addToOptions: [{ render: iconOf, position: 20 }],
-  }),
-  tooltips({ parent: document.body }),
-  chips(source),
-];

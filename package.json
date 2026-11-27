@@ -45,7 +45,6 @@
       "@anthropic-ai/sdk": "1.14.0",
       "@modelcontextprotocol/sdk": "1.32.2",
       "zod": "4.6.7",
-      "@codemirror/autocomplete": "6.20.4",
       "@codemirror/commands": "6.11.2",
       "@codemirror/lang-markdown": "6.5.2",
       "@codemirror/language": "6.13.1",

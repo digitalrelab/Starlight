@@ -39,7 +39,13 @@ export const referenceOf = (url: string): Reference | undefined => {
 };
 
 export const ReferenceMatch = Schema.Union([
-  Schema.TaggedStruct("Entry", { ref: EntryRef, name: Schema.String, kind: EntryKind, project: ProjectId }),
+  Schema.TaggedStruct("Entry", {
+    ref: EntryRef,
+    name: Schema.String,
+    kind: EntryKind,
+    project: ProjectId,
+    parent: Schema.String,
+  }),
   Schema.TaggedStruct("Chat", { id: ChatId, title: Schema.String }),
 ]);
 export type ReferenceMatch = typeof ReferenceMatch.Type;

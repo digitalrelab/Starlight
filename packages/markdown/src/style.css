@@ -284,26 +284,6 @@
   @apply rounded-md bg-neutral px-1.5 py-px text-default;
 }
 
-body .cm-tooltip.cm-tooltip-autocomplete {
-  @apply overflow-hidden rounded-lg border-none bg-surface-overlay p-1.5 font-sans text-base text-default shadow-overlay;
-
-  & > ul {
-    @apply max-h-72 min-w-64 font-sans;
-  }
-
-  & > ul > li {
-    @apply flex h-8 items-center gap-2 rounded-md px-2 text-subtle;
-  }
-
-  & > ul > li[aria-selected] {
-    @apply bg-neutral text-default;
-  }
-
-  & .md-mention-icon {
-    @apply flex shrink-0;
-  }
-
-  & .cm-completionDetail {
-    @apply ml-auto truncate pl-4 text-sm text-subtlest not-italic;
-  }
+body .cm-tooltip.md-trigger {
+  @apply border-none bg-transparent;
 }

@@ -90,7 +90,6 @@
     "packages/markdown": {
       "name": "@starlight/markdown",
       "dependencies": {
-        "@codemirror/autocomplete": "catalog:",
         "@codemirror/commands": "catalog:",
         "@codemirror/lang-markdown": "catalog:",
         "@codemirror/language": "catalog:",
@@ -100,14 +99,17 @@
         "@lezer/common": "catalog:",
         "@lezer/highlight": "catalog:",
         "@lezer/markdown": "catalog:",
+        "@starlight/ui": "workspace:*",
         "cn": "catalog:",
         "decode-named-character-reference": "catalog:",
       },
       "devDependencies": {
         "@types/react": "catalog:",
+        "@types/react-dom": "catalog:",
       },
       "peerDependencies": {
         "react": "catalog:",
+        "react-dom": "catalog:",
       },
     },
     "packages/media-player": {
@@ -152,7 +154,6 @@
     "@anthropic-ai/claude-agent-sdk": "0.3.332",
     "@anthropic-ai/sdk": "1.14.0",
     "@base-ui/react": "1.9.0",
-    "@codemirror/autocomplete": "6.20.4",
     "@codemirror/commands": "6.11.2",
     "@codemirror/lang-markdown": "6.5.2",
     "@codemirror/language": "6.13.1",

@@ -76,7 +76,7 @@ export class HostRpcs extends RpcGroup.make(
     error: FileError,
   }),
   Rpc.make("SearchReferences", {
-    payload: { query: Schema.NonEmptyString },
+    payload: { query: Schema.String },
     success: Schema.Array(ReferenceMatch),
   }),
   Rpc.make("LocateEntry", {

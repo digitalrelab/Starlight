@@ -1,12 +1,12 @@
-import { Compartment, EditorState, Transaction } from "@codemirror/state";
+import { Compartment, EditorState, type Extension, Transaction } from "@codemirror/state";
 import { EditorView, placeholder as placeholderText } from "@codemirror/view";
 import { cn } from "cn";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { changeBetween } from "#change.ts";
-import { type Mentions, mentions as mentionSupport } from "./mentions.ts";
 import { submitOnEnter, type Variant, variants, writing } from "./writing.ts";
 
-export type { Mention, Mentions } from "./mentions.ts";
+export { insertLink, mentionChips } from "./mentions.ts";
+export { type ActiveTrigger, type TriggerSource, type TriggerStore, useTrigger } from "./trigger.ts";
 
 export interface MarkdownEditorProps {
   readonly value: string;
@@ -15,7 +15,7 @@ export interface MarkdownEditorProps {
   readonly editable?: boolean;
   readonly placeholder?: string;
   readonly autoFocus?: boolean;
-  readonly mentions?: Mentions;
+  readonly extensions?: Extension;
   readonly className?: string;
   readonly onChange?: (read: () => string) => void;
   readonly onSubmit?: () => void;
@@ -38,7 +38,7 @@ export const MarkdownEditor = ({
   editable = true,
   placeholder,
   autoFocus = false,
-  mentions,
+  extensions = [],
   className,
   onChange,
   onSubmit,
@@ -53,7 +53,7 @@ export const MarkdownEditor = ({
     editable,
     placeholder,
     autoFocus,
-    mentions,
+    extensions,
     submits: onSubmit !== undefined,
   });
   const [settings] = useState(() => new Compartment());
@@ -69,7 +69,7 @@ export const MarkdownEditor = ({
         extensions: [
           writing,
           variants[initial.variant],
-          initial.mentions ? mentionSupport(initial.mentions) : [],
+          initial.extensions,
           initial.submits ? submitOnEnter(submitted) : [],
           settings.of(settingsOf(initial.label, initial.editable, initial.placeholder)),
           EditorView.updateListener.of((update) => {
