@@ -5,17 +5,16 @@ import { Projects } from "./projects.ts";
 
 const SEARCH_LIMIT = 12;
 
-const mountsBySource = (projects: ReadonlyArray<Project>) => {
-  const groups = new Map<SourceId, Array<{ readonly mount: Mount; readonly project: ProjectId }>>();
-  for (const project of projects) {
-    for (const mount of project.mounts) {
-      const group = groups.get(mount.root.source) ?? [];
-      group.push({ mount, project: project.id });
-      groups.set(mount.root.source, group);
-    }
-  }
-  return groups;
-};
+interface Owner {
+  readonly mount: Mount;
+  readonly project: ProjectId;
+}
+
+const ownersBySource = (projects: ReadonlyArray<Project>) =>
+  Map.groupBy(
+    projects.flatMap(({ id, mounts }) => mounts.map((mount): Owner => ({ mount, project: id }))),
+    ({ mount }) => mount.root.source,
+  );
 
 export class References extends Context.Service<
   References,
@@ -26,41 +25,27 @@ export class References extends Context.Service<
       const projects = yield* Projects;
       const chats = yield* ChatStore;
 
+      const searchSource = (source: SourceId, owners: ReadonlyArray<Owner>, query: string) =>
+        Effect.gen(function* () {
+          const driver = yield* projects.driverFor(source);
+          const roots = owners.map(({ mount }) => mount.root.id);
+          const entries = yield* driver.search(roots, query, SEARCH_LIMIT);
+          return entries.flatMap((entry): ReadonlyArray<ReferenceMatch> => {
+            const owner = owners.find(({ mount }) => driver.contains(mount.root.id, entry.id));
+            if (!owner) return [];
+            const ref = { source, id: entry.id };
+            return [{ _tag: "Entry", ref, name: entry.name, kind: entry.kind, project: owner.project }];
+          });
+        }).pipe(Effect.orElseSucceed((): ReadonlyArray<ReferenceMatch> => []));
+
       const searchEntries = Effect.fn("References.searchEntries")(function* (query: string) {
-        const groups = mountsBySource(yield* projects.list);
+        const groups = ownersBySource(yield* projects.list);
         const found = yield* Effect.forEach(
           groups,
-          ([source, mounts]) =>
-            projects.driverFor(source).pipe(
-              Effect.flatMap((driver) =>
-                driver
-                  .search(
-                    mounts.map(({ mount }) => mount.root.id),
-                    query,
-                    SEARCH_LIMIT,
-                  )
-                  .pipe(
-                    Effect.map((entries) =>
-                      entries.flatMap((entry): ReadonlyArray<ReferenceMatch> => {
-                        const owner = mounts.find(({ mount }) => driver.contains(mount.root.id, entry.id));
-                        return owner
-                          ? [
-                              {
-                                _tag: "Entry",
-                                ref: { source, id: entry.id },
-                                name: entry.name,
-                                kind: entry.kind,
-                                project: owner.project,
-                              },
-                            ]
-                          : [];
-                      }),
-                    ),
-                  ),
-              ),
-              Effect.orElseSucceed((): ReadonlyArray<ReferenceMatch> => []),
-            ),
-          { concurrency: "unbounded" },
+          ([source, owners]) => searchSource(source, owners, query),
+          {
+            concurrency: "unbounded",
+          },
         );
         return found.flat();
       });

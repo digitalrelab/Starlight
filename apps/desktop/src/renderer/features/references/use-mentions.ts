@@ -10,10 +10,14 @@ import { useStarlight } from "#renderer/lib/context.ts";
 
 const SEARCH_FRESH_MS = 10_000;
 
-const nodeOf = (element: ReactElement) => {
+const markup = new Map<string, string>();
+
+const iconNode = (key: string, element: () => ReactElement) => {
   const node = document.createElement("span");
   node.className = "md-mention-icon";
-  node.innerHTML = renderToStaticMarkup(element);
+  const html = markup.get(key) ?? renderToStaticMarkup(element());
+  markup.set(key, html);
+  node.innerHTML = html;
   return node;
 };
 
@@ -23,13 +27,17 @@ const mentionOf = (match: ReferenceMatch, projects: ReadonlyArray<Project>): Men
         label: match.name,
         url: referenceUrl({ _tag: "Entry", ref: match.ref }),
         detail: projects.find(({ id }) => id === match.project)?.name,
-        icon: nodeOf(createElement(KindIcon, { kind: itemKindOf(match), size: 16 })),
+        icon: iconNode(itemKindOf(match), () =>
+          createElement(KindIcon, { kind: itemKindOf(match), size: 16 }),
+        ),
       }
     : {
         label: match.title,
         url: referenceUrl({ _tag: "Chat", id: match.id }),
         detail: "Chat",
-        icon: nodeOf(createElement(Icon, { icon: BubbleChatIcon, size: 16, className: "text-subtle" })),
+        icon: iconNode("chat", () =>
+          createElement(Icon, { icon: BubbleChatIcon, size: 16, className: "text-subtle" }),
+        ),
       };
 
 export const useMentions = () => {
