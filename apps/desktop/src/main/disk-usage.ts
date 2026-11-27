@@ -1,7 +1,7 @@
 import { readdir, stat } from "node:fs/promises";
 import { join } from "node:path";
 
-export interface DiskFile {
+interface DiskFile {
   readonly path: string;
   readonly size: number;
   readonly modifiedAt: number;

@@ -51,8 +51,8 @@ const createQueries = (client: StarlightClient) => ({
     queryOptions({
       queryKey: ["storageUsage"],
       queryFn: () => client.storage.usage(),
-      refetchOnMount: "always",
-      refetchOnWindowFocus: "always",
+      staleTime: 0,
+      refetchOnWindowFocus: true,
     }),
 
   update: () =>
