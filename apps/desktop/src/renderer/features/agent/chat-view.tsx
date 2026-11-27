@@ -8,12 +8,14 @@ import { useStarlight } from "#renderer/lib/context.ts";
 import { newChatLink } from "./chat-links.ts";
 import { ModelComposer } from "./model-composer.tsx";
 import { Transcript } from "./transcript.tsx";
+import { useStickToBottom } from "./use-stick-to-bottom.ts";
 
 export const ChatView = ({ chatId }: { readonly chatId: string }) => {
   const { queries, mutations, subscriptions } = useStarlight();
   useEffect(() => subscriptions.chat(chatId), [subscriptions, chatId]);
   const { data: detail } = useSuspenseQuery(queries.chat(chatId));
   const send = useMutation(mutations.sendMessage());
+  const { viewport, content, repin } = useStickToBottom();
 
   return (
     <>
@@ -24,6 +26,8 @@ export const ChatView = ({ chatId }: { readonly chatId: string }) => {
         messages={detail.messages}
         draft={detail.draft}
         failure={detail.failure}
+        viewportRef={viewport}
+        contentRef={content}
         className="mx-auto w-full max-w-2xl px-6 py-8"
       />
       <div className="mx-auto w-full max-w-2xl px-6 pb-6">
@@ -31,7 +35,10 @@ export const ChatView = ({ chatId }: { readonly chatId: string }) => {
           chat={detail.chat}
           placeholder="Reply…"
           disabled={detail.draft !== null}
-          onSubmit={(text, model) => send.mutateAsync({ chatId, text, model })}
+          onSubmit={(text, model) => {
+            repin();
+            return send.mutateAsync({ chatId, text, model });
+          }}
         />
       </div>
     </>

@@ -2,7 +2,7 @@ import { ArrowLeft01Icon, ArrowRight01Icon } from "@hugeicons-pro/core-stroke-ro
 import type { Entry, EntryRef } from "@starlight/client";
 import { PLAYER_ATTRIBUTE } from "@starlight/media-player";
 import { Button, Icon, IconButton, Theater } from "@starlight/ui";
-import { type KeyboardEvent, useEffect, useEffectEvent, useRef, useState } from "react";
+import { type KeyboardEvent, useEffect, useEffectEvent, useState } from "react";
 import { KindIcon, itemKindOf } from "#renderer/features/files/kind-icon.tsx";
 import { Inspector } from "#renderer/features/inspector/inspector.tsx";
 import {
@@ -88,15 +88,15 @@ export const FileViewer = ({
   const next = index >= 0 ? files[index + 1] : undefined;
   usePrefetch(projectId, directory, previous, next, inspector === "open");
 
-  const shownAt = useRef(index);
+  const [shownAt, setShownAt] = useState(index);
+  if (index >= 0 && index !== shownAt) setShownAt(index);
   const recover = useEffectEvent(() => {
-    const fallback = files[Math.min(shownAt.current, files.length - 1)];
+    const fallback = files[Math.min(shownAt, files.length - 1)];
     if (fallback) onShow(fallback.ref);
     else onClose();
   });
   useEffect(() => {
-    if (index >= 0) shownAt.current = index;
-    else recover();
+    if (index < 0) recover();
   }, [index]);
 
   const showPrevious = previous && (() => onShow(previous.ref));

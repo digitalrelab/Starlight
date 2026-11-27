@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 
 const PINNED_WITHIN_PX = 48;
 
-export const useStickToBottom = (repinKey: unknown) => {
+export const useStickToBottom = () => {
   const viewport = useRef<HTMLDivElement>(null);
   const content = useRef<HTMLDivElement>(null);
   const pinned = useRef(true);
@@ -17,6 +17,7 @@ export const useStickToBottom = (repinKey: unknown) => {
     const observer = new ResizeObserver(() => {
       if (pinned.current) scroller.scrollTop = scroller.scrollHeight;
     });
+    scroller.scrollTop = scroller.scrollHeight;
     scroller.addEventListener("scroll", onScroll, { passive: true });
     observer.observe(inner);
     return () => {
@@ -25,11 +26,11 @@ export const useStickToBottom = (repinKey: unknown) => {
     };
   }, []);
 
-  useEffect(() => {
+  const repin = () => {
     pinned.current = true;
     const scroller = viewport.current;
     if (scroller) scroller.scrollTop = scroller.scrollHeight;
-  }, [repinKey]);
+  };
 
-  return { viewport, content };
+  return { viewport, content, repin };
 };

@@ -1,13 +1,15 @@
 import type { ChatMessage, Draft } from "@starlight/client";
 import { Markdown } from "@starlight/markdown";
 import { cn, ScrollArea } from "@starlight/ui";
+import type { RefObject } from "react";
 import { useRevealedText } from "./use-revealed-text.ts";
-import { useStickToBottom } from "./use-stick-to-bottom.ts";
 
 interface Props {
   readonly messages: ReadonlyArray<ChatMessage>;
   readonly draft: Draft | null;
   readonly failure: string | null;
+  readonly viewportRef: RefObject<HTMLDivElement | null>;
+  readonly contentRef: RefObject<HTMLDivElement | null>;
   readonly className?: string;
 }
 
@@ -34,8 +36,7 @@ const Message = ({
     <Reply text={text} pending={pending} />
   );
 
-export const Transcript = ({ messages, draft, failure, className }: Props) => {
-  const { viewport, content } = useStickToBottom(messages.findLast((message) => message.role === "user")?.id);
+export const Transcript = ({ messages, draft, failure, viewportRef, contentRef, className }: Props) => {
   const items = draft
     ? [...messages, { id: draft.id, role: "assistant" as const, text: draft.text }]
     : messages;
@@ -43,8 +44,8 @@ export const Transcript = ({ messages, draft, failure, className }: Props) => {
   return (
     <ScrollArea
       className="flex-1"
-      ref={viewport}
-      contentRef={content}
+      ref={viewportRef}
+      contentRef={contentRef}
       contentClassName={cn("flex flex-col gap-6", className)}
     >
       {items.map((message) => (
