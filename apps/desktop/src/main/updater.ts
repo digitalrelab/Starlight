@@ -3,7 +3,8 @@ import { app } from "electron";
 import electronUpdater, { type UpdateInfo } from "electron-updater";
 import { Effect, Predicate, Stream, SubscriptionRef } from "effect";
 
-const CHECK_INTERVAL_MS = 60 * 60 * 1000;
+const CHECK_INTERVAL_MS = 15 * 60 * 1000;
+const MIN_CHECK_GAP_MS = 5 * 60 * 1000;
 
 const toUpdate = ({ version, releaseNotes }: UpdateInfo, fields: Pick<Update, "status" | "progress">) => ({
   version,
@@ -29,13 +30,17 @@ export const startUpdater = () => {
     autoUpdater.on("error", () => {
       if (current()?.status === "downloading") patch({ status: "available", progress: 0 });
     });
+    let checkedAt = 0;
     const check = () => {
       const status = current()?.status;
       if (status === "downloading" || status === "downloaded") return;
+      if (Date.now() - checkedAt < MIN_CHECK_GAP_MS) return;
+      checkedAt = Date.now();
       autoUpdater.checkForUpdates().catch(() => null);
     };
     check();
     setInterval(check, CHECK_INTERVAL_MS);
+    app.on("browser-window-focus", check);
   }
 
   return {
