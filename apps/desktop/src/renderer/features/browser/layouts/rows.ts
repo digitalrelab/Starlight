@@ -13,15 +13,15 @@ export interface ShelfOptions {
   readonly gap: number;
 }
 
-export interface JustifiedRow {
+export interface Row {
   readonly start: number;
   readonly end: number;
   readonly height: number;
   readonly gap: number;
 }
 
-export interface JustifiedLayout {
-  readonly rows: ReadonlyArray<JustifiedRow>;
+export interface RowLayout {
+  readonly rows: ReadonlyArray<Row>;
   readonly left: Float64Array;
   readonly width: Float64Array;
   readonly rowOf: Uint32Array;
@@ -30,13 +30,13 @@ export interface JustifiedLayout {
 const fitHeight = (width: number, gap: number, chrome: number, count: number, aspectSum: number) =>
   Math.max(0, (width - gap * (count - 1) - chrome * count) / aspectSum);
 
-export const justify = (aspects: Float64Array, options: JustifyOptions): JustifiedLayout => {
+export const justify = (aspects: Float64Array, options: JustifyOptions): RowLayout => {
   const { width, targetHeight, maxHeight, gap, chrome } = options;
   const count = width > 0 ? aspects.length : 0;
   const left = new Float64Array(count);
   const widths = new Float64Array(count);
   const rowOf = new Uint32Array(count);
-  const rows: Array<JustifiedRow> = [];
+  const rows: Array<Row> = [];
 
   let start = 0;
   while (start < count) {
@@ -76,7 +76,7 @@ export const justify = (aspects: Float64Array, options: JustifyOptions): Justifi
   return { rows, left, width: widths, rowOf };
 };
 
-export const shelve = (count: number, options: ShelfOptions): JustifiedLayout => {
+export const shelve = (count: number, options: ShelfOptions): RowLayout => {
   const { width, minWidth, height, gap } = options;
   const total = width > 0 ? count : 0;
   const columns = Math.max(1, Math.floor((width + gap) / (minWidth + gap)));
@@ -84,7 +84,7 @@ export const shelve = (count: number, options: ShelfOptions): JustifiedLayout =>
   const left = new Float64Array(total);
   const widths = new Float64Array(total);
   const rowOf = new Uint32Array(total);
-  const rows: Array<JustifiedRow> = [];
+  const rows: Array<Row> = [];
   for (let i = 0; i < total; i++) {
     const x = (i % columns) * (column + gap);
     left[i] = Math.round(x);
@@ -96,12 +96,12 @@ export const shelve = (count: number, options: ShelfOptions): JustifiedLayout =>
 };
 
 export const stack = (
-  top: JustifiedLayout,
+  top: RowLayout,
   topLeft: number,
-  bottom: JustifiedLayout,
+  bottom: RowLayout,
   bottomLeft: number,
   gap: number,
-): JustifiedLayout => {
+): RowLayout => {
   const offset = top.left.length;
   const left = new Float64Array(offset + bottom.left.length);
   const width = new Float64Array(left.length);
@@ -125,7 +125,7 @@ export const stack = (
   return { rows, left, width, rowOf };
 };
 
-export const nearestInRow = (layout: JustifiedLayout, row: JustifiedRow, center: number) => {
+export const nearestInRow = (layout: RowLayout, row: Row, center: number) => {
   let best = row.start;
   let bestDistance = Infinity;
   for (let i = row.start; i < row.end; i++) {

@@ -1,33 +1,26 @@
-import { Image01Icon, Tick02Icon } from "@hugeicons-pro/core-stroke-rounded";
 import { type Entry, entryKey, type Media } from "@starlight/client";
-import { cn, Icon, ScrollArea } from "@starlight/ui";
+import { ScrollArea } from "@starlight/ui";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { type KeyboardEvent, memo, useEffect, useEffectEvent, useLayoutEffect, useMemo, useRef } from "react";
-import { previewUrl } from "#shared/previews.ts";
+import { type KeyboardEvent, useEffect, useEffectEvent, useLayoutEffect, useMemo, useRef } from "react";
 import { useStarlight } from "#renderer/lib/context.ts";
-import { placeholderUrl } from "#renderer/lib/placeholder.ts";
-import { reveal } from "#renderer/lib/reveal.ts";
 import { useElementWidth } from "#renderer/lib/use-element-width.ts";
-import { KindIcon, itemKindOf } from "#renderer/features/files/kind-icon.tsx";
-import { justify, nearestInRow, shelve, stack } from "./justify.ts";
+import { justify, nearestInRow, shelve, stack } from "./rows.ts";
+import { FolderChip, TILE_CHROME, TILE_INSET, Tile, tilePreviewUrl } from "./tile.tsx";
 import type { LayoutProps } from "./types.ts";
-import { usePreview, usePreviewsAhead } from "./use-preview.ts";
+import { usePreviewsAhead } from "./use-preview.ts";
 
 const TARGET_ROW_HEIGHT = 200;
 const MAX_ROW_HEIGHT = 320;
 const GUTTER = 12;
 const SECTION_GAP = 16;
-const TILE_INSET = 4;
 const TILE_GAP = 4;
-const CAPTION_HEIGHT = 28;
 const CHIP_HEIGHT = 40;
 const CHIP_MIN_WIDTH = 200;
 const CHIP_GAP = 8;
 const MIN_ASPECT = 0.5;
 const MAX_ASPECT = 3;
 const ICON_TILE_ASPECT = 1;
-const CHROME = { width: TILE_INSET * 2, height: TILE_INSET * 2 + CAPTION_HEIGHT };
 
 const indexByKey = (media: ReadonlyArray<Media>) => new Map(media.map((item) => [entryKey(item.ref), item]));
 
@@ -36,9 +29,6 @@ const leadingFolders = (entries: ReadonlyArray<Entry>) => {
   while (entries[count]?.kind === "directory") count++;
   return count;
 };
-
-const tilePreviewUrl = (media: Media, width: number, height: number) =>
-  previewUrl(media.token, Math.max(width - CHROME.width, height - CHROME.height) * window.devicePixelRatio);
 
 const aspectOf = (media: Media | undefined) =>
   media ? Math.min(MAX_ASPECT, Math.max(MIN_ASPECT, media.width / media.height)) : ICON_TILE_ASPECT;
@@ -80,12 +70,12 @@ export const GridLayout = ({
       targetHeight: TARGET_ROW_HEIGHT,
       maxHeight: MAX_ROW_HEIGHT,
       gap: TILE_GAP,
-      chrome: CHROME,
+      chrome: TILE_CHROME,
     });
     return {
       ...stack(shelf, GUTTER, tiles, GUTTER - TILE_INSET, SECTION_GAP - TILE_INSET),
-      shelved: shelf.rows.length > 0,
-      tiled: tiles.rows.length > 0,
+      paddingStart: shelf.rows.length > 0 ? GUTTER : GUTTER - TILE_INSET,
+      paddingEnd: tiles.rows.length > 0 ? GUTTER - TILE_INSET : GUTTER,
     };
   }, [aspects, folderCount, width]);
 
@@ -108,8 +98,8 @@ export const GridLayout = ({
       const row = layout.rows[index];
       return row ? row.height + (index < layout.rows.length - 1 ? row.gap : 0) : 0;
     },
-    paddingStart: layout.shelved ? GUTTER : GUTTER - TILE_INSET,
-    paddingEnd: layout.tiled ? GUTTER - TILE_INSET : GUTTER,
+    paddingStart: layout.paddingStart,
+    paddingEnd: layout.paddingEnd,
     overscan: 3,
   });
 
@@ -185,130 +175,5 @@ export const GridLayout = ({
         })}
       </div>
     </ScrollArea>
-  );
-};
-
-interface CellProps {
-  readonly index: number;
-  readonly entry: Entry;
-  readonly left: number;
-  readonly width: number;
-  readonly height: number;
-  readonly selected: boolean;
-  readonly onSelect: (index: number) => void;
-  readonly onHover: (index: number | null) => void;
-  readonly onOpen: (entry: Entry) => void;
-}
-
-const cellEvents = ({ index, entry, onSelect, onHover, onOpen }: CellProps) => ({
-  onClick: () => onSelect(index),
-  onDoubleClick: () => onOpen(entry),
-  onPointerEnter: () => onHover(index),
-  onPointerLeave: () => onHover(null),
-});
-
-const FolderChip = memo((props: CellProps) => {
-  const { entry, left, width, height, selected } = props;
-  return (
-    <div
-      {...cellEvents(props)}
-      title={entry.name}
-      className={cn(
-        "absolute top-0 flex cursor-interactive items-center gap-2.5 rounded-md px-3",
-        selected ? "bg-selected text-selected" : "bg-surface-sunken hover:bg-neutral-subtle-hovered",
-        entry.hidden && "opacity-50",
-      )}
-      style={{ left, width, height }}
-    >
-      <KindIcon kind="folder" />
-      <span className="truncate">{entry.name}</span>
-    </div>
-  );
-});
-
-interface TileProps extends CellProps {
-  readonly media: Media | undefined;
-  readonly visible: boolean;
-}
-
-const Tile = memo((props: TileProps) => {
-  const { entry, media, left, width, height, visible, selected } = props;
-  const kind = itemKindOf(entry);
-  return (
-    <div
-      {...cellEvents(props)}
-      title={entry.name}
-      className={cn("group absolute top-0 flex cursor-interactive flex-col", entry.hidden && "opacity-50")}
-      style={{ left, width, height, padding: TILE_INSET }}
-    >
-      <div
-        className={cn(
-          "relative min-h-0 flex-1 overflow-hidden rounded-md bg-surface-sunken outline-2 outline-offset-2",
-          selected
-            ? "outline-(--border-color-selected) group-hover:outline-(--border-color-selected-hovered)"
-            : "outline-transparent group-hover:outline-(--text-color-subtlest)",
-        )}
-      >
-        {media ? (
-          <Preview
-            url={tilePreviewUrl(media, width, height)}
-            placeholder={media.placeholder}
-            visible={visible}
-          />
-        ) : (
-          <span className="absolute inset-0 flex items-center justify-center [container-type:size]">
-            <KindIcon kind={kind} className="size-[clamp(1.25rem,20cqmin,2.5rem)]" />
-          </span>
-        )}
-        {selected && (
-          <>
-            <span className="absolute inset-0 bg-selected-overlay/60" />
-            <span className="absolute top-1.5 left-1.5 grid size-5 place-items-center rounded-full bg-selected-bold text-inverse shadow-sm">
-              <Icon icon={Tick02Icon} size={12} strokeWidth={2.5} />
-            </span>
-          </>
-        )}
-      </div>
-      <div className="flex shrink-0 items-center gap-1.5 px-1 text-sm" style={{ height: CAPTION_HEIGHT }}>
-        <KindIcon kind={kind} size={14} />
-        <span className="min-w-0 truncate">{entry.name}</span>
-      </div>
-    </div>
-  );
-});
-
-interface PreviewProps {
-  readonly url: string;
-  readonly placeholder: string | null;
-  readonly visible: boolean;
-}
-
-const Preview = ({ url, placeholder, visible }: PreviewProps) => {
-  const src = usePreview(url, visible);
-  return (
-    <>
-      {placeholder ? (
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${placeholderUrl(placeholder)})` }}
-        />
-      ) : (
-        <Icon
-          icon={Image01Icon}
-          size={24}
-          className="absolute top-1/2 left-1/2 -translate-1/2 text-subtlest"
-        />
-      )}
-      {src && (
-        <img
-          src={src}
-          alt=""
-          decoding="async"
-          draggable={false}
-          onLoad={reveal}
-          className="relative size-full object-cover opacity-0 transition-opacity duration-150 data-loaded:opacity-100"
-        />
-      )}
-    </>
   );
 };
