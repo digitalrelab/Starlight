@@ -10,10 +10,6 @@
 - State the general rule, not the case that prompted it.
 - No code comments.
 
-## Design
-
-- No filled or primary buttons.
-
 ## Git
 
 - Commits and PR titles follow Conventional Commits: `type(scope): summary`.
