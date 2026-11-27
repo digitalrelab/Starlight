@@ -1,5 +1,6 @@
 import {
   ArrowLeft01Icon,
+  Folder01Icon,
   HardDriveIcon,
   PaintBoardIcon,
   Plug01Icon,
@@ -16,6 +17,9 @@ export const SettingsSidebar = () => (
     <NavSection title="General">
       <NavItem icon={PaintBoardIcon} render={<Link to="/settings/appearance" />}>
         Appearance
+      </NavItem>
+      <NavItem icon={Folder01Icon} render={<Link to="/settings/files" />}>
+        Files
       </NavItem>
       <NavItem icon={HardDriveIcon} render={<Link to="/settings/disk" />}>
         Disk
