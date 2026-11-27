@@ -1,11 +1,4 @@
-import type {
-  Entry,
-  FileSystemError,
-  NotADirectory,
-  PathOutsideWorkspace,
-  WorkspaceId,
-  WorkspaceNotFound,
-} from "@starlight/contracts";
+import type { DirectoryError, Entry, WorkspaceId } from "@starlight/contracts";
 import { Context, Effect, Layer } from "effect";
 import { FileSystemPort } from "./ports.ts";
 import { joinRelative } from "./relative-path.ts";
@@ -25,10 +18,7 @@ export class Entries extends Context.Service<
     readonly list: (
       workspaceId: WorkspaceId,
       path: string,
-    ) => Effect.Effect<
-      ReadonlyArray<Entry>,
-      WorkspaceNotFound | PathOutsideWorkspace | NotADirectory | FileSystemError
-    >;
+    ) => Effect.Effect<ReadonlyArray<Entry>, DirectoryError>;
   }
 >()("@starlight/core/Entries") {
   static readonly layer = Layer.effect(Entries)(

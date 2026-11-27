@@ -1,4 +1,3 @@
-import { randomBytes } from "node:crypto";
 import { extname } from "node:path";
 import { verifyThumbnailToken } from "@starlight/host/thumbnail-token";
 import { nativeImage, protocol, screen } from "electron";
@@ -7,8 +6,6 @@ import { fitThumbnailSize, THUMBNAIL_SCHEME } from "../shared/thumbnails.ts";
 const CONCURRENCY = 6;
 const JPEG_QUALITY = 85;
 const OPAQUE_EXTENSIONS = new Set([".jpg", ".jpeg", ".heic", ".heif"]);
-
-export const thumbnailKey = randomBytes(32);
 
 export const registerThumbnailScheme = () =>
   protocol.registerSchemesAsPrivileged([
@@ -52,11 +49,11 @@ const render = async (absolute: string, pixels: number) => {
   });
 };
 
-export const serveThumbnails = () => {
+export const serveThumbnails = (key: Buffer) => {
   const enqueue = createLifoQueue(CONCURRENCY);
   protocol.handle(THUMBNAIL_SCHEME, (request) => {
     const url = new URL(request.url);
-    const absolute = verifyThumbnailToken(thumbnailKey, url.pathname.slice(1));
+    const absolute = verifyThumbnailToken(key, url.pathname.slice(1));
     if (!absolute) return new Response(null, { status: 403 });
     const size = fitThumbnailSize(Number(url.searchParams.get("size")));
     return enqueue(() => render(absolute, size), request.signal).catch(

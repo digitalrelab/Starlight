@@ -1,5 +1,5 @@
 import type { Entry } from "@starlight/client";
-import { Suspense, useCallback, useState } from "react";
+import { type KeyboardEvent, Suspense, useCallback, useState } from "react";
 import { type LayoutId, layouts } from "./layouts/registry.ts";
 
 interface Props {
@@ -21,9 +21,16 @@ export const DirectoryView = ({ workspaceId, path, entries, layout, onOpen }: Pr
     return <div className="flex flex-1 items-center justify-center text-muted">Empty folder</div>;
   }
 
+  const onKeyDown = (event: KeyboardEvent) => {
+    const entry = entries[selected];
+    if (event.key !== "Enter" || !entry) return;
+    event.preventDefault();
+    onOpen(entry);
+  };
+
   const Layout = layouts[layout].component;
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <div className="flex min-h-0 flex-1 flex-col" onKeyDown={onKeyDown}>
       <Suspense fallback={<div className="flex-1" />}>
         <Layout
           workspaceId={workspaceId}

@@ -1,11 +1,4 @@
-import type {
-  FileSystemError,
-  Media,
-  NotADirectory,
-  PathOutsideWorkspace,
-  WorkspaceId,
-  WorkspaceNotFound,
-} from "@starlight/contracts";
+import type { DirectoryError, Media, WorkspaceId } from "@starlight/contracts";
 import { Array as Arr, Context, Effect, Layer, Option, Path } from "effect";
 import { FileSystemPort, MediaProbe, ThumbnailTokens } from "./ports.ts";
 import { joinRelative } from "./relative-path.ts";
@@ -19,10 +12,7 @@ export class MediaLibrary extends Context.Service<
     readonly list: (
       workspaceId: WorkspaceId,
       path: string,
-    ) => Effect.Effect<
-      ReadonlyArray<Media>,
-      WorkspaceNotFound | PathOutsideWorkspace | NotADirectory | FileSystemError
-    >;
+    ) => Effect.Effect<ReadonlyArray<Media>, DirectoryError>;
   }
 >()("@starlight/core/MediaLibrary") {
   static readonly layer = Layer.effect(MediaLibrary)(

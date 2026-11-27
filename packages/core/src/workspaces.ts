@@ -1,4 +1,5 @@
 import {
+  type DirectoryError,
   type FileSystemError,
   NotADirectory,
   PathOutsideWorkspace,
@@ -17,20 +18,10 @@ export class Workspaces extends Context.Service<
     readonly open: (path: string) => Effect.Effect<Workspace, NotADirectory | FileSystemError, CurrentActor>;
     readonly recent: Effect.Effect<ReadonlyArray<Workspace>>;
     readonly get: (id: WorkspaceId) => Effect.Effect<Workspace, WorkspaceNotFound>;
-    readonly resolve: (
-      id: WorkspaceId,
-      relative: string,
-    ) => Effect.Effect<
-      { readonly workspace: Workspace; readonly absolute: string; readonly relative: string },
-      WorkspaceNotFound | PathOutsideWorkspace | FileSystemError
-    >;
     readonly resolveDirectory: (
       id: WorkspaceId,
       relative: string,
-    ) => Effect.Effect<
-      { readonly absolute: string; readonly relative: string },
-      WorkspaceNotFound | PathOutsideWorkspace | NotADirectory | FileSystemError
-    >;
+    ) => Effect.Effect<{ readonly absolute: string; readonly relative: string }, DirectoryError>;
   }
 >()("@starlight/core/Workspaces") {
   static readonly layer = Layer.effect(Workspaces)(
@@ -79,7 +70,6 @@ export class Workspaces extends Context.Service<
         }),
         recent: store.recent(RECENT_LIMIT),
         get,
-        resolve,
         resolveDirectory: Effect.fn("Workspaces.resolveDirectory")(function* (id, relative) {
           const resolved = yield* resolve(id, relative);
           const info = yield* fs.stat(resolved.absolute);

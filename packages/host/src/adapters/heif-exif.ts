@@ -4,7 +4,7 @@ interface Box {
   readonly end: number;
 }
 
-export interface ByteRange {
+interface ByteRange {
   readonly offset: number;
   readonly length: number;
 }

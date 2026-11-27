@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { join } from "node:path";
 import { app, BrowserWindow, ipcMain, MessageChannelMain } from "electron";
 import { Channel } from "../shared/channels.ts";
@@ -12,8 +13,9 @@ registerThumbnailScheme();
 
 const main = async () => {
   await app.whenReady();
-  serveThumbnails();
-  const host = superviseHost(() => {
+  const thumbnailKey = randomBytes(32);
+  serveThumbnails(thumbnailKey);
+  const host = superviseHost({ STARLIGHT_THUMBNAIL_KEY: thumbnailKey.toString("hex") }, () => {
     for (const window of BrowserWindow.getAllWindows()) window.webContents.reload();
   });
 

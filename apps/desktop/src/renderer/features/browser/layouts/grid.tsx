@@ -1,4 +1,4 @@
-import { File01Icon, FolderIcon, Image01Icon } from "@hugeicons-pro/core-stroke-rounded";
+import { Image01Icon } from "@hugeicons-pro/core-stroke-rounded";
 import type { Entry, Media } from "@starlight/client";
 import { cn, Icon } from "@starlight/ui";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -15,6 +15,7 @@ import {
 import { thumbnailUrl } from "../../../../shared/thumbnails.ts";
 import { useStarlight } from "../../../lib/context.ts";
 import { useElementWidth } from "../../../lib/use-element-width.ts";
+import { EntryIcon } from "../entry-icon.tsx";
 import { justify, nearestInRow } from "./justify.ts";
 import type { LayoutProps } from "./types.ts";
 
@@ -87,7 +88,6 @@ export const GridLayout = ({ workspaceId, path, entries, selected, onSelect, onO
     else if (event.key === "ArrowLeft") onSelect(selected - 1);
     else if (event.key === "ArrowDown") moveVertically(1);
     else if (event.key === "ArrowUp") moveVertically(-1);
-    else if (event.key === "Enter" && entries[selected]) onOpen(entries[selected]);
     else return;
     event.preventDefault();
   };
@@ -147,7 +147,6 @@ interface TileProps {
 }
 
 const Tile = memo(({ index, entry, media, left, width, height, selected, onSelect, onOpen }: TileProps) => {
-  const isDir = entry.kind === "directory";
   return (
     <div
       onClick={() => onSelect(index)}
@@ -179,12 +178,7 @@ const Tile = memo(({ index, entry, media, left, width, height, selected, onSelec
         </>
       ) : (
         <div className="flex size-full flex-col items-center justify-center gap-2 p-3">
-          <Icon
-            icon={isDir ? FolderIcon : File01Icon}
-            size={40}
-            strokeWidth={1.25}
-            className={isDir ? "text-accent" : "text-muted"}
-          />
+          <EntryIcon entry={entry} size={40} strokeWidth={1.25} />
           <span className="w-full truncate text-center text-[12px]">{entry.name}</span>
         </div>
       )}

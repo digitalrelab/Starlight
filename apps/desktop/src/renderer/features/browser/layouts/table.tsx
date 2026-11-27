@@ -1,8 +1,8 @@
-import { File01Icon, FolderIcon } from "@hugeicons-pro/core-stroke-rounded";
-import { cn, Icon } from "@starlight/ui";
+import { cn } from "@starlight/ui";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { type KeyboardEvent, useEffect, useRef } from "react";
 import { formatDate, formatSize } from "../../../lib/format.ts";
+import { EntryIcon } from "../entry-icon.tsx";
 import type { LayoutProps } from "./types.ts";
 
 const ROW_HEIGHT = 26;
@@ -24,7 +24,6 @@ export const TableLayout = ({ entries, selected, onSelect, onOpen }: LayoutProps
   const onKeyDown = (event: KeyboardEvent) => {
     if (event.key === "ArrowDown") onSelect(selected + 1);
     else if (event.key === "ArrowUp") onSelect(selected - 1);
-    else if (event.key === "Enter" && entries[selected]) onOpen(entries[selected]);
     else return;
     event.preventDefault();
   };
@@ -46,7 +45,6 @@ export const TableLayout = ({ entries, selected, onSelect, onOpen }: LayoutProps
           {virtualizer.getVirtualItems().map((row) => {
             const entry = entries[row.index];
             if (!entry) return null;
-            const isDir = entry.kind === "directory";
             return (
               <div
                 key={entry.path}
@@ -61,14 +59,11 @@ export const TableLayout = ({ entries, selected, onSelect, onOpen }: LayoutProps
                 style={{ height: ROW_HEIGHT, transform: `translateY(${row.start}px)` }}
               >
                 <span className="flex min-w-0 items-center gap-2">
-                  <Icon
-                    icon={isDir ? FolderIcon : File01Icon}
-                    className={cn("shrink-0", isDir ? "text-accent" : "text-muted")}
-                  />
+                  <EntryIcon entry={entry} className="shrink-0" />
                   <span className="truncate">{entry.name}</span>
                 </span>
                 <span className="text-right text-muted tabular-nums">
-                  {isDir ? "—" : formatSize(entry.size)}
+                  {entry.kind === "directory" ? "—" : formatSize(entry.size)}
                 </span>
                 <span className="truncate text-muted tabular-nums">{formatDate(entry.modifiedAt)}</span>
               </div>
