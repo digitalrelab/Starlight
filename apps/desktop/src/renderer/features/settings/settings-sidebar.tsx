@@ -16,8 +16,8 @@ export const SettingsSidebar = () => (
       <NavItem icon={PaintBoardIcon} render={<Link to="/settings/appearance" />}>
         Appearance
       </NavItem>
-      <NavItem icon={HardDriveIcon} render={<Link to="/settings/storage" />}>
-        Storage
+      <NavItem icon={HardDriveIcon} render={<Link to="/settings/disk" />}>
+        Disk
       </NavItem>
     </NavSection>
     <NavSection title="AI">

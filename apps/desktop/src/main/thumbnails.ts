@@ -1,7 +1,7 @@
-import { join } from "node:path";
-import { app, type CustomScheme, nativeImage, screen } from "electron";
+import { type CustomScheme, nativeImage, screen } from "electron";
 import { mediaTypeOf } from "../shared/media-types.ts";
 import { fitThumbnailSize, THUMBNAIL_SCHEME } from "../shared/thumbnails.ts";
+import { appData } from "./app-data.ts";
 import { serveLocalFiles } from "./local-files.ts";
 import { createThumbnailCache, type ThumbnailCache } from "./thumbnail-cache.ts";
 
@@ -24,7 +24,7 @@ const render = async (absolute: string, pixels: number) => {
 };
 
 export const openThumbnailCache = () => {
-  const cache = createThumbnailCache(join(app.getPath("userData"), "thumbnails"), CACHE_LIMIT_BYTES);
+  const cache = createThumbnailCache(appData().thumbnails, CACHE_LIMIT_BYTES);
   void cache.prune();
   return cache;
 };

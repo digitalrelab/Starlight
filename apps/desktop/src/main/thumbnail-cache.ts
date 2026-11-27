@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { mkdir, readFile, rename, rm, utimes, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
-import { listFiles } from "./disk-usage.ts";
+import { listFiles } from "./list-files.ts";
 
 type Bytes = Uint8Array<ArrayBuffer>;
 
@@ -56,8 +56,6 @@ export const createThumbnailCache = (directory: string, limitBytes: number) => {
       await Promise.allSettled(evicted.map((file) => rm(file.path, { force: true })));
     },
     clear: () => rm(directory, { recursive: true, force: true }),
-    directory,
-    limitBytes,
   };
 };
 

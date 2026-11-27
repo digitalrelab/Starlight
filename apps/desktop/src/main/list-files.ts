@@ -1,5 +1,5 @@
 import { readdir, stat } from "node:fs/promises";
-import { join, sep } from "node:path";
+import { join } from "node:path";
 
 interface DiskFile {
   readonly path: string;
@@ -22,14 +22,4 @@ export const listFiles = async (directory: string) => {
     entries.filter((entry) => entry.isFile()).map((entry) => statFile(join(entry.parentPath, entry.name))),
   );
   return files.filter((file) => file !== null);
-};
-
-export const measure = async (directory: string, part: string) => {
-  let totalBytes = 0;
-  let partBytes = 0;
-  for (const file of await listFiles(directory)) {
-    totalBytes += file.size;
-    if (file.path.startsWith(part + sep)) partBytes += file.size;
-  }
-  return { totalBytes, partBytes };
 };

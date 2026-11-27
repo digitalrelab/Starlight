@@ -1,6 +1,7 @@
 import { Schema } from "effect";
 import { Rpc, RpcGroup } from "effect/rpc";
 import { AgentProvider } from "./agent.ts";
+import { DiskUsage } from "./disk.ts";
 import { EntryChange, Listing } from "./entry.ts";
 import {
   DirectoryError,
@@ -12,7 +13,6 @@ import {
 } from "./errors.ts";
 import { EntryRef, WorkspaceId } from "./ids.ts";
 import { FileSource, Media } from "./media.ts";
-import { StorageUsage } from "./storage.ts";
 import { Update } from "./update.ts";
 import { Workspace } from "./workspace.ts";
 
@@ -73,8 +73,8 @@ export class ShellRpcs extends RpcGroup.make(
   }),
   Rpc.make("DownloadUpdate"),
   Rpc.make("InstallUpdate"),
-  Rpc.make("GetStorageUsage", {
-    success: StorageUsage,
+  Rpc.make("GetDiskUsage", {
+    success: DiskUsage,
   }),
-  Rpc.make("ClearThumbnails"),
+  Rpc.make("ClearPreviews"),
 ) {}

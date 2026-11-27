@@ -47,10 +47,10 @@ const createQueries = (client: StarlightClient) => ({
       refetchOnWindowFocus: "always",
     }),
 
-  storageUsage: () =>
+  diskUsage: () =>
     queryOptions({
-      queryKey: ["storageUsage"],
-      queryFn: () => client.storage.usage(),
+      queryKey: ["diskUsage"],
+      queryFn: () => client.disk.usage(),
       staleTime: 0,
       refetchOnWindowFocus: true,
     }),
@@ -74,10 +74,10 @@ const createMutations = (client: StarlightClient, queryClient: QueryClient, quer
 
   installUpdate: () => mutationOptions({ mutationFn: () => client.updates.install() }),
 
-  clearThumbnails: () =>
+  clearPreviews: () =>
     mutationOptions({
-      mutationFn: () => client.storage.clearThumbnails(),
-      onSettled: () => queryClient.invalidateQueries(queries.storageUsage()),
+      mutationFn: () => client.disk.clearPreviews(),
+      onSettled: () => queryClient.invalidateQueries(queries.diskUsage()),
     }),
 
   openWorkspace: () =>

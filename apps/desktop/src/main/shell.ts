@@ -1,9 +1,9 @@
 import { EntryId, LocalSource, ShellRpcs } from "@starlight/contracts";
 import { serve } from "@starlight/host/transport";
-import { app, type BrowserWindow, dialog, type MessagePortMain } from "electron";
+import { type BrowserWindow, dialog, type MessagePortMain } from "electron";
 import { Effect, Layer } from "effect";
 import { RpcServer } from "effect/rpc";
-import { measure } from "./disk-usage.ts";
+import { measureAppData } from "./app-data.ts";
 import type { ThumbnailCache } from "./thumbnail-cache.ts";
 import type { Updater } from "./updater.ts";
 
@@ -22,12 +22,8 @@ const ShellServerLive = (window: BrowserWindow, updater: Updater, thumbnails: Th
         WatchUpdates: () => updater.updates,
         DownloadUpdate: () => Effect.sync(updater.download),
         InstallUpdate: () => Effect.sync(updater.install),
-        GetStorageUsage: () =>
-          Effect.promise(async () => {
-            const { totalBytes, partBytes } = await measure(app.getPath("userData"), thumbnails.directory);
-            return { totalBytes, thumbnails: { bytes: partBytes, limitBytes: thumbnails.limitBytes } };
-          }),
-        ClearThumbnails: () => Effect.promise(thumbnails.clear),
+        GetDiskUsage: () => Effect.promise(measureAppData),
+        ClearPreviews: () => Effect.promise(thumbnails.clear),
       }),
     ),
   );
