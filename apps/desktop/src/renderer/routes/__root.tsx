@@ -1,11 +1,12 @@
+import { Interface } from "@starlight/ui";
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
-import { AppearanceRoot } from "../features/settings/appearance-root.tsx";
+import { colorScheme, cursor } from "../features/settings/appearance.ts";
 import type { RouterContext } from "../lib/context.ts";
 
 export const Route = createRootRouteWithContext<RouterContext>()({
   component: () => (
-    <AppearanceRoot>
+    <Interface.Root colorScheme={colorScheme.useValue()} pointerCursors={cursor.useValue() === "pointer"}>
       <Outlet />
-    </AppearanceRoot>
+    </Interface.Root>
   ),
 });

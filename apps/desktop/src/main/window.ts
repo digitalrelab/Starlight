@@ -1,8 +1,6 @@
 import { join } from "node:path";
 import { BrowserWindow, nativeTheme } from "electron";
 
-const backgroundColor = () => (nativeTheme.shouldUseDarkColors ? "#12131c" : "#f0f1f5");
-
 export const createWindow = () => {
   const window = new BrowserWindow({
     width: 1200,
@@ -12,7 +10,7 @@ export const createWindow = () => {
     show: false,
     titleBarStyle: "hiddenInset",
     trafficLightPosition: { x: 14, y: 13 },
-    backgroundColor: backgroundColor(),
+    backgroundColor: nativeTheme.shouldUseDarkColors ? "#12131c" : "#f0f1f5",
     webPreferences: {
       preload: join(import.meta.dirname, "../preload/index.cjs"),
       sandbox: true,
@@ -20,10 +18,6 @@ export const createWindow = () => {
       nodeIntegration: false,
     },
   });
-
-  const syncBackground = () => window.setBackgroundColor(backgroundColor());
-  nativeTheme.on("updated", syncBackground);
-  window.once("closed", () => nativeTheme.off("updated", syncBackground));
 
   window.once("ready-to-show", () => window.show());
   window.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
