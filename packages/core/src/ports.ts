@@ -3,6 +3,7 @@ import type {
   EntryKind,
   FileSystemError,
   SettingsPatch,
+  ThumbnailToken,
   Workspace,
   WorkspaceId,
 } from "@starlight/contracts";
@@ -37,6 +38,27 @@ export class FileWatcherPort extends Context.Service<
     readonly watch: (path: string) => Stream.Stream<FileWatchEvent, FileSystemError>;
   }
 >()("@starlight/core/FileWatcherPort") {}
+
+export interface Dimensions {
+  readonly width: number;
+  readonly height: number;
+}
+
+export interface ProbeTarget {
+  readonly absolute: string;
+  readonly size: number;
+  readonly modifiedAt: number;
+}
+
+export class MediaProbe extends Context.Service<
+  MediaProbe,
+  { readonly dimensions: (target: ProbeTarget) => Effect.Effect<Option.Option<Dimensions>> }
+>()("@starlight/core/MediaProbe") {}
+
+export class ThumbnailTokens extends Context.Service<
+  ThumbnailTokens,
+  { readonly issue: (absolute: string, version: number) => ThumbnailToken }
+>()("@starlight/core/ThumbnailTokens") {}
 
 export class WorkspaceStore extends Context.Service<
   WorkspaceStore,

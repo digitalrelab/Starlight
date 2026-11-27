@@ -2,7 +2,7 @@ import { mutationOptions, queryOptions, type QueryClient } from "@tanstack/react
 import type { SettingsPatch } from "@starlight/contracts";
 import type { StarlightClient } from "./client.ts";
 
-const entriesKey = (workspaceId: string) => ["entries", workspaceId] as const;
+const directoryKey = (workspaceId: string) => ["directory", workspaceId] as const;
 
 const parentOf = (path: string) => path.slice(0, Math.max(0, path.lastIndexOf("/")));
 
@@ -27,8 +27,14 @@ const createQueries = (client: StarlightClient) => ({
 
   entries: (workspaceId: string, path: string) =>
     queryOptions({
-      queryKey: [...entriesKey(workspaceId), path],
+      queryKey: [...directoryKey(workspaceId), path, "entries"],
       queryFn: () => client.entries.list(workspaceId, path),
+    }),
+
+  media: (workspaceId: string, path: string) =>
+    queryOptions({
+      queryKey: [...directoryKey(workspaceId), path, "media"],
+      queryFn: () => client.media.list(workspaceId, path),
     }),
 
   settings: () => queryOptions({ queryKey: ["settings"], queryFn: () => client.settings.get() }),
@@ -70,7 +76,7 @@ const createSubscriptions = (client: StarlightClient, queryClient: QueryClient) 
     client.entries.watch(workspaceId, (change) => {
       const affected = change._tag === "Changed" ? listingsAffectedBy(change.paths) : () => true;
       void queryClient.invalidateQueries({
-        queryKey: entriesKey(workspaceId),
+        queryKey: directoryKey(workspaceId),
         predicate: ({ queryKey: [, , directory] }) => typeof directory === "string" && affected(directory),
       });
     }),
