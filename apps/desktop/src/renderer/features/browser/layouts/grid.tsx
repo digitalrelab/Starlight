@@ -6,6 +6,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { type KeyboardEvent, memo, useEffect, useEffectEvent, useLayoutEffect, useRef } from "react";
 import { previewUrl } from "#shared/previews.ts";
 import { useStarlight } from "#renderer/lib/context.ts";
+import { placeholderUrl } from "#renderer/lib/placeholder.ts";
 import { reveal } from "#renderer/lib/reveal.ts";
 import { useElementWidth } from "#renderer/lib/use-element-width.ts";
 import { KindIcon, itemKindOf } from "#renderer/features/files/kind-icon.tsx";
@@ -30,8 +31,12 @@ const aspectOf = (media: Media | undefined) =>
   media ? Math.min(MAX_ASPECT, Math.max(MIN_ASPECT, media.width / media.height)) : ICON_TILE_ASPECT;
 
 const useMedia = (workspaceId: string, directory: EntryRef | null, entries: ReadonlyArray<Entry>) => {
-  const { queries } = useStarlight();
+  const { queries, subscriptions } = useStarlight();
   const { data } = useSuspenseQuery(queries.media(workspaceId, directory));
+  useEffect(
+    () => (directory ? subscriptions.media(workspaceId, directory) : undefined),
+    [subscriptions, workspaceId, directory, entries],
+  );
   const byKey = indexByKey(data);
   return { byKey, aspects: Float64Array.from(entries, (entry) => aspectOf(byKey.get(entryKey(entry.ref)))) };
 };
@@ -187,7 +192,11 @@ const Tile = memo(
         style={{ left, width, height }}
       >
         {media ? (
-          <Preview url={tilePreviewUrl(media, width, height)} visible={visible} />
+          <Preview
+            url={tilePreviewUrl(media, width, height)}
+            placeholder={media.placeholder}
+            visible={visible}
+          />
         ) : (
           <div className="flex size-full flex-col items-center justify-center gap-2 p-3">
             <KindIcon kind={itemKindOf(entry)} size={40} />
@@ -199,11 +208,28 @@ const Tile = memo(
   },
 );
 
-const Preview = ({ url, visible }: { readonly url: string; readonly visible: boolean }) => {
+interface PreviewProps {
+  readonly url: string;
+  readonly placeholder: string | null;
+  readonly visible: boolean;
+}
+
+const Preview = ({ url, placeholder, visible }: PreviewProps) => {
   const src = usePreview(url, visible);
   return (
     <>
-      <Icon icon={Image01Icon} size={24} className="absolute top-1/2 left-1/2 -translate-1/2 text-subtlest" />
+      {placeholder ? (
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${placeholderUrl(placeholder)})` }}
+        />
+      ) : (
+        <Icon
+          icon={Image01Icon}
+          size={24}
+          className="absolute top-1/2 left-1/2 -translate-1/2 text-subtlest"
+        />
+      )}
       {src && (
         <img
           src={src}
