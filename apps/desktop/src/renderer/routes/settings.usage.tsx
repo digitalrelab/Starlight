@@ -33,26 +33,27 @@ function Usage() {
   return (
     <SettingsPage
       title="Usage"
+      titleActions={
+        <IconButton
+          icon={RefreshCwIcon}
+          label="Refresh"
+          size="sm"
+          disabled={isFetching}
+          className={cn(isFetching && "*:animate-spin")}
+          onClick={() => void refetch()}
+        />
+      }
       actions={
-        <>
-          <SegmentedControl<View>
-            value={view}
-            onValueChange={(next) =>
-              void navigate({ search: next === "history" ? { view: next } : {}, replace: true })
-            }
-            aria-label="View"
-          >
-            <SegmentedControlItem value="now" icon={DashboardSpeed02Icon} label="Now" />
-            <SegmentedControlItem value="history" icon={ChartLineData01Icon} label="History" />
-          </SegmentedControl>
-          <IconButton
-            icon={RefreshCwIcon}
-            label="Refresh"
-            disabled={isFetching}
-            className={cn(isFetching && "*:animate-spin")}
-            onClick={() => void refetch()}
-          />
-        </>
+        <SegmentedControl<View>
+          value={view}
+          onValueChange={(next) =>
+            void navigate({ search: next === "history" ? { view: next } : {}, replace: true })
+          }
+          aria-label="View"
+        >
+          <SegmentedControlItem value="now" icon={DashboardSpeed02Icon} label="Now" />
+          <SegmentedControlItem value="history" icon={ChartLineData01Icon} label="History" />
+        </SegmentedControl>
       }
     >
       {providers.map((provider) =>
