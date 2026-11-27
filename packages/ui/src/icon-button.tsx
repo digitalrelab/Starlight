@@ -19,7 +19,7 @@ export const IconButton = ({ icon, label, render, className, ...props }: IconBut
         "aria-label": label,
         className: cn(
           "inline-flex size-7 items-center justify-center rounded-md text-muted focus-ring",
-          "hover:bg-hover hover:text-fg aria-[current=page]:text-fg",
+          "hover:bg-hover hover:text-fg data-[popup-open]:bg-hover data-[popup-open]:text-fg aria-[current=page]:text-fg",
           className,
         ),
         children: <Icon icon={icon} />,

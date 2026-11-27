@@ -3,8 +3,8 @@ import type { ComponentProps } from "react";
 import { cn } from "cn";
 
 const variants = {
-  primary: "bg-accent text-accent-fg hover:brightness-110",
-  ghost: "text-fg hover:bg-hover",
+  primary: "bg-accent text-accent-fg hover:brightness-110 data-[popup-open]:brightness-110",
+  ghost: "text-fg hover:bg-hover data-[popup-open]:bg-hover",
 } as const;
 
 export interface ButtonProps extends Omit<ComponentProps<typeof BaseButton>, "className"> {
