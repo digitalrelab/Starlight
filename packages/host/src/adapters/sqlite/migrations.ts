@@ -102,4 +102,9 @@ export const migrations = Migrator.fromRecord({
     `;
     yield* sql`CREATE INDEX facts_by_parent ON facts (source, fact, parent)`;
   }),
+  "0007_conversation_models": Effect.gen(function* () {
+    const sql = yield* SqlClient.SqlClient;
+    yield* sql`ALTER TABLE conversations ADD COLUMN model TEXT`;
+    yield* sql`ALTER TABLE conversations ADD COLUMN effort TEXT`;
+  }),
 });

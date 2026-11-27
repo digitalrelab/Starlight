@@ -4,6 +4,7 @@ import {
   type EntryChange,
   type EntryRef,
   HostRpcs,
+  type ModelChoice,
   ShellRpcs,
   type WorkspaceId,
 } from "@starlight/contracts";
@@ -73,11 +74,12 @@ export const createClient = (ports: PortSources) => {
       list: () => host((c) => c.ListConversations()),
       get: (conversationId: string) =>
         host((c) => c.GetConversation({ conversationId: conversation(conversationId) })),
-      send: (conversationId: string | null, text: string) =>
+      send: (conversationId: string | null, text: string, model: ModelChoice) =>
         host((c) =>
           c.SendMessage({
             conversationId: conversationId === null ? null : conversation(conversationId),
             text,
+            model,
           }),
         ),
       watch: (conversationId: string, onEvent: (event: ConversationEvent) => void) =>

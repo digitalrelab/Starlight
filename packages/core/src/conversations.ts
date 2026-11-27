@@ -1,5 +1,4 @@
 import {
-  type AgentProviderId,
   type ChatMessage,
   type Draft,
   type Conversation,
@@ -8,7 +7,8 @@ import {
   type ConversationEvent,
   type ConversationId,
   ConversationNotFound,
-  NoAgentProvider,
+  type ModelChoice,
+  ModelUnavailable,
 } from "@starlight/contracts";
 import { Cause, Clock, Context, Effect, FiberSet, Layer, Option, PubSub, Stream } from "effect";
 import {
@@ -41,7 +41,12 @@ export class Conversations extends Context.Service<
     readonly send: (
       id: ConversationId | null,
       text: string,
-    ) => Effect.Effect<Conversation, ConversationNotFound | ConversationBusy | NoAgentProvider, CurrentActor>;
+      model: ModelChoice,
+    ) => Effect.Effect<
+      Conversation,
+      ConversationNotFound | ConversationBusy | ModelUnavailable,
+      CurrentActor
+    >;
     readonly watch: (id: ConversationId) => Stream.Stream<ConversationEvent, ConversationNotFound>;
   }
 >()("@starlight/core/Conversations") {
@@ -66,15 +71,10 @@ export class Conversations extends Context.Service<
             : Effect.fail(new ConversationNotFound({ conversationId: id })),
         );
 
-      const firstReadyProvider = Effect.findFirst(drivers, ([, driver]) =>
-        Effect.map(driver.status, (status) => status._tag === "Ready"),
-      ).pipe(
-        Effect.flatMap(Effect.fromOption),
-        Effect.mapError(() => new NoAgentProvider()),
-      );
-
-      const driverFor = (provider: AgentProviderId) =>
-        Effect.fromNullishOr(drivers.get(provider)).pipe(Effect.mapError(() => new NoAgentProvider()));
+      const driverFor = ({ provider }: ModelChoice) =>
+        Effect.fromNullishOr(drivers.get(provider)).pipe(
+          Effect.mapError(() => new ModelUnavailable({ provider })),
+        );
 
       const message = (id: string, role: ChatMessage["role"], text: string) =>
         Effect.map(Clock.currentTimeMillis, (createdAt): ChatMessage => ({ id, role, text, createdAt }));
@@ -89,6 +89,7 @@ export class Conversations extends Context.Service<
         driver: AgentProviderDriver,
         initial: Draft,
         prompt: string,
+        model: ModelChoice,
       ) => {
         const id = stored.conversation.id;
         const settle = (event: ConversationEvent) =>
@@ -99,7 +100,7 @@ export class Conversations extends Context.Service<
         return Effect.gen(function* () {
           let draft = initial;
           let session = stored.session;
-          yield* driver.respond({ prompt, history: stored.messages, session }).pipe(
+          yield* driver.respond({ prompt, history: stored.messages, session, model }).pipe(
             Stream.runForEach((event) => {
               if (event._tag === "Completed") {
                 session = event.session;
@@ -124,17 +125,21 @@ export class Conversations extends Context.Service<
         );
       };
 
-      const begin = (id: ConversationId | null, text: string) =>
+      const begin = (id: ConversationId | null, text: string, model: ModelChoice) =>
         id === null
           ? Effect.gen(function* () {
-              const [provider, driver] = yield* firstReadyProvider;
-              const conversation = yield* store.create({ provider, title: titleFrom(text) });
+              const driver = yield* driverFor(model);
+              const conversation = yield* store.create({ model, title: titleFrom(text) });
               const stored: StoredConversation = { conversation, messages: [], session: Option.none() };
               return [stored, driver] as const;
             })
           : Effect.gen(function* () {
               const stored = yield* find(id);
-              return [stored, yield* driverFor(stored.conversation.provider)] as const;
+              if (stored.conversation.provider !== model.provider) {
+                return yield* new ModelUnavailable({ provider: model.provider });
+              }
+              yield* store.saveModel(id, model);
+              return [stored, yield* driverFor(model)] as const;
             });
 
       const get = (id: ConversationId) =>
@@ -148,7 +153,7 @@ export class Conversations extends Context.Service<
       return Conversations.of({
         list: store.list,
         get,
-        send: Effect.fn("Conversations.send")(function* (id, text) {
+        send: Effect.fn("Conversations.send")(function* (id, text, model) {
           const draft: Draft = { id: yield* ids.next, text: "" };
           if (id !== null) {
             if (drafts.has(id)) return yield* new ConversationBusy({ conversationId: id });
@@ -156,7 +161,7 @@ export class Conversations extends Context.Service<
           }
           const release = (conversationId: ConversationId) =>
             Effect.sync(() => drafts.delete(conversationId));
-          const [stored, driver] = yield* begin(id, text).pipe(
+          const [stored, driver] = yield* begin(id, text, model).pipe(
             Effect.onError(() => (id === null ? Effect.void : release(id))),
           );
           const conversationId = stored.conversation.id;
@@ -173,8 +178,8 @@ export class Conversations extends Context.Service<
             yield* publish(conversationId, { _tag: "MessageAdded", message: prompt });
             yield* publish(conversationId, { _tag: "Draft", draft });
           }).pipe(Effect.onError(() => release(conversationId)));
-          yield* FiberSet.run(turns)(respond(stored, driver, draft, text));
-          return stored.conversation;
+          yield* FiberSet.run(turns)(respond(stored, driver, draft, text, model));
+          return { ...stored.conversation, model: model.model, effort: model.effort };
         }),
         watch: (id) =>
           Stream.unwrap(

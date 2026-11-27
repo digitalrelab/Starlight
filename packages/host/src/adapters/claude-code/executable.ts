@@ -4,7 +4,7 @@ import { homedir } from "node:os";
 import { isAbsolute, join } from "node:path";
 import { Effect, Option } from "effect";
 
-const COMMAND_TIMEOUT_MS = 10_000;
+export const COMMAND_TIMEOUT_MS = 10_000;
 
 const installLocations = [
   join(homedir(), ".local/bin/claude"),

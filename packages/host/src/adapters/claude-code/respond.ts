@@ -2,6 +2,7 @@ import { query, type SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 import { type AgentTurnEvent, AgentTurnFailed, type AgentTurnInput } from "@starlight/core";
 import { Effect, Option, Stream } from "effect";
 import { findExecutable } from "./executable.ts";
+import { isEffort } from "./models.ts";
 
 const SYSTEM_PROMPT =
   "You are the assistant inside Starlight, a desktop file manager. Answer clearly and concisely. You cannot see or change the user's files yet.";
@@ -24,7 +25,7 @@ const toEvents = (message: SDKMessage): Stream.Stream<AgentTurnEvent, AgentTurnF
 
 export const respond =
   (workingDirectory: string) =>
-  ({ prompt, session }: AgentTurnInput): Stream.Stream<AgentTurnEvent, AgentTurnFailed> =>
+  ({ prompt, session, model }: AgentTurnInput): Stream.Stream<AgentTurnEvent, AgentTurnFailed> =>
     Stream.unwrap(
       Effect.gen(function* () {
         const executable = yield* findExecutable;
@@ -36,6 +37,8 @@ export const respond =
           options: {
             pathToClaudeCodeExecutable: executable.value,
             cwd: workingDirectory,
+            model: model.model,
+            ...(model.effort !== null && isEffort(model.effort) ? { effort: model.effort } : {}),
             systemPrompt: SYSTEM_PROMPT,
             tools: [],
             settingSources: [],

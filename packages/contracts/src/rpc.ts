@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 import { Rpc, RpcGroup } from "effect/rpc";
-import { AgentProvider } from "./agent.ts";
+import { AgentProvider, ModelChoice } from "./agent.ts";
 import {
   Conversation,
   ConversationBusy,
@@ -8,7 +8,7 @@ import {
   ConversationEvent,
   ConversationId,
   ConversationNotFound,
-  NoAgentProvider,
+  ModelUnavailable,
 } from "./conversation.ts";
 import { DiskUsage } from "./disk.ts";
 import { EntryChange, Listing } from "./entry.ts";
@@ -79,9 +79,13 @@ export class HostRpcs extends RpcGroup.make(
     error: ConversationNotFound,
   }),
   Rpc.make("SendMessage", {
-    payload: { conversationId: Schema.NullOr(ConversationId), text: Schema.NonEmptyString },
+    payload: {
+      conversationId: Schema.NullOr(ConversationId),
+      text: Schema.NonEmptyString,
+      model: ModelChoice,
+    },
     success: Conversation,
-    error: Schema.Union([ConversationNotFound, ConversationBusy, NoAgentProvider]),
+    error: Schema.Union([ConversationNotFound, ConversationBusy, ModelUnavailable]),
   }),
   Rpc.make("WatchConversation", {
     payload: { conversationId: ConversationId },
