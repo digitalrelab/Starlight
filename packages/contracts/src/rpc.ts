@@ -13,7 +13,7 @@ import {
 } from "./errors.ts";
 import { EntryRef, WorkspaceId } from "./ids.ts";
 import { FileSource, Media } from "./media.ts";
-import { Update } from "./update.ts";
+import { UpdaterState } from "./update.ts";
 import { Workspace } from "./workspace.ts";
 
 const DirectoryRequest = { workspaceId: WorkspaceId, directory: Schema.NullOr(EntryRef) };
@@ -67,10 +67,11 @@ export class ShellRpcs extends RpcGroup.make(
   Rpc.make("PickDirectory", {
     success: Schema.NullOr(EntryRef),
   }),
-  Rpc.make("WatchUpdates", {
-    success: Update,
+  Rpc.make("WatchUpdater", {
+    success: UpdaterState,
     stream: true,
   }),
+  Rpc.make("CheckForUpdates"),
   Rpc.make("DownloadUpdate"),
   Rpc.make("InstallUpdate"),
   Rpc.make("GetDiskUsage", {

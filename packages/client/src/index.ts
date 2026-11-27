@@ -9,6 +9,7 @@ export type {
   Listing,
   Media,
   Update,
+  UpdaterState,
   Workspace,
 } from "@starlight/contracts";
 export { ClaudeCodeProvider, DirectoryMissing, fileKindOf, mediaTypeOf } from "@starlight/contracts";
