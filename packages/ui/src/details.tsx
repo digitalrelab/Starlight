@@ -1,14 +1,8 @@
-import { cn } from "cn";
 import type { ReactNode } from "react";
 import { Card } from "./card.tsx";
 
-interface RootProps {
-  readonly className?: string;
-  readonly children: ReactNode;
-}
-
-const Root = ({ className, children }: RootProps) => (
-  <Card render={<dl />} className={cn("flex shrink-0 flex-col gap-3 p-3 select-text", className)}>
+const Root = ({ children }: { readonly children: ReactNode }) => (
+  <Card render={<dl />} className="flex shrink-0 flex-col gap-3 p-3 select-text">
     {children}
   </Card>
 );
