@@ -5,6 +5,30 @@ const baseUiSubpaths = { group: ["@base-ui/react/*"], message: "Import from @bas
 const parentPaths = { regex: "^\\.\\./", message: "Import through the package's # alias." };
 const restrictedEverywhere = [baseUiSubpaths, parentPaths];
 
+const reactCompiler: OxlintOverride["rules"] = Object.fromEntries(
+  [
+    "capitalized-calls",
+    "error-boundaries",
+    "globals",
+    "hooks",
+    "immutability",
+    "invariant",
+    "memo-dependencies",
+    "preserve-manual-memoization",
+    "purity",
+    "refs",
+    "rule-suppression",
+    "set-state-in-effect",
+    "set-state-in-render",
+    "static-components",
+    "syntax",
+    "todo",
+    "unsupported-syntax",
+    "use-memo",
+    "void-use-memo",
+  ].map((rule) => [`react/${rule}`, "error"]),
+);
+
 const forbid = (...groups: string[]): OxlintOverride["rules"] => ({
   "no-restricted-imports": [
     "error",
@@ -63,12 +87,18 @@ export default defineConfig({
       {
         files: ["packages/ui/**"],
         plugins: ["react"],
-        rules: forbid("@starlight/*", "effect", "effect/*", "@effect/*", "@tanstack/*", "node:*", "electron"),
+        rules: {
+          ...reactCompiler,
+          ...forbid("@starlight/*", "effect", "effect/*", "@effect/*", "@tanstack/*", "node:*", "electron"),
+        },
       },
       {
         files: ["packages/markdown/**"],
         plugins: ["react"],
-        rules: forbid("@starlight/*", "effect", "effect/*", "@effect/*", "@tanstack/*", "node:*", "electron"),
+        rules: {
+          ...reactCompiler,
+          ...forbid("@starlight/*", "effect", "effect/*", "@effect/*", "@tanstack/*", "node:*", "electron"),
+        },
       },
       {
         files: ["apps/desktop/src/main/**", "apps/desktop/src/preload/**"],
@@ -85,6 +115,7 @@ export default defineConfig({
         files: ["apps/desktop/src/renderer/**"],
         plugins: ["react"],
         rules: {
+          ...reactCompiler,
           "react/incompatible-library": "off",
           ...forbid(
             "@starlight/contracts",
