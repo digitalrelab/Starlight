@@ -2,7 +2,7 @@ import { LocalSource } from "@starlight/contracts";
 import { verifyFileToken } from "@starlight/host/file-token";
 import { protocol } from "electron";
 
-export interface LocalFile {
+interface LocalFile {
   readonly path: string;
   readonly version: number;
 }
