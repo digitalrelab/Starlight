@@ -68,11 +68,9 @@ const createMutations = (client: StarlightClient, queryClient: QueryClient, quer
 const createSubscriptions = (client: StarlightClient, queryClient: QueryClient) => ({
   entries: (workspaceId: string) =>
     client.entries.watch(workspaceId, (change) => {
-      const queryKey = entriesKey(workspaceId);
-      if (change._tag === "Resync") return void queryClient.invalidateQueries({ queryKey });
-      const affected = listingsAffectedBy(change.paths);
+      const affected = change._tag === "Changed" ? listingsAffectedBy(change.paths) : () => true;
       void queryClient.invalidateQueries({
-        queryKey,
+        queryKey: entriesKey(workspaceId),
         predicate: ({ queryKey: [, , directory] }) => typeof directory === "string" && affected(directory),
       });
     }),
