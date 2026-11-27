@@ -15,4 +15,4 @@ export const ReferenceMatch = Schema.Union([
   Schema.TaggedStruct("Chat", { id: ChatId, title: Schema.String }),
 ]);
 export type ReferenceMatch = typeof ReferenceMatch.Type;
-export type EntryReference = Extract<ReferenceMatch, { readonly _tag: "Entry" }>;
+export type EntryReferenceMatch = Extract<ReferenceMatch, { readonly _tag: "Entry" }>;

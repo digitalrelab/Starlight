@@ -1,5 +1,5 @@
 import { BubbleChatIcon } from "@hugeicons-pro/core-stroke-rounded";
-import { type EntryReference, type ReferenceMatch, referenceOf, referenceUrl } from "@starlight/client";
+import { type EntryReferenceMatch, type ReferenceMatch, referenceOf, referenceUrl } from "@starlight/client";
 import {
   type ActiveTrigger,
   insertLink,
@@ -22,8 +22,6 @@ import { useStore } from "#renderer/lib/store.ts";
 import { renderReference } from "./reference-link.tsx";
 import { type Resolution, TriggerMenu, type TriggerOption } from "./trigger-menu.tsx";
 
-const SEARCH_FRESH_MS = 10_000;
-
 const GROUPS = ["Folders", "Files", "Chats"] as const;
 
 interface MentionChoice extends TriggerOption {
@@ -31,7 +29,7 @@ interface MentionChoice extends TriggerOption {
   readonly url: string;
 }
 
-const entryChoice = (match: EntryReference, detail: string | undefined): MentionChoice => {
+const entryChoice = (match: EntryReferenceMatch, detail: string | undefined): MentionChoice => {
   const url = referenceUrl({ _tag: "Entry", ref: match.ref });
   const { name, kind, token } = match.location;
   return {
@@ -52,10 +50,10 @@ const chatChoice = ({ id, title }: Extract<ReferenceMatch, { readonly _tag: "Cha
 const groupRank = (choice: MentionChoice) => GROUPS.indexOf(choice.group);
 
 const choicesOf = (matches: ReadonlyArray<ReferenceMatch>) => {
-  const entries = matches.filter((match): match is EntryReference => match._tag === "Entry");
+  const entries = matches.filter((match): match is EntryReferenceMatch => match._tag === "Entry");
   const detailOf = disambiguate(entries);
   const named = Map.groupBy(entries, ({ location }) => location.name);
-  const collides = (match: EntryReference) => (named.get(match.location.name)?.length ?? 0) > 1;
+  const collides = (match: EntryReferenceMatch) => (named.get(match.location.name)?.length ?? 0) > 1;
   return [
     ...entries.map((match) => entryChoice(match, collides(match) ? detailOf(match) : undefined)),
     ...matches.flatMap((match) => (match._tag === "Chat" ? [chatChoice(match)] : [])),
@@ -67,7 +65,6 @@ const useMentionChoices = (query: string): Resolution<MentionChoice> => {
   const includeHidden = useStore(hiddenFiles) === "show";
   const matches = useQuery({
     ...queries.referenceSearch(query, null, includeHidden),
-    staleTime: SEARCH_FRESH_MS,
     placeholderData: keepPreviousData,
   });
   return {
@@ -97,10 +94,7 @@ export const useMentions = () => {
     character: "@",
     apply: ({ label, url }, state, from, to) => insertLink(state, from, to, label, url),
     warm: () =>
-      void queryClient.prefetchQuery({
-        ...queries.referenceSearch("", null, hiddenFiles.get() === "show"),
-        staleTime: SEARCH_FRESH_MS,
-      }),
+      void queryClient.prefetchQuery(queries.referenceSearch("", null, hiddenFiles.get() === "show")),
   }));
   const trigger = useTrigger(source);
   const [chips] = useState(() => mentionChips((url) => referenceOf(url) !== undefined));

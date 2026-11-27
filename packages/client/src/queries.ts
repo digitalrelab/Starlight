@@ -70,6 +70,7 @@ const createQueries = (client: StarlightClient) => ({
     queryOptions({
       queryKey: ["referenceSearch", query, projectId, includeHidden],
       queryFn: () => client.references.search(query, projectId, includeHidden),
+      staleTime: 0,
     }),
 
   entryLocation: (ref: EntryRef) =>

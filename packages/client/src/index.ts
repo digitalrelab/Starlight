@@ -13,7 +13,7 @@ export type {
   Entry,
   EntryLocation,
   EntryMatch,
-  EntryReference,
+  EntryReferenceMatch,
   EntryRef,
   FileDetails,
   FileKind,
