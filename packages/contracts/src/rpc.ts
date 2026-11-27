@@ -1,6 +1,15 @@
 import { Schema } from "effect";
 import { Rpc, RpcGroup } from "effect/rpc";
 import { AgentProvider } from "./agent.ts";
+import {
+  Conversation,
+  ConversationBusy,
+  ConversationDetail,
+  ConversationEvent,
+  ConversationId,
+  ConversationNotFound,
+  NoAgentProvider,
+} from "./conversation.ts";
 import { EntryChange, Listing } from "./entry.ts";
 import { DirectoryError, MountError, SourceError, SourceUnavailable, WorkspaceNotFound } from "./errors.ts";
 import { EntryRef, WorkspaceId } from "./ids.ts";
@@ -47,6 +56,24 @@ export class HostRpcs extends RpcGroup.make(
   }),
   Rpc.make("ListAgentProviders", {
     success: Schema.Array(AgentProvider),
+  }),
+  Rpc.make("ListConversations", {
+    success: Schema.Array(Conversation),
+  }),
+  Rpc.make("GetConversation", {
+    payload: { conversationId: ConversationId },
+    success: ConversationDetail,
+    error: ConversationNotFound,
+  }),
+  Rpc.make("SendMessage", {
+    payload: { conversationId: Schema.NullOr(ConversationId), text: Schema.String },
+    success: Conversation,
+    error: Schema.Union([ConversationNotFound, ConversationBusy, NoAgentProvider]),
+  }),
+  Rpc.make("WatchConversation", {
+    payload: { conversationId: ConversationId },
+    success: ConversationEvent,
+    stream: true,
   }),
 ) {}
 

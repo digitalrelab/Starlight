@@ -1,4 +1,12 @@
-import { type EntryChange, type EntryRef, HostRpcs, ShellRpcs, type WorkspaceId } from "@starlight/contracts";
+import {
+  type ConversationEvent,
+  type ConversationId,
+  type EntryChange,
+  type EntryRef,
+  HostRpcs,
+  ShellRpcs,
+  type WorkspaceId,
+} from "@starlight/contracts";
 import { Context, Effect, Layer, ManagedRuntime, Stream } from "effect";
 import { RpcClient, type RpcClientError } from "effect/rpc";
 import { layerProtocolPort } from "./transport.ts";
@@ -53,6 +61,23 @@ export const createClient = (ports: PortSources) => {
     },
     agents: {
       providers: () => host((c) => c.ListAgentProviders()),
+    },
+    conversations: {
+      list: () => host((c) => c.ListConversations()),
+      get: (conversationId: string) =>
+        host((c) => c.GetConversation({ conversationId: conversationId as ConversationId })),
+      send: (conversationId: string | null, text: string) =>
+        host((c) => c.SendMessage({ conversationId: conversationId as ConversationId | null, text })),
+      watch: (conversationId: string, onEvent: (event: ConversationEvent) => void) => {
+        const fiber = runtime.runFork(
+          Host.use((c) =>
+            c
+              .WatchConversation({ conversationId: conversationId as ConversationId })
+              .pipe(Stream.runForEach((event) => Effect.sync(() => onEvent(event)))),
+          ).pipe(Effect.catchCause((cause) => Effect.logWarning("Conversation watch ended", cause))),
+        );
+        return () => fiber.interruptUnsafe();
+      },
     },
     shell: {
       pickDirectory: () => shell((c) => c.PickDirectory()),

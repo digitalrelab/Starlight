@@ -1,0 +1,107 @@
+import { randomUUID } from "node:crypto";
+import { AgentProviderId, ChatMessage, type Conversation, ConversationId } from "@starlight/contracts";
+import { ConversationStore } from "@starlight/core";
+import { Effect, Layer, Option, Schema } from "effect";
+import { SqlClient, SqlSchema } from "effect/sql";
+
+const ConversationRow = Schema.Struct({
+  id: ConversationId,
+  provider: AgentProviderId,
+  title: Schema.String,
+  session: Schema.NullOr(Schema.String),
+  created_at: Schema.Number,
+  updated_at: Schema.Number,
+});
+
+const MessageRow = Schema.Struct({
+  id: Schema.String,
+  role: ChatMessage.fields.role,
+  text: Schema.String,
+  created_at: Schema.Number,
+});
+
+const toConversation = (row: typeof ConversationRow.Type): Conversation => ({
+  id: row.id,
+  provider: row.provider,
+  title: row.title,
+  createdAt: row.created_at,
+  updatedAt: row.updated_at,
+});
+
+const toMessage = (row: typeof MessageRow.Type): ChatMessage => ({
+  id: row.id,
+  role: row.role,
+  text: row.text,
+  createdAt: row.created_at,
+});
+
+export const SqliteConversationStoreLive = Layer.effect(ConversationStore)(
+  Effect.gen(function* () {
+    const sql = yield* SqlClient.SqlClient;
+
+    const list = SqlSchema.findAll({
+      Request: Schema.Void,
+      Result: ConversationRow,
+      execute: () => sql`SELECT * FROM conversations ORDER BY updated_at DESC`,
+    });
+
+    const findConversation = SqlSchema.findOneOption({
+      Request: ConversationId,
+      Result: ConversationRow,
+      execute: (id) => sql`SELECT * FROM conversations WHERE id = ${id}`,
+    });
+
+    const findMessages = SqlSchema.findAll({
+      Request: ConversationId,
+      Result: MessageRow,
+      execute: (id) =>
+        sql`SELECT id, role, text, created_at FROM conversation_messages WHERE conversation_id = ${id} ORDER BY created_at`,
+    });
+
+    return ConversationStore.of({
+      list: list(undefined).pipe(
+        Effect.map((rows) => rows.map(toConversation)),
+        Effect.orDie,
+      ),
+      find: (id) =>
+        Effect.gen(function* () {
+          const row = yield* findConversation(id);
+          if (Option.isNone(row)) return Option.none();
+          const messages = yield* findMessages(id);
+          return Option.some({
+            conversation: toConversation(row.value),
+            messages: messages.map(toMessage),
+            session: Option.fromNullishOr(row.value.session),
+          });
+        }).pipe(Effect.orDie),
+      create: ({ provider, title }) =>
+        Effect.gen(function* () {
+          const now = Date.now();
+          const conversation: Conversation = {
+            id: ConversationId.make(randomUUID()),
+            provider,
+            title,
+            createdAt: now,
+            updatedAt: now,
+          };
+          yield* sql`
+            INSERT INTO conversations (id, provider, title, created_at, updated_at)
+            VALUES (${conversation.id}, ${provider}, ${title}, ${now}, ${now})
+          `;
+          return conversation;
+        }).pipe(Effect.orDie),
+      append: (id, { role, text }) =>
+        Effect.gen(function* () {
+          const message: ChatMessage = { id: randomUUID(), role, text, createdAt: Date.now() };
+          yield* sql`
+            INSERT INTO conversation_messages (id, conversation_id, role, text, created_at)
+            VALUES (${message.id}, ${id}, ${role}, ${text}, ${message.createdAt})
+          `;
+          yield* sql`UPDATE conversations SET updated_at = ${message.createdAt} WHERE id = ${id}`;
+          return message;
+        }).pipe(Effect.orDie),
+      saveSession: (id, session) =>
+        sql`UPDATE conversations SET session = ${session} WHERE id = ${id}`.pipe(Effect.asVoid, Effect.orDie),
+    });
+  }),
+);

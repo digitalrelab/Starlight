@@ -2,6 +2,9 @@ import type {
   Actor,
   AgentProviderId,
   AgentProviderStatus,
+  ChatMessage,
+  Conversation,
+  ConversationId,
   EntryId,
   EntryKind,
   EntryRef,
@@ -12,7 +15,7 @@ import type {
   Workspace,
   WorkspaceId,
 } from "@starlight/contracts";
-import { Context, type Effect, type Option, type Stream } from "effect";
+import { Context, Data, type Effect, type Option, type Stream } from "effect";
 
 export interface SourceEntry {
   readonly id: EntryId;
@@ -84,12 +87,45 @@ export class AuditLog extends Context.Service<
 
 export class CurrentActor extends Context.Service<CurrentActor, Actor>()("@starlight/core/CurrentActor") {}
 
+export interface AgentTurnInput {
+  readonly prompt: string;
+  readonly history: ReadonlyArray<ChatMessage>;
+  readonly session: Option.Option<string>;
+}
+
+export type AgentTurnEvent =
+  | { readonly _tag: "TextDelta"; readonly text: string }
+  | { readonly _tag: "Completed"; readonly session: Option.Option<string> };
+
+export class AgentTurnFailed extends Data.TaggedError("AgentTurnFailed")<{ readonly message: string }> {}
+
 export interface AgentProviderDriver {
   readonly name: string;
   readonly status: Effect.Effect<AgentProviderStatus>;
+  readonly respond: (input: AgentTurnInput) => Stream.Stream<AgentTurnEvent, AgentTurnFailed>;
 }
 
 export class AgentProviderDrivers extends Context.Service<
   AgentProviderDrivers,
   ReadonlyMap<AgentProviderId, AgentProviderDriver>
 >()("@starlight/core/AgentProviderDrivers") {}
+
+export interface StoredConversation {
+  readonly conversation: Conversation;
+  readonly messages: ReadonlyArray<ChatMessage>;
+  readonly session: Option.Option<string>;
+}
+
+export class ConversationStore extends Context.Service<
+  ConversationStore,
+  {
+    readonly list: Effect.Effect<ReadonlyArray<Conversation>>;
+    readonly find: (id: ConversationId) => Effect.Effect<Option.Option<StoredConversation>>;
+    readonly create: (input: Pick<Conversation, "provider" | "title">) => Effect.Effect<Conversation>;
+    readonly append: (
+      id: ConversationId,
+      message: Pick<ChatMessage, "role" | "text">,
+    ) => Effect.Effect<ChatMessage>;
+    readonly saveSession: (id: ConversationId, session: string) => Effect.Effect<void>;
+  }
+>()("@starlight/core/ConversationStore") {}

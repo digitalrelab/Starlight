@@ -62,4 +62,27 @@ export const migrations = Migrator.fromRecord({
     `;
     yield* sql`DROP TABLE legacy_workspaces`;
   }),
+  "0005_conversations": Effect.gen(function* () {
+    const sql = yield* SqlClient.SqlClient;
+    yield* sql`
+      CREATE TABLE conversations (
+        id TEXT PRIMARY KEY,
+        provider TEXT NOT NULL,
+        title TEXT NOT NULL,
+        session TEXT,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      )
+    `;
+    yield* sql`
+      CREATE TABLE conversation_messages (
+        id TEXT PRIMARY KEY,
+        conversation_id TEXT NOT NULL REFERENCES conversations (id) ON DELETE CASCADE,
+        role TEXT NOT NULL,
+        text TEXT NOT NULL,
+        created_at INTEGER NOT NULL
+      )
+    `;
+    yield* sql`CREATE INDEX conversation_messages_by_conversation ON conversation_messages (conversation_id, created_at)`;
+  }),
 });
