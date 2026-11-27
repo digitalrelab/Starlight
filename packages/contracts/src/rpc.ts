@@ -3,6 +3,7 @@ import { Rpc, RpcGroup } from "effect/rpc";
 import { Entry } from "./entry.ts";
 import { FileSystemError, NotADirectory, PathOutsideWorkspace, WorkspaceNotFound } from "./errors.ts";
 import { RelativePath, WorkspaceId } from "./ids.ts";
+import { Media } from "./media.ts";
 import { Workspace } from "./workspace.ts";
 
 export class WorkspaceRpcs extends RpcGroup.make(
@@ -22,6 +23,11 @@ export class WorkspaceRpcs extends RpcGroup.make(
   Rpc.make("ListEntries", {
     payload: { workspaceId: WorkspaceId, path: RelativePath },
     success: Schema.Array(Entry),
+    error: Schema.Union([WorkspaceNotFound, PathOutsideWorkspace, NotADirectory, FileSystemError]),
+  }),
+  Rpc.make("ListMedia", {
+    payload: { workspaceId: WorkspaceId, path: RelativePath },
+    success: Schema.Array(Media),
     error: Schema.Union([WorkspaceNotFound, PathOutsideWorkspace, NotADirectory, FileSystemError]),
   }),
 ) {}

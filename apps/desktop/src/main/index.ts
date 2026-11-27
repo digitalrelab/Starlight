@@ -3,13 +3,16 @@ import { app, BrowserWindow, ipcMain, MessageChannelMain } from "electron";
 import { Channel } from "../shared/channels.ts";
 import { superviseHost } from "./host.ts";
 import { serveShell } from "./shell.ts";
+import { registerThumbnailScheme, serveThumbnails } from "./thumbnails.ts";
 import { startUpdater } from "./updater.ts";
 import { createWindow } from "./window.ts";
 
 if (!app.isPackaged) app.setPath("userData", join(app.getAppPath(), ".data"));
+registerThumbnailScheme();
 
 const main = async () => {
   await app.whenReady();
+  serveThumbnails();
   const host = superviseHost(() => {
     for (const window of BrowserWindow.getAllWindows()) window.webContents.reload();
   });

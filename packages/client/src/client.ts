@@ -35,6 +35,10 @@ export const createClient = (ports: PortSources) => {
       list: (workspaceId: string, path: string) =>
         host((c) => c.ListEntries({ workspaceId: id(workspaceId), path })),
     },
+    media: {
+      list: (workspaceId: string, path: string) =>
+        host((c) => c.ListMedia({ workspaceId: id(workspaceId), path })),
+    },
     shell: {
       pickDirectory: () => shell((c) => c.PickDirectory()),
     },

@@ -24,6 +24,13 @@ export class Workspaces extends Context.Service<
       { readonly workspace: Workspace; readonly absolute: string; readonly relative: string },
       WorkspaceNotFound | PathOutsideWorkspace | FileSystemError
     >;
+    readonly resolveDirectory: (
+      id: WorkspaceId,
+      relative: string,
+    ) => Effect.Effect<
+      { readonly absolute: string; readonly relative: string },
+      WorkspaceNotFound | PathOutsideWorkspace | NotADirectory | FileSystemError
+    >;
   }
 >()("@starlight/core/Workspaces") {
   static readonly layer = Layer.effect(Workspaces)(
@@ -46,6 +53,21 @@ export class Workspaces extends Context.Service<
           ),
         );
 
+      const resolve = Effect.fn("Workspaces.resolve")(function* (id: WorkspaceId, relative: string) {
+        const workspace = yield* get(id);
+        const lexical = path.resolve(workspace.rootPath, relative);
+        if (!isWithin(workspace.rootPath, lexical))
+          return yield* new PathOutsideWorkspace({ path: relative });
+        const absolute = yield* fs.realPath(lexical);
+        if (!isWithin(workspace.rootPath, absolute))
+          return yield* new PathOutsideWorkspace({ path: relative });
+        return {
+          workspace,
+          absolute,
+          relative: path.relative(workspace.rootPath, absolute).split(path.sep).join("/"),
+        };
+      });
+
       return Workspaces.of({
         open: Effect.fn("Workspaces.open")(function* (input) {
           const rootPath = yield* fs.realPath(input);
@@ -57,19 +79,12 @@ export class Workspaces extends Context.Service<
         }),
         recent: store.recent(RECENT_LIMIT),
         get,
-        resolve: Effect.fn("Workspaces.resolve")(function* (id, relative) {
-          const workspace = yield* get(id);
-          const lexical = path.resolve(workspace.rootPath, relative);
-          if (!isWithin(workspace.rootPath, lexical))
-            return yield* new PathOutsideWorkspace({ path: relative });
-          const absolute = yield* fs.realPath(lexical);
-          if (!isWithin(workspace.rootPath, absolute))
-            return yield* new PathOutsideWorkspace({ path: relative });
-          return {
-            workspace,
-            absolute,
-            relative: path.relative(workspace.rootPath, absolute).split(path.sep).join("/"),
-          };
+        resolve,
+        resolveDirectory: Effect.fn("Workspaces.resolveDirectory")(function* (id, relative) {
+          const resolved = yield* resolve(id, relative);
+          const info = yield* fs.stat(resolved.absolute);
+          if (info.kind !== "directory") return yield* new NotADirectory({ path: resolved.relative });
+          return { absolute: resolved.absolute, relative: resolved.relative };
         }),
       });
     }),

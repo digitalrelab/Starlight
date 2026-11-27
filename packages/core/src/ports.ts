@@ -1,4 +1,11 @@
-import type { Actor, EntryKind, FileSystemError, Workspace, WorkspaceId } from "@starlight/contracts";
+import type {
+  Actor,
+  EntryKind,
+  FileSystemError,
+  ThumbnailToken,
+  Workspace,
+  WorkspaceId,
+} from "@starlight/contracts";
 import { Context, type Effect, type Option } from "effect";
 
 export interface FileStat {
@@ -19,6 +26,27 @@ export class FileSystemPort extends Context.Service<
     readonly readDirectory: (path: string) => Effect.Effect<ReadonlyArray<DirectoryEntry>, FileSystemError>;
   }
 >()("@starlight/core/FileSystemPort") {}
+
+export interface Dimensions {
+  readonly width: number;
+  readonly height: number;
+}
+
+export interface ProbeTarget {
+  readonly absolute: string;
+  readonly size: number;
+  readonly modifiedAt: number;
+}
+
+export class MediaProbe extends Context.Service<
+  MediaProbe,
+  { readonly dimensions: (target: ProbeTarget) => Effect.Effect<Option.Option<Dimensions>> }
+>()("@starlight/core/MediaProbe") {}
+
+export class ThumbnailTokens extends Context.Service<
+  ThumbnailTokens,
+  { readonly issue: (absolute: string, version: number) => ThumbnailToken }
+>()("@starlight/core/ThumbnailTokens") {}
 
 export class WorkspaceStore extends Context.Service<
   WorkspaceStore,

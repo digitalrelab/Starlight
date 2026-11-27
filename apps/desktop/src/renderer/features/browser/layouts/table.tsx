@@ -1,21 +1,15 @@
 import { File01Icon, FolderIcon } from "@hugeicons-pro/core-stroke-rounded";
-import type { Entry } from "@starlight/client";
 import { cn, Icon } from "@starlight/ui";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { type KeyboardEvent, useRef, useState } from "react";
-import { formatDate, formatSize } from "../../lib/format.ts";
+import { type KeyboardEvent, useEffect, useRef } from "react";
+import { formatDate, formatSize } from "../../../lib/format.ts";
+import type { LayoutProps } from "./types.ts";
 
 const ROW_HEIGHT = 26;
 const COLUMNS = "grid grid-cols-[minmax(0,1fr)_96px_168px] gap-4";
 
-interface Props {
-  readonly entries: ReadonlyArray<Entry>;
-  readonly onOpen: (entry: Entry) => void;
-}
-
-export const EntryList = ({ entries, onOpen }: Props) => {
+export const TableLayout = ({ entries, selected, onSelect, onOpen }: LayoutProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [selected, setSelected] = useState(-1);
   const virtualizer = useVirtualizer({
     count: entries.length,
     getScrollElement: () => scrollRef.current,
@@ -23,23 +17,17 @@ export const EntryList = ({ entries, onOpen }: Props) => {
     overscan: 16,
   });
 
-  const select = (index: number) => {
-    const next = Math.max(0, Math.min(entries.length - 1, index));
-    setSelected(next);
-    virtualizer.scrollToIndex(next);
-  };
+  useEffect(() => {
+    if (selected >= 0) virtualizer.scrollToIndex(selected);
+  }, [virtualizer, selected]);
 
   const onKeyDown = (event: KeyboardEvent) => {
-    if (event.key === "ArrowDown") select(selected + 1);
-    else if (event.key === "ArrowUp") select(selected - 1);
+    if (event.key === "ArrowDown") onSelect(selected + 1);
+    else if (event.key === "ArrowUp") onSelect(selected - 1);
     else if (event.key === "Enter" && entries[selected]) onOpen(entries[selected]);
     else return;
     event.preventDefault();
   };
-
-  if (entries.length === 0) {
-    return <div className="flex flex-1 items-center justify-center text-muted">Empty folder</div>;
-  }
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -62,7 +50,7 @@ export const EntryList = ({ entries, onOpen }: Props) => {
             return (
               <div
                 key={entry.path}
-                onClick={() => setSelected(row.index)}
+                onClick={() => onSelect(row.index)}
                 onDoubleClick={() => onOpen(entry)}
                 className={cn(
                   COLUMNS,
@@ -88,9 +76,6 @@ export const EntryList = ({ entries, onOpen }: Props) => {
           })}
         </div>
       </div>
-      <footer className="border-t border-border px-4 py-1 text-[11px] text-muted">
-        {entries.length.toLocaleString()} {entries.length === 1 ? "item" : "items"}
-      </footer>
     </div>
   );
 };

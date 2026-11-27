@@ -2,8 +2,10 @@ import { NodePath, NodeRuntime } from "@effect/platform-node";
 import { ConnectRequest } from "@starlight/contracts";
 import { CoreLive } from "@starlight/core";
 import { Effect, Layer, Queue, Schema } from "effect";
+import { ImageProbeLive } from "./adapters/image-probe.ts";
 import { NodeFileSystemLive } from "./adapters/node-file-system.ts";
 import { SqliteLive } from "./adapters/sqlite/index.ts";
+import { ThumbnailTokensLive } from "./adapters/thumbnail-tokens.ts";
 import { WorkspaceServerLive } from "./rpc/server.ts";
 import { type MainPortLike, serve } from "./rpc/transport.ts";
 
@@ -25,10 +27,21 @@ if (!parentPort) throw new Error("host must run inside an Electron utilityProces
 const dataDir = process.env["STARLIGHT_DATA_DIR"];
 if (!dataDir) throw new Error("STARLIGHT_DATA_DIR is not set");
 
+const thumbnailKey = process.env["STARLIGHT_THUMBNAIL_KEY"];
+if (!thumbnailKey) throw new Error("STARLIGHT_THUMBNAIL_KEY is not set");
+
 const decodeConnect = Schema.decodeUnknownEffect(ConnectRequest);
 
 const HostLive = CoreLive.pipe(
-  Layer.provide(Layer.mergeAll(NodeFileSystemLive, SqliteLive(dataDir), NodePath.layer)),
+  Layer.provide(
+    Layer.mergeAll(
+      NodeFileSystemLive,
+      ImageProbeLive,
+      ThumbnailTokensLive(Buffer.from(thumbnailKey, "hex")),
+      SqliteLive(dataDir),
+      NodePath.layer,
+    ),
+  ),
 );
 
 const accept = ({ data, port }: Connection) =>

@@ -5,6 +5,7 @@ export const queryKeys = {
   recentWorkspaces: () => ["recentWorkspaces"] as const,
   workspace: (id: string) => ["workspace", id] as const,
   entries: (workspaceId: string, path: string) => ["entries", workspaceId, path] as const,
+  media: (workspaceId: string, path: string) => ["media", workspaceId, path] as const,
 };
 
 export const createQueries = (client: StarlightClient) => ({
@@ -18,6 +19,12 @@ export const createQueries = (client: StarlightClient) => ({
     queryOptions({
       queryKey: queryKeys.entries(workspaceId, path),
       queryFn: () => client.entries.list(workspaceId, path),
+    }),
+
+  media: (workspaceId: string, path: string) =>
+    queryOptions({
+      queryKey: queryKeys.media(workspaceId, path),
+      queryFn: () => client.media.list(workspaceId, path),
     }),
 });
 

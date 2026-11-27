@@ -1,6 +1,7 @@
 import { join } from "node:path";
 import type { ConnectRequest } from "@starlight/contracts";
 import { app, type MessagePortMain, type UtilityProcess, utilityProcess } from "electron";
+import { thumbnailKey } from "./thumbnails.ts";
 
 const MIN_UPTIME_MS = 5_000;
 
@@ -8,7 +9,11 @@ const fork = () =>
   utilityProcess.fork(join(import.meta.dirname, "host.js"), [], {
     serviceName: "Starlight Host",
     stdio: "inherit",
-    env: { ...process.env, STARLIGHT_DATA_DIR: app.getPath("userData") },
+    env: {
+      ...process.env,
+      STARLIGHT_DATA_DIR: app.getPath("userData"),
+      STARLIGHT_THUMBNAIL_KEY: thumbnailKey.toString("hex"),
+    },
   });
 
 export const superviseHost = (onRestart: () => void) => {
