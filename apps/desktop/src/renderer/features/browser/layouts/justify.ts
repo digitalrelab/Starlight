@@ -3,6 +3,14 @@ export interface JustifyOptions {
   readonly targetHeight: number;
   readonly maxHeight: number;
   readonly gap: number;
+  readonly chrome: { readonly width: number; readonly height: number };
+}
+
+export interface ShelfOptions {
+  readonly width: number;
+  readonly minWidth: number;
+  readonly height: number;
+  readonly gap: number;
 }
 
 export interface JustifiedRow {
@@ -18,11 +26,11 @@ export interface JustifiedLayout {
   readonly rowOf: Uint32Array;
 }
 
-const fitHeight = (width: number, gap: number, count: number, aspectSum: number) =>
-  (width - gap * (count - 1)) / aspectSum;
+const fitHeight = (width: number, gap: number, chrome: number, count: number, aspectSum: number) =>
+  Math.max(0, (width - gap * (count - 1) - chrome * count) / aspectSum);
 
 export const justify = (aspects: Float64Array, options: JustifyOptions): JustifiedLayout => {
-  const { width, targetHeight, maxHeight, gap } = options;
+  const { width, targetHeight, maxHeight, gap, chrome } = options;
   const count = width > 0 ? aspects.length : 0;
   const left = new Float64Array(count);
   const widths = new Float64Array(count);
@@ -37,12 +45,12 @@ export const justify = (aspects: Float64Array, options: JustifyOptions): Justifi
     while (end < count) {
       aspectSum += aspects[end]!;
       end++;
-      const fit = fitHeight(width, gap, end - start, aspectSum);
+      const fit = fitHeight(width, gap, chrome.width, end - start, aspectSum);
       if (fit > targetHeight) continue;
       height = fit;
       if (end - start > 1) {
         const shorterSum = aspectSum - aspects[end - 1]!;
-        const shorterFit = fitHeight(width, gap, end - start - 1, shorterSum);
+        const shorterFit = fitHeight(width, gap, chrome.width, end - start - 1, shorterSum);
         if (shorterFit <= maxHeight && shorterFit - targetHeight < targetHeight - fit) {
           end--;
           height = shorterFit;
@@ -55,16 +63,58 @@ export const justify = (aspects: Float64Array, options: JustifyOptions): Justifi
     const rowIndex = rows.length;
     let x = 0;
     for (let i = start; i < end; i++) {
-      const next = x + aspects[i]! * height;
+      const next = x + aspects[i]! * height + chrome.width;
       left[i] = Math.round(x);
       widths[i] = Math.round(next) - left[i]!;
       rowOf[i] = rowIndex;
       x = next + gap;
     }
-    rows.push({ start, end, height: Math.round(height) });
+    rows.push({ start, end, height: Math.round(height + chrome.height) });
     start = end;
   }
   return { rows, left, width: widths, rowOf };
+};
+
+export const shelve = (count: number, options: ShelfOptions): JustifiedLayout => {
+  const { width, minWidth, height, gap } = options;
+  const total = width > 0 ? count : 0;
+  const columns = Math.max(1, Math.floor((width + gap) / (minWidth + gap)));
+  const column = (width - gap * (columns - 1)) / columns;
+  const left = new Float64Array(total);
+  const widths = new Float64Array(total);
+  const rowOf = new Uint32Array(total);
+  const rows: Array<JustifiedRow> = [];
+  for (let i = 0; i < total; i++) {
+    const x = (i % columns) * (column + gap);
+    left[i] = Math.round(x);
+    widths[i] = Math.round(x + column) - left[i]!;
+    rowOf[i] = Math.floor(i / columns);
+    if (i % columns === 0) rows.push({ start: i, end: Math.min(total, i + columns), height });
+  }
+  return { rows, left, width: widths, rowOf };
+};
+
+export const stack = (
+  top: JustifiedLayout,
+  topLeft: number,
+  bottom: JustifiedLayout,
+  bottomLeft: number,
+): JustifiedLayout => {
+  const offset = top.left.length;
+  const left = new Float64Array(offset + bottom.left.length);
+  const width = new Float64Array(left.length);
+  const rowOf = new Uint32Array(left.length);
+  top.left.forEach((x, i) => (left[i] = x + topLeft));
+  bottom.left.forEach((x, i) => (left[offset + i] = x + bottomLeft));
+  width.set(top.width);
+  width.set(bottom.width, offset);
+  rowOf.set(top.rowOf);
+  bottom.rowOf.forEach((row, i) => (rowOf[offset + i] = row + top.rows.length));
+  const rows = [
+    ...top.rows,
+    ...bottom.rows.map((row) => ({ ...row, start: row.start + offset, end: row.end + offset })),
+  ];
+  return { rows, left, width, rowOf };
 };
 
 export const nearestInRow = (layout: JustifiedLayout, row: JustifiedRow, center: number) => {
