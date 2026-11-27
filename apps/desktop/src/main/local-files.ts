@@ -4,6 +4,7 @@ import { protocol } from "electron";
 
 interface LocalFile {
   readonly path: string;
+  readonly fileId: string;
   readonly version: number;
 }
 
@@ -16,7 +17,7 @@ export const serveLocalFiles = (
     const claim = verifyFileToken(key, new URL(request.url).pathname.slice(1));
     if (!claim) return new Response(null, { status: 403 });
     if (claim.ref.source !== LocalSource) return new Response(null, { status: 404 });
-    return serve({ path: claim.ref.id, version: claim.version }, request).catch(
+    return serve({ path: claim.ref.id, fileId: claim.fileId, version: claim.version }, request).catch(
       () => new Response(null, { status: 404 }),
     );
   });

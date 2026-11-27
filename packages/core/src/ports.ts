@@ -96,7 +96,7 @@ export class SourceDrivers extends Context.Service<SourceDrivers, ReadonlyMap<So
 
 export class FileTokens extends Context.Service<
   FileTokens,
-  { readonly issue: (ref: EntryRef, version: number) => FileToken }
+  { readonly issue: (file: { ref: EntryRef; fileId: FileId; version: number }) => FileToken }
 >()("@starlight/core/FileTokens") {}
 
 export interface StoredFact {
