@@ -1,6 +1,7 @@
 import type { EntryId, EntryRef, Project } from "@starlight/contracts";
-import { Array as Arr, type Duration, Effect, FiberMap, Layer, Stream } from "effect";
+import { Array as Arr, type Duration, Effect, FiberMap, Layer, Ref, Stream } from "effect";
 import { EntryIndex } from "./entry-index.ts";
+import { type IgnoreMatcher, IgnoreRules } from "./ignore-rules.ts";
 import type { SourceChange, SourceDriver } from "./ports.ts";
 import { Projects } from "./projects.ts";
 
@@ -15,8 +16,10 @@ interface Root {
 
 const keyOf = ({ source, id }: EntryRef) => JSON.stringify([source, id]);
 
-const covers = (outer: Root, inner: Root) =>
-  outer.ref.source === inner.ref.source && outer.driver.contains(outer.ref.id, inner.ref.id);
+const coverage = (ignores: IgnoreMatcher) => (outer: Root, inner: Root) =>
+  outer.ref.source === inner.ref.source &&
+  outer.driver.contains(outer.ref.id, inner.ref.id) &&
+  !outer.driver.trail(outer.ref.id, inner.ref.id).some(({ name }) => ignores(name));
 
 const changedDirectories = (root: Root, changes: ReadonlyArray<SourceChange>) => [
   ...new Set(
@@ -32,19 +35,24 @@ export const IndexerLive = Layer.effectDiscard(
   Effect.gen(function* () {
     const projects = yield* Projects;
     const index = yield* EntryIndex;
+    const rules = yield* IgnoreRules;
     const fibers = yield* FiberMap.make<string>();
+    const active = yield* Ref.make<ReadonlyArray<EntryRef>>([]);
 
     const reconcile = Effect.fnUntraced(function* (
       root: Root,
       directories: ReadonlyArray<EntryId>,
       deep: boolean,
     ) {
+      const roots = (yield* Ref.get(active)).flatMap(({ source, id }) =>
+        source === root.ref.source ? [id] : [],
+      );
       const missing: Array<EntryId> = [];
       let frontier = directories;
       while (frontier.length > 0) {
         const synced = yield* Effect.forEach(
           frontier,
-          (id) => index.sync(root.driver, { source: root.ref.source, id }, deep),
+          (id) => index.sync(root.driver, { source: root.ref.source, id }, deep, roots),
           { concurrency: SYNC_CONCURRENCY },
         );
         missing.push(...synced.flatMap((result) => result.missing));
@@ -72,39 +80,52 @@ export const IndexerLive = Layer.effectDiscard(
         (resolved) => new Map(Arr.getSomes(resolved).map((root) => [keyOf(root.ref), root])),
       );
 
-    const rootsOf = (all: ReadonlyArray<Project>) =>
-      Effect.map(resolve(all.flatMap(({ mounts }) => mounts.map(({ root }) => root))), (roots) => {
-        const candidates = [...roots.values()];
-        return new Map(
-          [...roots].filter(([, root]) => !candidates.some((other) => other !== root && covers(other, root))),
-        );
-      });
+    const rootsOf = Effect.fnUntraced(function* (all: ReadonlyArray<Project>) {
+      const covers = coverage(yield* rules.matcher);
+      const roots = yield* resolve(all.flatMap(({ mounts }) => mounts.map(({ root }) => root)));
+      const candidates = [...roots.values()];
+      return new Map(
+        [...roots].filter(([, root]) => !candidates.some((other) => other !== root && covers(other, root))),
+      );
+    });
 
     const apply = Effect.fnUntraced(function* (
       current: ReadonlyMap<string, Root>,
       next: ReadonlyMap<string, Root>,
+      restart: boolean,
     ) {
+      const covers = coverage(yield* rules.matcher);
       const remaining = [...next.values()];
+      yield* Ref.set(
+        active,
+        remaining.map(({ ref }) => ref),
+      );
       for (const [key, root] of current) {
         if (next.has(key)) continue;
         yield* FiberMap.remove(fibers, key);
         if (remaining.some((other) => covers(other, root))) continue;
         yield* index.drop(
           root.ref,
-          remaining.filter((inner) => covers(root, inner)).map((inner) => inner.ref.id),
+          remaining.flatMap(({ ref }) => (ref.source === root.ref.source ? [ref.id] : [])),
         );
       }
       for (const [key, root] of next) {
-        yield* FiberMap.run(fibers, key, { onlyIfMissing: true })(follow(root));
+        yield* FiberMap.run(fibers, key, { onlyIfMissing: !restart })(follow(root));
       }
       return next;
     });
 
     const indexed = yield* resolve(yield* index.roots);
 
-    yield* projects.watchAll.pipe(
-      Stream.mapEffect(rootsOf),
-      Stream.runFoldEffect(() => indexed, apply),
+    yield* Stream.merge(
+      Stream.map(projects.watchAll, (all) => ({ all, restart: false })),
+      Stream.mapEffect(rules.changes, () => Effect.map(projects.list, (all) => ({ all, restart: true }))),
+    ).pipe(
+      Stream.mapEffect(({ all, restart }) => Effect.map(rootsOf(all), (roots) => ({ roots, restart }))),
+      Stream.runFoldEffect(
+        (): ReadonlyMap<string, Root> => indexed,
+        (current, { roots, restart }) => apply(current, roots, restart),
+      ),
       Effect.forkScoped,
     );
   }),

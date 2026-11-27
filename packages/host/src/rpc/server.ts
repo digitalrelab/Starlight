@@ -5,6 +5,7 @@ import {
   CurrentActor,
   Entries,
   Files,
+  IgnoreRules,
   MediaLibrary,
   Projects,
   References,
@@ -20,6 +21,7 @@ const HandlersLive = HostRpcs.toLayer(
     const media = yield* MediaLibrary;
     const agentProviders = yield* AgentProviders;
     const chats = yield* Chats;
+    const ignoreRules = yield* IgnoreRules;
     const references = yield* References;
     return HostRpcs.of({
       CreateProject: ({ root }) => projects.create(root),
@@ -39,6 +41,8 @@ const HandlersLive = HostRpcs.toLayer(
       SearchReferences: ({ query, projectId, includeHidden }) =>
         references.search(query, projectId, includeHidden),
       LocateEntry: ({ ref }) => references.locate(ref),
+      GetIgnorePatterns: () => ignoreRules.patterns,
+      SetIgnorePatterns: ({ patterns }) => ignoreRules.replace(patterns),
       GetFileDetails: ({ projectId, file }) => files.details(projectId, file),
       WriteFile: ({ projectId, file, content, base }) => files.write(projectId, file, content, base),
       ListAgentProviders: () => agentProviders.list,

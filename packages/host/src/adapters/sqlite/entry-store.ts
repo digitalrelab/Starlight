@@ -14,10 +14,11 @@ const Row = Schema.Struct({
   created_at: Schema.Number,
   modified_at: Schema.Number,
   hidden: Schema.BooleanFromBit,
+  ignored: Schema.BooleanFromBit,
   file_id: Schema.NullOr(FileId),
 });
 
-const COLUMNS = "id, key, name, kind, size, created_at, modified_at, hidden, file_id";
+const COLUMNS = "id, key, name, kind, size, created_at, modified_at, hidden, ignored, file_id";
 
 const toEntry = (row: typeof Row.Type): StoredEntry => ({
   id: row.id,
@@ -28,6 +29,7 @@ const toEntry = (row: typeof Row.Type): StoredEntry => ({
   createdAt: row.created_at,
   modifiedAt: row.modified_at,
   hidden: row.hidden,
+  ignored: row.ignored,
   fileId: row.file_id,
 });
 
@@ -88,7 +90,7 @@ export const SqliteEntryStoreLive = Layer.effect(EntryStore)(
       }),
       Result: Found,
       execute: ({ words, group, includeHidden, limit }) => {
-        const filters = sql`${group === "folders" ? sql`AND kind = 'directory'` : sql`AND kind != 'directory'`} ${
+        const filters = sql`AND ignored = 0 ${group === "folders" ? sql`AND kind = 'directory'` : sql`AND kind != 'directory'`} ${
           includeHidden ? sql.literal("") : sql`AND concealed = 0`
         }`;
         return words.trim().length >= TRIGRAM
@@ -164,6 +166,7 @@ export const SqliteEntryStoreLive = Layer.effect(EntryStore)(
                   created_at: entry.createdAt,
                   modified_at: entry.modifiedAt,
                   hidden: entry.hidden ? 1 : 0,
+                  ignored: entry.ignored ? 1 : 0,
                   concealed: concealed(entry) ? 1 : 0,
                   words: wordsOf(entry.name),
                   file_id: entry.fileId,
@@ -178,6 +181,7 @@ export const SqliteEntryStoreLive = Layer.effect(EntryStore)(
                 created_at = excluded.created_at,
                 modified_at = excluded.modified_at,
                 hidden = excluded.hidden,
+                ignored = excluded.ignored,
                 concealed = excluded.concealed,
                 words = excluded.words,
                 file_id = COALESCE(entries.file_id, excluded.file_id)

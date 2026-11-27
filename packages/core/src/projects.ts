@@ -42,6 +42,7 @@ export interface LocatedDirectory {
 }
 
 export interface LocatedFile {
+  readonly mount: Mount;
   readonly driver: SourceDriver;
   readonly file: EntryRef;
   readonly entry: SourceEntry;
@@ -210,10 +211,11 @@ export class Projects extends Context.Service<
           const driver = yield* driverFor(requested.source);
           if (!mountOf(project, driver, requested)) return yield* new OutsideProject({ entry: requested });
           const file = { source: requested.source, id: yield* driver.canonicalize(requested.id) };
-          if (!mountOf(project, driver, file)) return yield* new OutsideProject({ entry: requested });
+          const mount = mountOf(project, driver, file);
+          if (!mount) return yield* new OutsideProject({ entry: requested });
           const entry = yield* driver.stat(file.id);
           if (entry.kind !== "file") return yield* new NotAFile({ entry: requested });
-          return { driver, file, entry };
+          return { mount, driver, file, entry };
         }),
       });
     }),

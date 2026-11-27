@@ -114,11 +114,11 @@ export class Entries extends Context.Service<
       return Entries.of({
         list: Effect.fn("Entries.list")(function* (projectId, requested) {
           if (!requested) return yield* listMounts(projectId);
-          const { mount, driver, directory } = yield* projects.locateDirectory(projectId, requested);
+          const located = yield* projects.locateDirectory(projectId, requested);
+          const { mount, driver, directory } = located;
           const children = yield* driver.list(directory.id);
           const files = yield* index.bind(
-            driver,
-            directory,
+            located,
             children.filter((child) => child.kind === "file"),
           );
           const fileIds = new Map(files.map((file) => [file.id, file.fileId]));

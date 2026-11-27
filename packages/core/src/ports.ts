@@ -18,6 +18,7 @@ import type {
   SourceId,
   FileToken,
   FileId,
+  IgnorePattern,
   Palette,
   PixelSample,
   Property,
@@ -135,6 +136,7 @@ export class FactStore extends Context.Service<
 
 export interface StoredEntry extends SourceEntry {
   readonly fileId: FileId | null;
+  readonly ignored: boolean;
 }
 
 export interface FoundEntry extends StoredEntry {
@@ -172,6 +174,14 @@ export class EntryStore extends Context.Service<
     readonly search: (query: EntryQuery) => Effect.Effect<ReadonlyArray<FoundEntry>>;
   }
 >()("@starlight/core/EntryStore") {}
+
+export class IgnoreStore extends Context.Service<
+  IgnoreStore,
+  {
+    readonly load: Effect.Effect<Option.Option<ReadonlyArray<IgnorePattern>>>;
+    readonly save: (patterns: ReadonlyArray<IgnorePattern>) => Effect.Effect<void>;
+  }
+>()("@starlight/core/IgnoreStore") {}
 
 export class ProjectStore extends Context.Service<
   ProjectStore,

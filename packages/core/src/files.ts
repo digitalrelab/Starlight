@@ -37,9 +37,9 @@ export class Files extends Context.Service<
       const audit = yield* AuditLog;
 
       const identify = Effect.fnUntraced(function* (projectId: ProjectId, requested: EntryRef) {
-        const { driver, file, entry } = yield* projects.locateFile(projectId, requested);
+        const { mount, driver, file, entry } = yield* projects.locateFile(projectId, requested);
         const folder = { source: file.source, id: driver.parent(file.id) };
-        const [identified] = yield* index.bind(driver, folder, [entry]);
+        const [identified] = yield* index.bind({ mount, driver, directory: folder }, [entry]);
         if (!identified) return yield* Effect.die(new Error(`No identity bound for ${file.id}`));
         return { driver, file, folder, entry: identified };
       });
