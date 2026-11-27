@@ -1,7 +1,6 @@
-import type { DirectoryError, Media, WorkspaceId } from "@starlight/contracts";
+import { type DirectoryError, joinRelative, type Media, type WorkspaceId } from "@starlight/contracts";
 import { Array as Arr, Context, Effect, Layer, Option, Path } from "effect";
 import { FileSystemPort, MediaProbe, ThumbnailTokens } from "./ports.ts";
-import { joinRelative } from "./relative-path.ts";
 import { Workspaces } from "./workspaces.ts";
 
 const PROBE_CONCURRENCY = 32;

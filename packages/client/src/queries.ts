@@ -4,9 +4,8 @@ import {
   queryOptions,
   type QueryClient,
 } from "@tanstack/react-query";
-import type { SettingsPatch, Update } from "@starlight/contracts";
+import { parentOf, type SettingsPatch, type Update } from "@starlight/contracts";
 import type { StarlightClient } from "./client.ts";
-import { parentOf } from "./paths.ts";
 
 const directoryKey = (workspaceId: string) => ["directory", workspaceId] as const;
 
