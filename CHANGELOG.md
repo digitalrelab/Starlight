@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.0](https://github.com/digitalrelab/Starlight/compare/v0.1.0...v0.2.0) (2026-11-27)
+
+
+### Features
+
+* **desktop:** check for updates on focus and every 15 minutes ([#19](https://github.com/digitalrelab/Starlight/issues/19)) ([b948bce](https://github.com/digitalrelab/Starlight/commit/b948bce07c60ed457bb0311afe8fe94463357388))
+* **workspaces:** model files as source entries mounted into workspaces ([#13](https://github.com/digitalrelab/Starlight/issues/13)) ([b15f19d](https://github.com/digitalrelab/Starlight/commit/b15f19d988bc76a1dfa25a974805bf12c05d98fe))
+
 ## 0.1.0 (2026-11-27)
 
 ### Features
