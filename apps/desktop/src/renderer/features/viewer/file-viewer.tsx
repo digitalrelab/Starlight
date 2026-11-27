@@ -59,6 +59,7 @@ export const FileViewer = ({
   onClose,
 }: Props) => {
   const files = useMemo(() => entries.filter((entry) => entry.kind === "file"), [entries]);
+  const sequenced = files.length > 1;
   const index = files.findIndex(({ ref }) => ref.id === file.id && ref.source === file.source);
   const current = files[index];
   const previous = index > 0 ? files[index - 1] : undefined;
@@ -82,7 +83,6 @@ export const FileViewer = ({
     [PREVIOUS_KEY]: showPrevious,
     [NEXT_KEY]: showNext,
   };
-  const sequenced = files.length > 1;
   const onKeyDown = (event: KeyboardEvent) => {
     const run = keys[event.key];
     if (!run || isKeyConsumed(event)) return;
