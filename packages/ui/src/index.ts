@@ -2,6 +2,7 @@ export * from "./badge.tsx";
 export * from "./breadcrumbs.tsx";
 export * from "./button.tsx";
 export * from "./card.tsx";
+export * from "./collapsible.tsx";
 export { cn } from "cn";
 export * from "./color-scheme-swatch.tsx";
 export * from "./command.tsx";

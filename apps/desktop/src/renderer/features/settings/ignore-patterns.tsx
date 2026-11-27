@@ -1,5 +1,5 @@
 import { DEFAULT_IGNORE_PATTERNS, isIgnorePattern } from "@starlight/client";
-import { Button, Item } from "@starlight/ui";
+import { Button, Collapsible, Item } from "@starlight/ui";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useStarlight } from "#renderer/lib/context.ts";
@@ -23,39 +23,45 @@ export const IgnorePatterns = () => {
 
   return (
     <Item.List>
-      <Item.Root>
-        <Item.Content>
-          <Item.Title htmlFor="ignore-patterns">Ignored names</Item.Title>
-          <Item.Description>
-            Files and folders with these names are left out of the index and search. One per line; * and ?
-            match any characters.
-          </Item.Description>
-        </Item.Content>
-        <Button
-          intent="secondary"
-          onClick={() => {
-            setDraft(DEFAULT_IGNORE_PATTERNS.join("\n"));
-            save(DEFAULT_IGNORE_PATTERNS);
-          }}
-        >
-          Restore defaults
-        </Button>
-      </Item.Root>
-      <Item.Panel className="flex flex-col gap-2">
-        <textarea
-          id="ignore-patterns"
-          value={draft}
-          spellCheck={false}
-          onChange={(event) => setDraft(event.target.value)}
-          onBlur={() => {
-            if (invalid.length === 0) save(linesOf(draft));
-          }}
-          className="field-sizing-content min-h-32 w-full resize-none rounded-md bg-surface-sunken px-3 py-2.5 font-mono text-sm leading-6 outline-none focus-visible:ring-2 focus-visible:ring-selected"
-        />
-        {invalid.length > 0 ? (
-          <p className="text-sm text-danger">Names can’t contain “/”: {invalid.join(", ")}</p>
-        ) : null}
-      </Item.Panel>
+      <Collapsible.Root>
+        <Item.Root render={<Collapsible.Trigger />} className="group w-full cursor-interactive text-left">
+          <Item.Content>
+            <Item.Title>Ignored</Item.Title>
+            <Item.Description>Left out of search</Item.Description>
+          </Item.Content>
+          <span className="flex items-center gap-2 text-sm text-subtle">
+            {saved.length} names
+            <Collapsible.Indicator />
+          </span>
+        </Item.Root>
+        <Collapsible.Panel className="-mx-4">
+          <textarea
+            aria-label="Ignored names"
+            value={draft}
+            spellCheck={false}
+            onChange={(event) => setDraft(event.target.value)}
+            onBlur={() => {
+              if (invalid.length === 0) save(linesOf(draft));
+            }}
+            className="block field-sizing-content w-full resize-none border-y border-default bg-surface-sunken px-4 py-3 font-mono text-sm leading-6 outline-none"
+          />
+          <div className="flex h-11 items-center justify-between gap-4 px-4 text-sm">
+            {invalid.length > 0 ? (
+              <span className="truncate text-danger">Names can’t contain “/”: {invalid.join(", ")}</span>
+            ) : (
+              <span className="text-subtle">One per line · * and ? match anything</span>
+            )}
+            <Button
+              onClick={() => {
+                setDraft(DEFAULT_IGNORE_PATTERNS.join("\n"));
+                save(DEFAULT_IGNORE_PATTERNS);
+              }}
+            >
+              Restore defaults
+            </Button>
+          </div>
+        </Collapsible.Panel>
+      </Collapsible.Root>
     </Item.List>
   );
 };
