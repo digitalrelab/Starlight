@@ -1,8 +1,10 @@
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { ConversationNotFound } from "@starlight/client";
+import { createFileRoute, type ErrorComponentProps, Navigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Composer } from "../features/agent/composer.tsx";
 import { Transcript } from "../features/agent/transcript.tsx";
+import { PageError } from "../features/shell/page-error.tsx";
 import { PageHeader } from "../features/shell/page-header.tsx";
 import { useStarlight } from "../lib/context.ts";
 
@@ -10,6 +12,7 @@ export const Route = createFileRoute("/_app/agent/$conversationId")({
   loader: ({ context: { queryClient, queries }, params }) =>
     queryClient.ensureQueryData(queries.conversation(params.conversationId)),
   component: ConversationPage,
+  errorComponent: ConversationError,
 });
 
 function ConversationPage() {
@@ -39,5 +42,13 @@ function ConversationPage() {
         />
       </div>
     </>
+  );
+}
+
+function ConversationError({ error }: ErrorComponentProps) {
+  return error instanceof ConversationNotFound ? (
+    <Navigate to="/agent" replace />
+  ) : (
+    <PageError error={error} />
   );
 }
