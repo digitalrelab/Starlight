@@ -104,11 +104,6 @@ export const FileViewer = ({
             <>
               <Icon icon={presentationIcons[presentationOf(current.name)]} className="text-subtle" />
               <span className="truncate">{current.name}</span>
-              {sequenced ? (
-                <span className="shrink-0 whitespace-nowrap text-subtle tabular-nums">
-                  {(index + 1).toLocaleString()} / {files.length.toLocaleString()}
-                </span>
-              ) : null}
             </>
           ) : null}
         </Theater.Title>
