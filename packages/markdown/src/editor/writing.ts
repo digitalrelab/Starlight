@@ -1,3 +1,4 @@
+import { completionStatus } from "@codemirror/autocomplete";
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import { insertNewlineContinueMarkup, markdown } from "@codemirror/lang-markdown";
 import { Language, LanguageSupport, languageDataProp } from "@codemirror/language";
@@ -58,7 +59,7 @@ export const submitOnEnter = (submit: () => void) =>
       {
         key: "Enter",
         run: (view) => {
-          if (view.composing) return false;
+          if (view.composing || completionStatus(view.state) !== null) return false;
           submit();
           return true;
         },

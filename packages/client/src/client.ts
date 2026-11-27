@@ -70,6 +70,9 @@ export const createClient = (ports: PortSources) => {
         watch("Entries", (c) => c.WatchEntries({ projectId: id(projectId) }), onChange),
       locate: (ref: EntryRef) => host((c) => c.LocateEntry({ ref })),
     },
+    references: {
+      search: (query: string) => host((c) => c.SearchReferences({ query })),
+    },
     media: {
       list: (projectId: string, directory: EntryRef | null) =>
         host((c) => c.ListMedia({ projectId: id(projectId), directory })),

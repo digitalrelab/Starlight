@@ -11,6 +11,7 @@
     "./style.css": "./src/style.css"
   },
   "dependencies": {
+    "@codemirror/autocomplete": "catalog:",
     "@codemirror/commands": "catalog:",
     "@codemirror/lang-markdown": "catalog:",
     "@codemirror/language": "catalog:",

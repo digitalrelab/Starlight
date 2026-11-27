@@ -86,6 +86,11 @@ export interface SourceDriver {
   readonly parent: (id: EntryId) => EntryId;
   readonly trail: (root: EntryId, id: EntryId) => ReadonlyArray<SourceCrumb>;
   readonly stat: (id: EntryId) => Effect.Effect<SourceEntry, SourceError>;
+  readonly search: (
+    roots: ReadonlyArray<EntryId>,
+    query: string,
+    limit: number,
+  ) => Effect.Effect<ReadonlyArray<SourceEntry>>;
   readonly list: (id: EntryId) => Effect.Effect<ReadonlyArray<SourceEntry>, SourceError>;
   readonly write: (id: EntryId, content: Uint8Array) => Effect.Effect<SourceEntry, SourceError>;
   readonly watch: (root: EntryId) => Stream.Stream<SourceChange, SourceError>;
@@ -218,6 +223,7 @@ export class ChatStore extends Context.Service<
   ChatStore,
   {
     readonly list: (projectId: ProjectId | null) => Effect.Effect<ReadonlyArray<Chat>>;
+    readonly search: (query: string, limit: number) => Effect.Effect<ReadonlyArray<Chat>>;
     readonly find: (id: ChatId) => Effect.Effect<Option.Option<StoredChat>>;
     readonly create: (input: {
       readonly projectId: ProjectId | null;

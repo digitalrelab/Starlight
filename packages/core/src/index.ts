@@ -7,6 +7,7 @@ import { Entries } from "./entries.ts";
 import { Files } from "./files.ts";
 import { MediaLibrary } from "./media.ts";
 import { Projects } from "./projects.ts";
+import { References } from "./references.ts";
 
 export * from "./agents.ts";
 export * from "./file-identities.ts";
@@ -17,6 +18,7 @@ export * from "./files.ts";
 export * from "./media.ts";
 export * from "./ports.ts";
 export * from "./projects.ts";
+export * from "./references.ts";
 
 export const CoreLive = Layer.mergeAll(
   Entries.layer,
@@ -24,6 +26,7 @@ export const CoreLive = Layer.mergeAll(
   MediaLibrary.layer,
   AgentProviders.layer,
   Chats.layer,
+  References.layer,
 ).pipe(
   Layer.provideMerge(Catalog.layer),
   Layer.provideMerge(FileIdentities.layer),

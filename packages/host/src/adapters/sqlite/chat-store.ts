@@ -45,6 +45,13 @@ export const SqliteChatStoreLive = Layer.effect(ChatStore)(
   Effect.gen(function* () {
     const sql = yield* SqlClient.SqlClient;
 
+    const search = SqlSchema.findAll({
+      Request: Schema.Struct({ pattern: Schema.String, limit: Schema.Number }),
+      Result: ChatRow,
+      execute: ({ pattern, limit }) =>
+        sql`SELECT * FROM chats WHERE title LIKE ${pattern} ESCAPE '\\' ORDER BY updated_at DESC LIMIT ${limit}`,
+    });
+
     const list = SqlSchema.findAll({
       Request: Schema.NullOr(ProjectId),
       Result: ChatRow,
@@ -66,6 +73,11 @@ export const SqliteChatStoreLive = Layer.effect(ChatStore)(
     });
 
     return ChatStore.of({
+      search: (query, limit) =>
+        search({ pattern: `%${query.replace(/[\\%_]/g, "\\$&")}%`, limit }).pipe(
+          Effect.map((rows) => rows.map(toChat)),
+          Effect.orDie,
+        ),
       list: (projectId) =>
         list(projectId).pipe(
           Effect.map((rows) => rows.map(toChat)),

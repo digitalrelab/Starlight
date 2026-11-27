@@ -19,6 +19,7 @@ export type {
   Project,
   Property,
   Reference,
+  ReferenceMatch,
   Swatch,
   Update,
   UpdaterState,

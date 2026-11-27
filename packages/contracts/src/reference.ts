@@ -38,6 +38,12 @@ export const referenceOf = (url: string): Reference | undefined => {
   return Option.getOrUndefined(decodeReference(candidate));
 };
 
+export const ReferenceMatch = Schema.Union([
+  Schema.TaggedStruct("Entry", { ref: EntryRef, name: Schema.String, kind: EntryKind, project: ProjectId }),
+  Schema.TaggedStruct("Chat", { id: ChatId, title: Schema.String }),
+]);
+export type ReferenceMatch = typeof ReferenceMatch.Type;
+
 export const EntryLocation = Schema.Struct({
   name: Schema.String,
   kind: EntryKind,

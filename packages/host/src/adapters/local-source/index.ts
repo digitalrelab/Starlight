@@ -5,6 +5,7 @@ import { subscribe } from "@parcel/watcher";
 import { EntryId, type EntryKind, type SourceError } from "@starlight/contracts";
 import type { SourceChange, SourceCrumb, SourceDriver, SourceEntry } from "@starlight/core";
 import { Effect, Queue, Stream } from "effect";
+import { output } from "#adapters/cli.ts";
 import type { Imaging } from "#adapters/imaging.ts";
 import { dimensionsExtractor, durationExtractor } from "./extractors.ts";
 import { toSourceError } from "./source-error.ts";
@@ -79,6 +80,39 @@ const watch = (root: EntryId) =>
     ).pipe(Effect.andThen(Queue.offer(queue, resync))),
   );
 
+const SPOTLIGHT = "/usr/bin/mdfind";
+
+const rank = (query: string) => (path: string) => {
+  const name = basename(path).toLowerCase();
+  return (name.startsWith(query) ? 0 : 1) * 10_000 + name.length;
+};
+
+const search = (roots: ReadonlyArray<EntryId>, query: string, limit: number) =>
+  output(SPOTLIGHT, [...roots.flatMap((root) => ["-onlyin", root]), "-name", query]).pipe(
+    Effect.map((stdout) => {
+      const rankOf = rank(query.toLowerCase());
+      return stdout
+        .split("\n")
+        .filter((path) => path !== "" && !basename(path).startsWith("."))
+        .toSorted((a, b) => rankOf(a) - rankOf(b))
+        .slice(0, limit);
+    }),
+    Effect.flatMap((paths) =>
+      Effect.promise(() =>
+        Promise.all(
+          paths.map((path) =>
+            stat(path).then(
+              (s) => toEntry(path, s),
+              () => undefined,
+            ),
+          ),
+        ),
+      ),
+    ),
+    Effect.map((entries) => entries.filter((entry) => entry !== undefined)),
+    Effect.orElseSucceed((): ReadonlyArray<SourceEntry> => []),
+  );
+
 export const makeLocalSource = (imaging: Imaging["Service"]): SourceDriver => {
   return {
     canonicalize: (id) =>
@@ -88,6 +122,7 @@ export const makeLocalSource = (imaging: Imaging["Service"]): SourceDriver => {
     contains: isWithin,
     parent: (id) => EntryId.make(dirname(id)),
     trail,
+    search,
     stat: (id) =>
       Effect.tryPromise({ try: () => stat(id), catch: toSourceError(id) }).pipe(
         Effect.map((s) => toEntry(id, s)),

@@ -47,6 +47,9 @@ const createQueries = (client: StarlightClient) => ({
       queryFn: () => client.files.details(projectId, file),
     }),
 
+  referenceSearch: (query: string) =>
+    queryOptions({ queryKey: ["referenceSearch", query], queryFn: () => client.references.search(query) }),
+
   entryLocation: (ref: EntryRef) =>
     queryOptions({ queryKey: ["entryLocation", entryKey(ref)], queryFn: () => client.entries.locate(ref) }),
 
