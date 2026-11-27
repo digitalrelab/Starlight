@@ -1,15 +1,24 @@
 import { useRender } from "@base-ui/react";
 import { cn } from "cn";
-import type { ComponentProps } from "react";
+import type { ComponentProps, ReactNode } from "react";
+import { Card } from "./card.tsx";
 
 const List = ({ className, ...props }: ComponentProps<"div">) => (
-  <div
-    className={cn(
-      "flex flex-col divide-y divide-default overflow-hidden rounded-lg border border-default bg-surface-raised px-4 shadow-xs",
-      className,
-    )}
+  <Card
+    className={cn("flex flex-col overflow-hidden px-4 *:border-default *:not-first:border-t", className)}
     {...props}
   />
+);
+
+const Group = ({ title, children }: { readonly title: string; readonly children: ReactNode }) => (
+  <section className="flex flex-col gap-2">
+    <h2 className="px-4 font-medium text-subtle">{title}</h2>
+    {children}
+  </section>
+);
+
+const Panel = ({ className, ...props }: ComponentProps<"div">) => (
+  <div className={cn("-mx-4 p-4", className)} {...props} />
 );
 
 const Root = ({ render, className, ...props }: useRender.ComponentProps<"div">) =>
@@ -38,4 +47,4 @@ const Description = ({ className, ...props }: ComponentProps<"p">) => (
   <p className={cn("text-sm text-subtle", className)} {...props} />
 );
 
-export const Item = { List, Root, Main, Media, Content, Title, Description };
+export const Item = { Group, List, Panel, Root, Main, Media, Content, Title, Description };

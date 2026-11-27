@@ -40,6 +40,12 @@ const createQueries = (client: StarlightClient) => ({
       queryFn: () => client.files.source(projectId, file),
     }),
 
+  fileDetails: (projectId: string, directory: EntryRef, file: EntryRef) =>
+    queryOptions({
+      queryKey: [...directoryKey(projectId), entryKey(directory), "details", entryKey(file)],
+      queryFn: () => client.files.details(projectId, file),
+    }),
+
   agentProviders: () =>
     queryOptions({
       queryKey: ["agentProviders"],
@@ -234,6 +240,10 @@ const createSubscriptions = (client: StarlightClient, queryClient: QueryClient, 
           return update ? { ...item, ...update } : item;
         }),
       );
+      void queryClient.invalidateQueries({
+        queryKey: [...directoryKey(projectId), entryKey(directory), "details"],
+        predicate: ({ queryKey }) => byKey.has(String(queryKey.at(-1))),
+      });
     }),
   entries: (projectId: string) =>
     client.entries.watch(projectId, (change) => {

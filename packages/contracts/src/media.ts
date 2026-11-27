@@ -30,6 +30,7 @@ export type MediaAppearance = typeof MediaAppearance.Type;
 
 export const Media = Schema.Struct({
   ...Dimensions.fields,
+  duration: Schema.NullOr(Schema.Number),
   ...MediaAppearance.fields,
   ref: EntryRef,
   fileId: FileId,
@@ -47,7 +48,19 @@ export const FileSource = Schema.Struct({
   token: FileToken,
   version: FileVersion,
   dimensions: Schema.NullOr(Dimensions),
+});
+export type FileSource = typeof FileSource.Type;
+
+export const FileDetails = Schema.Struct({
+  fileId: FileId,
+  folderName: Schema.String,
+  size: Schema.Number,
+  createdAt: Schema.Number,
+  modifiedAt: Schema.Number,
+  mediaType: Schema.NullOr(Schema.String),
+  dimensions: Schema.NullOr(Dimensions),
+  duration: Schema.NullOr(Schema.Number),
   palette: Palette,
   properties: Schema.Array(Property),
 });
-export type FileSource = typeof FileSource.Type;
+export type FileDetails = typeof FileDetails.Type;

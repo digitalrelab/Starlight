@@ -31,6 +31,7 @@ export interface SourceEntry {
   readonly name: string;
   readonly kind: EntryKind;
   readonly size: number;
+  readonly createdAt: number;
   readonly modifiedAt: number;
   readonly hidden: boolean;
 }
@@ -50,6 +51,7 @@ export type SourceChange =
 
 export interface ProbedFacts {
   readonly dimensions: Dimensions;
+  readonly duration: number;
 }
 
 export interface ProcessedFacts {

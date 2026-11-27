@@ -31,6 +31,7 @@ const respond = async (absolute: string, range: string | null) => {
   const { start, end } = requested ?? { start: 0, end: size - 1 };
   const headers = new Headers({
     "accept-ranges": "bytes",
+    "access-control-allow-origin": "*",
     "cache-control": "max-age=31536000, immutable",
     "content-length": String(end - start + 1),
     "content-type": mediaTypeOf(absolute) ?? "application/octet-stream",

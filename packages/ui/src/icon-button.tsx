@@ -33,6 +33,7 @@ export const IconButton = ({
           "inline-flex items-center justify-center rounded-full text-subtle focus-ring",
           sizes[size],
           "highlighted:bg-neutral-subtle-hovered highlighted:text-default aria-[current=page]:text-default",
+          "aria-pressed:bg-neutral aria-pressed:text-default",
           className,
         ),
         children: <Icon icon={icon} />,

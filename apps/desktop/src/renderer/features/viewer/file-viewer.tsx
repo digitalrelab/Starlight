@@ -2,10 +2,17 @@ import { ArrowLeft01Icon, ArrowRight01Icon } from "@hugeicons-pro/core-stroke-ro
 import type { Entry, EntryRef } from "@starlight/client";
 import { PLAYER_ATTRIBUTE } from "@starlight/media-player";
 import { Button, Icon, IconButton, Theater } from "@starlight/ui";
-import { type KeyboardEvent, useEffect, useEffectEvent, useRef, useState } from "react";
+import { type KeyboardEvent, useEffect, useEffectEvent, useState } from "react";
 import { KindIcon, itemKindOf } from "#renderer/features/files/kind-icon.tsx";
+import { Inspector } from "#renderer/features/inspector/inspector.tsx";
+import {
+  INSPECTOR_KEY,
+  InspectorToggle,
+  inspectorPreference,
+  toggleInspector,
+} from "#renderer/features/inspector/inspector-toggle.tsx";
+import { useStored } from "#renderer/lib/storage.ts";
 import { useStarlight } from "#renderer/lib/context.ts";
-import { FileDetails } from "./file-details.tsx";
 import { FileStage } from "./file-stage.tsx";
 import { fileBytes } from "#renderer/features/files/file-bytes.ts";
 import { loadEditor } from "./markdown-file.ts";
@@ -39,11 +46,13 @@ const usePrefetch = (
   directory: EntryRef,
   previous: Entry | undefined,
   next: Entry | undefined,
+  details: boolean,
 ) => {
   const { queryClient, queries } = useStarlight();
   useEffect(() => {
     for (const entry of [next, previous]) {
       if (!entry) continue;
+      if (details) void queryClient.prefetchQuery(queries.fileDetails(projectId, directory, entry.ref));
       const presentation = presentationOf(entry);
       if (presentation === "none") continue;
       void queryClient.query(queries.fileSource(projectId, directory, entry.ref)).then(
@@ -52,12 +61,13 @@ const usePrefetch = (
             void loadEditor();
             return queryClient.prefetchQuery(fileBytes(source));
           }
-          if (presentation !== "video") new Image().src = pictureUrl(source, presentation);
+          if (presentation === "image" || presentation === "preview")
+            new Image().src = pictureUrl(source, presentation);
         },
         () => undefined,
       );
     }
-  }, [queryClient, queries, projectId, directory, previous, next]);
+  }, [queryClient, queries, projectId, directory, previous, next, details]);
 };
 
 export const FileViewer = ({
@@ -69,6 +79,7 @@ export const FileViewer = ({
   onShow,
   onClose,
 }: Props) => {
+  const inspector = useStored(inspectorPreference);
   const files = entries.filter((entry) => entry.kind === "file");
   const sequenced = files.length > 1;
   const [statusSlot, setStatusSlot] = useState<HTMLElement | null>(null);
@@ -76,17 +87,17 @@ export const FileViewer = ({
   const current = files[index];
   const previous = index > 0 ? files[index - 1] : undefined;
   const next = index >= 0 ? files[index + 1] : undefined;
-  usePrefetch(projectId, directory, previous, next);
+  usePrefetch(projectId, directory, previous, next, inspector === "open");
 
-  const shownAt = useRef(index);
+  const [shownAt, setShownAt] = useState(index);
+  if (index >= 0 && index !== shownAt) setShownAt(index);
   const recover = useEffectEvent(() => {
-    const fallback = files[Math.min(shownAt.current, files.length - 1)];
+    const fallback = files[Math.min(shownAt, files.length - 1)];
     if (fallback) onShow(fallback.ref);
     else onClose();
   });
   useEffect(() => {
-    if (index >= 0) shownAt.current = index;
-    else recover();
+    if (index < 0) recover();
   }, [index]);
 
   const showPrevious = previous && (() => onShow(previous.ref));
@@ -94,6 +105,7 @@ export const FileViewer = ({
   const keys: Readonly<Record<string, (() => void) | undefined>> = {
     [PREVIOUS_KEY]: showPrevious,
     [NEXT_KEY]: showNext,
+    [INSPECTOR_KEY]: toggleInspector,
   };
   const onKeyDown = (event: KeyboardEvent) => {
     const run = keys[event.key];
@@ -121,9 +133,6 @@ export const FileViewer = ({
           <span ref={setStatusSlot} className="flex shrink-0 items-center empty:hidden" />
         </Theater.Title>
         <Theater.End className="app-no-drag">
-          {current ? (
-            <FileDetails key={file.id} projectId={projectId} directory={directory} entry={current} />
-          ) : null}
           {sequenced ? (
             <>
               <IconButton
@@ -143,16 +152,25 @@ export const FileViewer = ({
               <Theater.Separator />
             </>
           ) : null}
+          <InspectorToggle />
           <Theater.Close />
         </Theater.End>
       </Theater.Header>
-      <Theater.Stage>
-        {current ? (
-          <StatusSlot value={statusSlot}>
-            <FileStage key={file.id} projectId={projectId} directory={directory} entry={current} />
-          </StatusSlot>
-        ) : null}
-      </Theater.Stage>
+      <Theater.Body
+        aside={
+          current && inspector === "open" ? (
+            <Inspector projectId={projectId} directory={directory} entry={current} />
+          ) : null
+        }
+      >
+        <Theater.Stage>
+          {current ? (
+            <StatusSlot value={statusSlot}>
+              <FileStage key={file.id} projectId={projectId} directory={directory} entry={current} />
+            </StatusSlot>
+          ) : null}
+        </Theater.Stage>
+      </Theater.Body>
     </Theater.Root>
   );
 };

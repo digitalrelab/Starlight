@@ -14,7 +14,7 @@ import {
   ProjectNotFound,
 } from "./errors.ts";
 import { EntryRef, ProjectId } from "./ids.ts";
-import { FileSource, FileVersion, Media, MediaUpdate } from "./media.ts";
+import { FileDetails, FileSource, FileVersion, Media, MediaUpdate } from "./media.ts";
 import { UpdaterState } from "./update.ts";
 import { Project } from "./project.ts";
 
@@ -72,6 +72,11 @@ export class HostRpcs extends RpcGroup.make(
   Rpc.make("GetFileSource", {
     payload: { projectId: ProjectId, file: EntryRef },
     success: FileSource,
+    error: FileError,
+  }),
+  Rpc.make("GetFileDetails", {
+    payload: { projectId: ProjectId, file: EntryRef },
+    success: FileDetails,
     error: FileError,
   }),
   Rpc.make("WriteFile", {
