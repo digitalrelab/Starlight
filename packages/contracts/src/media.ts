@@ -13,12 +13,24 @@ export const Dimensions = Schema.Struct({
 });
 export type Dimensions = typeof Dimensions.Type;
 
+export const MediaAppearance = Schema.Struct({
+  placeholder: Schema.NullOr(Schema.String),
+});
+export type MediaAppearance = typeof MediaAppearance.Type;
+
 export const Media = Schema.Struct({
   ...Dimensions.fields,
+  ...MediaAppearance.fields,
   ref: EntryRef,
   token: FileToken,
 });
 export type Media = typeof Media.Type;
+
+export const MediaUpdate = Schema.Struct({
+  ...MediaAppearance.fields,
+  ref: EntryRef,
+});
+export type MediaUpdate = typeof MediaUpdate.Type;
 
 export const FileSource = Schema.Struct({
   token: FileToken,

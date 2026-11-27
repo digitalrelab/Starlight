@@ -1,7 +1,8 @@
 import { join } from "node:path";
-import type { ConnectRequest } from "@starlight/contracts";
-import { type MessagePortMain, type UtilityProcess, utilityProcess } from "electron";
+import type { Actor, HostChannel } from "@starlight/contracts";
+import { MessageChannelMain, type MessagePortMain, type UtilityProcess, utilityProcess } from "electron";
 import { appData } from "./app-data.ts";
+import { serveImaging } from "./imaging.ts";
 
 const MIN_UPTIME_MS = 5_000;
 
@@ -21,6 +22,9 @@ export const superviseHost = (env: Readonly<Record<string, string>>, onRestart: 
   const start = () => {
     const startedAt = Date.now();
     current = fork(env);
+    const imaging = new MessageChannelMain();
+    serveImaging(imaging.port1);
+    current.postMessage({ _tag: "Imaging" } satisfies HostChannel, [imaging.port2]);
     current.once("exit", (code) => {
       if (stopping) return;
       console.error(`[host] exited with code ${code}`);
@@ -32,7 +36,8 @@ export const superviseHost = (env: Readonly<Record<string, string>>, onRestart: 
   start();
 
   return {
-    connect: (request: ConnectRequest, port: MessagePortMain) => current.postMessage(request, [port]),
+    connect: (actor: Actor, port: MessagePortMain) =>
+      current.postMessage({ _tag: "Client", actor } satisfies HostChannel, [port]),
     stop: () => {
       stopping = true;
       current.kill();
