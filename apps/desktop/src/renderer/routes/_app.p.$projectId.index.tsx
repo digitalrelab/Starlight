@@ -14,6 +14,7 @@ import { DirectoryView } from "#renderer/features/browser/directory-view.tsx";
 import { layoutPreference } from "#renderer/features/browser/layout-preference.ts";
 import { LayoutSwitcher } from "#renderer/features/browser/layout-switcher.tsx";
 import { layouts } from "#renderer/features/browser/layouts/registry.ts";
+import { NewEntryContextMenu, NewEntryMenu } from "#renderer/features/browser/new-entry/new-entry-menu.tsx";
 import { useFoldersAhead } from "#renderer/features/browser/use-folders-ahead.ts";
 import { hiddenFiles } from "#renderer/features/settings/files.ts";
 import { PageError } from "#renderer/features/shell/page-error.tsx";
@@ -57,10 +58,10 @@ function Browser() {
   const showFile = (shown: EntryRef) => {
     if (directory) void navigate({ search: toFileSearch(directory, shown), replace: true, state: true });
   };
-  const onOpen = (entry: Entry) => {
-    if (entry.kind === "directory") void navigate({ search: toDirectorySearch(entry.ref) });
-    else if (entry.kind === "file" && directory)
-      void navigate({ search: toFileSearch(directory, entry.ref), state: { fromDirectory: true } });
+  const onOpen = ({ ref, kind }: Pick<Entry, "ref" | "kind">) => {
+    if (kind === "directory") void navigate({ search: toDirectorySearch(ref) });
+    else if (kind === "file" && directory)
+      void navigate({ search: toFileSearch(directory, ref), state: { fromDirectory: true } });
   };
   const preloadFolder = (folder: EntryRef) =>
     router.preloadRoute({
@@ -79,11 +80,25 @@ function Browser() {
 
   if (error && !isFetching) throw error;
 
+  const view = (
+    <DirectoryView
+      key={directoryKey}
+      projectId={projectId}
+      directory={directory}
+      entries={entries}
+      layout={layout}
+      shown={file}
+      onOpen={onOpen}
+      onIntent={prefetch}
+    />
+  );
+
   return (
     <>
       <PageHeader
         actions={
           <>
+            {directory ? <NewEntryMenu directory={directory} entries={listing.entries} /> : null}
             <AddMountButton projectId={projectId} />
             <LayoutSwitcher value={layout} onChange={preference.set} />
           </>
@@ -91,16 +106,13 @@ function Browser() {
       >
         <DirectoryBreadcrumbs project={project} trail={listing.trail} />
       </PageHeader>
-      <DirectoryView
-        key={directoryKey}
-        projectId={projectId}
-        directory={directory}
-        entries={entries}
-        layout={layout}
-        shown={file}
-        onOpen={onOpen}
-        onIntent={prefetch}
-      />
+      {directory ? (
+        <NewEntryContextMenu directory={directory} entries={listing.entries}>
+          {view}
+        </NewEntryContextMenu>
+      ) : (
+        view
+      )}
       {directory && file ? (
         <FileViewer
           projectId={projectId}

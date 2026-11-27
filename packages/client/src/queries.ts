@@ -7,6 +7,7 @@ import {
 import type {
   AgentProviderUsage,
   ChatDetail,
+  CreatableKind,
   EntryRef,
   Listing,
   ModelChoice,
@@ -224,6 +225,13 @@ const createMutations = (client: StarlightClient, queryClient: QueryClient, quer
         cacheProject(queryClient, queries, project);
         return queryClient.invalidateQueries(queries.entries(projectId, null));
       },
+    }),
+
+  createEntry: (projectId: string, directory: EntryRef) =>
+    mutationOptions({
+      mutationFn: ({ name, kind }: { readonly name: string; readonly kind: CreatableKind }) =>
+        client.entries.create(projectId, directory, name, kind),
+      onSuccess: () => queryClient.invalidateQueries(queries.entries(projectId, directory)),
     }),
 
   removeMount: (projectId: string) =>

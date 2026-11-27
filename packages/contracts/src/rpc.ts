@@ -4,8 +4,9 @@ import { AgentProvider, AgentProviderId, AgentProviderUsage, ModelChoice } from 
 import { Chat, ChatBusy, ChatDetail, ChatEvent, ChatId, ChatNotFound, ModelUnavailable } from "./chat.ts";
 import { DiskUsage } from "./disk.ts";
 import { EntryLocation } from "./reference.ts";
-import { EntryChange, Listing } from "./entry.ts";
+import { CreatableKind, EntryChange, Listing } from "./entry.ts";
 import {
+  CreateError,
   DirectoryError,
   FileError,
   MountError,
@@ -58,6 +59,11 @@ export class HostRpcs extends RpcGroup.make(
     payload: DirectoryRequest,
     success: Listing,
     error: DirectoryError,
+  }),
+  Rpc.make("CreateEntry", {
+    payload: { projectId: ProjectId, directory: EntryRef, name: Schema.NonEmptyString, kind: CreatableKind },
+    success: EntryRef,
+    error: CreateError,
   }),
   Rpc.make("ListMedia", {
     payload: DirectoryRequest,

@@ -6,6 +6,7 @@ export type {
   AgentUsage,
   Chat,
   ChatMessage,
+  CreatableKind,
   Crumb,
   DiskUsage,
   Draft,
