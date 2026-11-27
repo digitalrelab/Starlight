@@ -116,10 +116,14 @@ const RailButton = ({
   </button>
 );
 
-const entryOf = (provider: AgentProvider, model: AgentModel, effortId: string | null): Entry | undefined => {
+const entryOf = (provider: AgentProvider, model: AgentModel, effortId: string | null): Entry => {
   const effort = model.efforts.find(({ id }) => id === effortId) ?? null;
-  if (effortId !== null && effort === null) return undefined;
-  return { choice: { provider: provider.id, model: model.id, effort: effortId }, provider, model, effort };
+  return {
+    choice: { provider: provider.id, model: model.id, effort: effort?.id ?? null },
+    provider,
+    model,
+    effort,
+  };
 };
 
 export const ModelPicker = ({ providers, choice, onChoose }: Props) => {
@@ -133,8 +137,7 @@ export const ModelPicker = ({ providers, choice, onChoose }: Props) => {
     list.flatMap((favorite) => {
       const provider = providers.find(({ id }) => id === favorite.provider);
       const model = provider?.models.find(({ id }) => id === favorite.model);
-      const entry = provider && model ? entryOf(provider, model, favorite.effort) : undefined;
-      return entry ? [entry] : [];
+      return provider && model ? [entryOf(provider, model, favorite.effort)] : [];
     });
 
   const starred = resolve(favorites);
@@ -171,17 +174,13 @@ export const ModelPicker = ({ providers, choice, onChoose }: Props) => {
     ...favorites.filter((favorite) => !kept.some((known) => sameModel(known, favorite))),
   ]);
 
-  const withCurrentEffort = (candidate: AgentModel) =>
-    entryOf(shown, candidate, choice.effort) ?? entryOf(shown, candidate, null);
-
-  const star = (entry: Entry | undefined) =>
-    entry ? (
-      <Star
-        model={entry.model.name}
-        starred={isFavorite(entry.choice)}
-        onToggle={() => toggle(entry.choice, kept)}
-      />
-    ) : null;
+  const star = (entry: Entry) => (
+    <Star
+      model={entry.model.name}
+      starred={isFavorite(entry.choice)}
+      onToggle={() => toggle(entry.choice, kept)}
+    />
+  );
 
   return (
     <Popover
@@ -280,12 +279,12 @@ export const ModelPicker = ({ providers, choice, onChoose }: Props) => {
             ) : (
               <>
                 {listed.map((candidate) => {
-                  const entry = withCurrentEffort(candidate);
+                  const entry = entryOf(shown, candidate, choice.effort);
                   return (
                     <Row
                       key={candidate.id}
                       selected={shown.id === provider.id && candidate.id === model.id}
-                      onClick={() => entry && onChoose(entry.choice)}
+                      onClick={() => onChoose(entry.choice)}
                       trailing={star(entry)}
                       className={cn(candidate.legacy && "text-subtlest")}
                     >
