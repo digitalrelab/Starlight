@@ -1,5 +1,5 @@
 import { entryKey } from "@starlight/client";
-import { cn } from "@starlight/ui";
+import { cn, ScrollArea } from "@starlight/ui";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { type KeyboardEvent, useEffect, useEffectEvent, useRef } from "react";
 import { formatDate, formatSize } from "../../../lib/format.ts";
@@ -39,12 +39,7 @@ export const TableLayout = ({ entries, selected, onSelect, onOpen }: LayoutProps
         <span className="text-right">Size</span>
         <span>Modified</span>
       </div>
-      <div
-        ref={scrollRef}
-        tabIndex={0}
-        onKeyDown={onKeyDown}
-        className="min-h-0 flex-1 overflow-auto outline-none"
-      >
+      <ScrollArea ref={scrollRef} tabIndex={0} onKeyDown={onKeyDown} className="flex-1">
         <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
           {virtualizer.getVirtualItems().map((row) => {
             const entry = entries[row.index];
@@ -76,7 +71,7 @@ export const TableLayout = ({ entries, selected, onSelect, onOpen }: LayoutProps
             );
           })}
         </div>
-      </div>
+      </ScrollArea>
     </div>
   );
 };
