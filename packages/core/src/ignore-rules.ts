@@ -4,14 +4,15 @@ import { IgnoreStore } from "./ports.ts";
 
 export type IgnoreMatcher = (name: string) => boolean;
 
-const GLOB = /[*?]|[.+^${}()|[\]\\]/g;
+const sourceOf = (pattern: IgnorePattern) =>
+  pattern
+    .replace(/[.+^${}()|[\]\\]/g, "\\$&")
+    .replaceAll("*", ".*")
+    .replaceAll("?", ".");
 
 const matcherOf = (patterns: ReadonlyArray<IgnorePattern>): IgnoreMatcher => {
   if (patterns.length === 0) return () => false;
-  const alternatives = patterns.map((pattern) =>
-    pattern.replace(GLOB, (char) => (char === "*" ? ".*" : char === "?" ? "." : `\\${char}`)),
-  );
-  const expression = new RegExp(`^(?:${alternatives.join("|")})$`, "i");
+  const expression = new RegExp(`^(?:${patterns.map(sourceOf).join("|")})$`, "i");
   return (name) => expression.test(name);
 };
 
