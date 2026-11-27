@@ -10,7 +10,7 @@ export const HistoryControls = () => {
   const availability = useHistoryAvailability();
   const { history } = useRouter();
   return (
-    <div className="flex shrink-0 items-center">
+    <div className="flex items-center app-no-drag">
       {historyDirections.map((direction) => {
         const { label, key, offset } = HISTORY_STEPS[direction];
         return (
