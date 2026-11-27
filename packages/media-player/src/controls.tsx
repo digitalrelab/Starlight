@@ -1,15 +1,13 @@
 import { PauseIcon, PlayIcon } from "@hugeicons-pro/core-solid-rounded";
 import { FullScreenIcon, MinimizeScreenIcon, RefreshCcwIcon } from "@hugeicons-pro/core-stroke-rounded";
 import { cn, IconButton, Select, Slider } from "@starlight/ui";
-import { type Ref, type SyntheticEvent, useLayoutEffect, useRef } from "react";
+import { type Ref, useLayoutEffect, useRef } from "react";
 import { usePlayer } from "./engine.tsx";
 import { formatDuration } from "./format.ts";
 import { setPlaybackRate, setVolume, toggleMute, useMediaClock } from "./media.ts";
-import { PLAYBACK_RATES, usePlayerSettings, useSetting } from "./settings.ts";
+import { PLAYBACK_RATES, useSetting } from "./settings.ts";
 import { Timeline } from "./timeline.tsx";
 import { volumeIcon } from "./volume.ts";
-
-const stopPropagation = (event: SyntheticEvent) => event.stopPropagation();
 
 const timeReadout = "min-w-11 px-1 text-base tabular-nums";
 
@@ -33,14 +31,13 @@ const CurrentTime = ({ media, isLive }: { readonly media: HTMLMediaElement; read
 
 const Volume = ({ media }: { readonly media: HTMLMediaElement }) => {
   const { state } = usePlayer();
-  const settings = usePlayerSettings();
   return (
     <div className="flex items-center">
       <IconButton
         label={state.muted ? "Unmute" : "Mute"}
         icon={volumeIcon(state.level)}
         shortcut={["m"]}
-        onClick={() => toggleMute(media, settings)}
+        onClick={() => toggleMute(media)}
       />
       <Slider
         aria-label="Volume"
@@ -48,7 +45,7 @@ const Volume = ({ media }: { readonly media: HTMLMediaElement }) => {
         max={1}
         step={0.01}
         value={state.level}
-        onValueChange={(volume) => setVolume(media, volume, settings)}
+        onValueChange={(volume) => setVolume(media, volume)}
         className="hidden w-24 px-2 @xl/player:block"
       />
     </div>
@@ -63,12 +60,11 @@ interface SpeedProps {
 }
 
 const Speed = ({ media, onOpenChange }: SpeedProps) => {
-  const settings = usePlayerSettings();
   const rate = useSetting("playbackRate");
   return (
     <Select.Root
       value={String(rate)}
-      onValueChange={(next) => setPlaybackRate(media, Number(next), settings)}
+      onValueChange={(next) => setPlaybackRate(media, Number(next))}
       onOpenChange={onOpenChange}
     >
       <Select.Trigger
@@ -123,8 +119,6 @@ export const Controls = ({ media, isVisible, onScrubChange, onMenuOpenChange, re
         "transition-[opacity,translate] duration-300 ease-out",
         !isVisible && "pointer-events-none translate-y-4 opacity-0",
       )}
-      onClick={stopPropagation}
-      onDoubleClick={stopPropagation}
     >
       <PlayButton />
       <CurrentTime media={media} isLive={isVisible} />

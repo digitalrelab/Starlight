@@ -31,7 +31,6 @@ export const Surface = ({
       <video
         ref={attachMedia}
         src={src}
-        playsInline
         className={cn(fit, "relative transition-opacity duration-300", state.ended && "opacity-40")}
         onClick={togglePlayback}
       />

@@ -2,7 +2,6 @@ import { cn } from "cn";
 import { type ComponentProps, createContext, use, useEffect, useEffectEvent, useState } from "react";
 import { type Acknowledgement, createEcho } from "./echo.tsx";
 import { play, prepare, seekBy, setVolume, toggle, toggleMute, useMediaSnapshot } from "./media.ts";
-import { usePlayerSettings } from "./settings.ts";
 import { isOccupied, statusOf } from "./status.ts";
 
 const SEEK_STEP = 5;
@@ -47,7 +46,6 @@ export const usePlayerEngine = ({ src, autoPlay, hasPageShortcuts, onKey }: Engi
   const [root, setRoot] = useState<HTMLDivElement | null>(null);
   const [media, setMedia] = useState<HTMLMediaElement | null>(null);
   const [echo] = useState(createEcho);
-  const settings = usePlayerSettings();
   const state = useMediaSnapshot(media);
   const { isFullscreen, toggleFullscreen } = useFullscreen();
   const status = statusOf(state, media === null && autoPlay);
@@ -59,7 +57,7 @@ export const usePlayerEngine = ({ src, autoPlay, hasPageShortcuts, onKey }: Engi
   const attachMedia = (node: HTMLMediaElement | null) => {
     setMedia(node);
     if (!node) return;
-    prepare(node, settings);
+    prepare(node);
     if (autoPlay) play(node);
   };
 
@@ -75,11 +73,9 @@ export const usePlayerEngine = ({ src, autoPlay, hasPageShortcuts, onKey }: Engi
         k: togglePlayback,
         ArrowLeft: () => acknowledge({ kind: "seek", seconds: seekBy(media, -SEEK_STEP) }),
         ArrowRight: () => acknowledge({ kind: "seek", seconds: seekBy(media, SEEK_STEP) }),
-        ArrowUp: () =>
-          acknowledge({ kind: "volume", level: setVolume(media, media.volume + VOLUME_STEP, settings) }),
-        ArrowDown: () =>
-          acknowledge({ kind: "volume", level: setVolume(media, media.volume - VOLUME_STEP, settings) }),
-        m: () => acknowledge({ kind: "volume", level: toggleMute(media, settings) }),
+        ArrowUp: () => acknowledge({ kind: "volume", level: setVolume(media, media.volume + VOLUME_STEP) }),
+        ArrowDown: () => acknowledge({ kind: "volume", level: setVolume(media, media.volume - VOLUME_STEP) }),
+        m: () => acknowledge({ kind: "volume", level: toggleMute(media) }),
         f: toggleFullscreen,
       }
     : {};

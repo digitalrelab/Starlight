@@ -1,6 +1,6 @@
 import { useEffect, useEffectEvent, useSyncExternalStore } from "react";
 import { clamp } from "./format.ts";
-import type { SettingsStore } from "./settings.ts";
+import { settings } from "./settings.ts";
 
 export interface MediaSnapshot {
   readonly paused: boolean;
@@ -145,7 +145,7 @@ export const bufferedEnd = (media: HTMLMediaElement) => {
 export const progressOf = (time: number, duration: number) =>
   duration > 0 ? clamp(time / duration, 0, 1) : 0;
 
-export const prepare = (media: HTMLMediaElement, settings: SettingsStore) => {
+export const prepare = (media: HTMLMediaElement) => {
   const { volume, playbackRate } = settings.get();
   media.volume = volume;
   media.defaultPlaybackRate = playbackRate;
@@ -177,7 +177,7 @@ export const seekBy = (media: HTMLMediaElement, delta: number) => {
   return media.currentTime - before;
 };
 
-export const setVolume = (media: HTMLMediaElement, volume: number, settings: SettingsStore) => {
+export const setVolume = (media: HTMLMediaElement, volume: number) => {
   const next = clamp(volume, 0, 1);
   media.volume = next;
   media.muted = next === 0;
@@ -185,7 +185,7 @@ export const setVolume = (media: HTMLMediaElement, volume: number, settings: Set
   return levelOf(media);
 };
 
-export const toggleMute = (media: HTMLMediaElement, settings: SettingsStore) => {
+export const toggleMute = (media: HTMLMediaElement) => {
   if (!media.muted && media.volume > 0) {
     media.muted = true;
   } else {
@@ -195,7 +195,7 @@ export const toggleMute = (media: HTMLMediaElement, settings: SettingsStore) => 
   return levelOf(media);
 };
 
-export const setPlaybackRate = (media: HTMLMediaElement, rate: number, settings: SettingsStore) => {
+export const setPlaybackRate = (media: HTMLMediaElement, rate: number) => {
   media.defaultPlaybackRate = rate;
   media.playbackRate = rate;
   settings.update("playbackRate", rate);
