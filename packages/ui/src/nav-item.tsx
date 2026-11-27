@@ -7,14 +7,9 @@ import { Icon } from "./icon.tsx";
 import { IconButton } from "./icon-button.tsx";
 import { ContextMenu, Menu } from "./menu.tsx";
 
-export interface NavItemMenu {
-  readonly label: string;
-  readonly items: ReactNode;
-}
-
 export interface NavItemProps extends useRender.ComponentProps<"button"> {
   readonly icon?: IconSvgElement | undefined;
-  readonly menu?: NavItemMenu | undefined;
+  readonly menu?: { readonly label: string; readonly items: ReactNode } | undefined;
 }
 
 const NavItemControl = ({ icon, render, className, children, ...props }: Omit<NavItemProps, "menu">) =>
