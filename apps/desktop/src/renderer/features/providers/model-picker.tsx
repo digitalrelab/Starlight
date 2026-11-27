@@ -91,7 +91,7 @@ const Star = ({
     aria-pressed={starred}
     onClick={onToggle}
     size="sm"
-    className="text-subtlest opacity-0 group-hover/row:opacity-100 highlighted:bg-neutral-hovered focus-visible:opacity-100 aria-pressed:text-favorite aria-pressed:opacity-100 aria-pressed:highlighted:text-favorite"
+    className="text-subtlest opacity-0 group-hover/row:opacity-100 highlighted:bg-neutral-hovered focus-visible:opacity-100 aria-pressed:text-favorite aria-pressed:opacity-100"
   />
 );
 
