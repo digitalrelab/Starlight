@@ -18,6 +18,7 @@ import { Route as AgentChatIdRouteImport } from './routes/agent.$chatId'
 import { Route as SettingsIndexRouteImport } from './routes/settings.index'
 import { Route as SettingsAppearanceRouteImport } from './routes/settings.appearance'
 import { Route as SettingsDiskRouteImport } from './routes/settings.disk'
+import { Route as SettingsFilesRouteImport } from './routes/settings.files'
 import { Route as SettingsProvidersRouteImport } from './routes/settings.providers'
 import { Route as SettingsUpdatesRouteImport } from './routes/settings.updates'
 import { Route as AppPProjectIdRouteImport } from './routes/_app.p.$projectId'
@@ -71,6 +72,11 @@ const SettingsDiskRoute = SettingsDiskRouteImport.update({
   path: '/disk',
   getParentRoute: () => SettingsRoute,
 } as any)
+const SettingsFilesRoute = SettingsFilesRouteImport.update({
+  id: '/files',
+  path: '/files',
+  getParentRoute: () => SettingsRoute,
+} as any)
 const SettingsProvidersRoute = SettingsProvidersRouteImport.update({
   id: '/providers',
   path: '/providers',
@@ -120,6 +126,7 @@ export interface FileRoutesByFullPath {
   '/agent/$chatId': typeof AgentChatIdRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/disk': typeof SettingsDiskRoute
+  '/settings/files': typeof SettingsFilesRoute
   '/settings/providers': typeof SettingsProvidersRoute
   '/settings/updates': typeof SettingsUpdatesRoute
   '/agent/': typeof AgentIndexRoute
@@ -135,6 +142,7 @@ export interface FileRoutesByTo {
   '/agent/$chatId': typeof AgentChatIdRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/disk': typeof SettingsDiskRoute
+  '/settings/files': typeof SettingsFilesRoute
   '/settings/providers': typeof SettingsProvidersRoute
   '/settings/updates': typeof SettingsUpdatesRoute
   '/': typeof AppIndexRoute
@@ -153,6 +161,7 @@ export interface FileRoutesById {
   '/agent/$chatId': typeof AgentChatIdRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/disk': typeof SettingsDiskRoute
+  '/settings/files': typeof SettingsFilesRoute
   '/settings/providers': typeof SettingsProvidersRoute
   '/settings/updates': typeof SettingsUpdatesRoute
   '/_app/': typeof AppIndexRoute
@@ -174,6 +183,7 @@ export interface FileRouteTypes {
     | '/agent/$chatId'
     | '/settings/appearance'
     | '/settings/disk'
+    | '/settings/files'
     | '/settings/providers'
     | '/settings/updates'
     | '/agent/'
@@ -189,6 +199,7 @@ export interface FileRouteTypes {
     | '/agent/$chatId'
     | '/settings/appearance'
     | '/settings/disk'
+    | '/settings/files'
     | '/settings/providers'
     | '/settings/updates'
     | '/'
@@ -206,6 +217,7 @@ export interface FileRouteTypes {
     | '/agent/$chatId'
     | '/settings/appearance'
     | '/settings/disk'
+    | '/settings/files'
     | '/settings/providers'
     | '/settings/updates'
     | '/_app/'
@@ -288,6 +300,13 @@ declare module '@tanstack/react-router' {
       path: '/disk'
       fullPath: '/settings/disk'
       preLoaderRoute: typeof SettingsDiskRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/files': {
+      id: '/settings/files'
+      path: '/files'
+      fullPath: '/settings/files'
+      preLoaderRoute: typeof SettingsFilesRouteImport
       parentRoute: typeof SettingsRoute
     }
     '/settings/providers': {
@@ -405,6 +424,7 @@ const AgentRouteWithChildren = AgentRoute._addFileChildren(AgentRouteChildren)
 interface SettingsRouteChildren {
   SettingsAppearanceRoute: typeof SettingsAppearanceRoute
   SettingsDiskRoute: typeof SettingsDiskRoute
+  SettingsFilesRoute: typeof SettingsFilesRoute
   SettingsProvidersRoute: typeof SettingsProvidersRoute
   SettingsUpdatesRoute: typeof SettingsUpdatesRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
@@ -413,6 +433,7 @@ interface SettingsRouteChildren {
 const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsAppearanceRoute: SettingsAppearanceRoute,
   SettingsDiskRoute: SettingsDiskRoute,
+  SettingsFilesRoute: SettingsFilesRoute,
   SettingsProvidersRoute: SettingsProvidersRoute,
   SettingsUpdatesRoute: SettingsUpdatesRoute,
   SettingsIndexRoute: SettingsIndexRoute,

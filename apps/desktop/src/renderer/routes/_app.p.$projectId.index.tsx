@@ -15,6 +15,7 @@ import { layoutPreference } from "#renderer/features/browser/layout-preference.t
 import { LayoutSwitcher } from "#renderer/features/browser/layout-switcher.tsx";
 import { layouts } from "#renderer/features/browser/layouts/registry.ts";
 import { useFoldersAhead } from "#renderer/features/browser/use-folders-ahead.ts";
+import { hiddenFiles } from "#renderer/features/settings/files.ts";
 import { PageError } from "#renderer/features/shell/page-error.tsx";
 import { PageHeader } from "#renderer/features/shell/page-header.tsx";
 import { FileViewer } from "#renderer/features/viewer/file-viewer.tsx";
@@ -53,6 +54,8 @@ function Browser() {
   const { data: listing, error, isFetching } = useSuspenseQuery(queries.entries(projectId, directory));
   const preference = layoutPreference(projectId);
   const layout = useStored(preference);
+  const showHidden = useStored(hiddenFiles) === "show";
+  const entries = showHidden ? listing.entries : listing.entries.filter((entry) => !entry.hidden);
   useEffect(() => subscriptions.entries(projectId), [subscriptions, projectId, project.mounts]);
 
   const directoryKey = directory ? entryKey(directory) : "";
@@ -78,7 +81,7 @@ function Browser() {
   const prefetch = (entry: Entry) => {
     if (entry.kind === "directory") void preloadFolder(entry.ref);
   };
-  useFoldersAhead(projectId, listing.entries, preloadFolder);
+  useFoldersAhead(projectId, entries, preloadFolder);
   const closeViewer = () => {
     if (router.history.location.state.fromDirectory) router.history.back();
     else void navigate({ search: toDirectorySearch(directory), replace: true });
@@ -102,7 +105,7 @@ function Browser() {
         key={directoryKey}
         projectId={projectId}
         directory={directory}
-        entries={listing.entries}
+        entries={entries}
         layout={layout}
         selectedKey={selectedKey}
         onSelectKey={select}
@@ -114,7 +117,7 @@ function Browser() {
           projectId={projectId}
           directory={directory}
           directoryName={listing.trail.at(-1)?.name ?? project.name}
-          entries={listing.entries}
+          entries={entries}
           file={file}
           onShow={showFile}
           onClose={closeViewer}
