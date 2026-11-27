@@ -58,9 +58,10 @@ export class Files extends Context.Service<
         }),
         details: Effect.fn("Files.details")(function* (projectId, requested) {
           const { driver, folder, entry } = yield* identify(projectId, requested);
-          const [parent, dimensions, palette, traits] = yield* Effect.all([
+          const [parent, dimensions, duration, palette, traits] = yield* Effect.all([
             driver.stat(folder.id),
             catalog.entry("dimensions", driver, entry),
+            catalog.entry("duration", driver, entry),
             catalog.processedEntry("palette", entry),
             catalog.processedEntry("traits", entry),
           ]);
@@ -72,6 +73,7 @@ export class Files extends Context.Service<
             modifiedAt: entry.modifiedAt,
             mediaType: mediaTypeOf(entry.name) ?? null,
             dimensions: Option.getOrNull(dimensions),
+            duration: Option.getOrNull(duration),
             palette: Option.getOrElse(palette, () => []),
             properties: Option.getOrElse(traits, () => []),
           };

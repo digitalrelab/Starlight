@@ -14,7 +14,10 @@ export const previewScheme: CustomScheme = {
   privileges: { standard: true, secure: true },
 };
 
-const isOpaque = (absolute: string) => OPAQUE_TYPES.has(mediaTypeOf(absolute) ?? "");
+const isOpaque = (absolute: string) => {
+  const type = mediaTypeOf(absolute) ?? "";
+  return OPAQUE_TYPES.has(type) || type.startsWith("video/");
+};
 
 const render = async (absolute: string, pixels: number) => {
   const points = Math.ceil(pixels / screen.getPrimaryDisplay().scaleFactor);

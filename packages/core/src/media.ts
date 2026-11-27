@@ -58,8 +58,11 @@ export class MediaLibrary extends Context.Service<
       return MediaLibrary.of({
         list: Effect.fn("MediaLibrary.list")(function* (projectId, requested) {
           if (!requested) return [];
-          const { directory, dimensions, media } = yield* locate(projectId, requested);
-          const placeholders = yield* catalog.processed("placeholder", directory, media);
+          const { driver, directory, dimensions, media } = yield* locate(projectId, requested);
+          const [durations, placeholders] = yield* Effect.all([
+            catalog.directory("duration", driver, directory, media),
+            catalog.processed("placeholder", directory, media),
+          ]);
           return media.flatMap((entry): ReadonlyArray<Media> => {
             const found = dimensions.get(entry.id);
             if (!found) return [];
@@ -69,6 +72,7 @@ export class MediaLibrary extends Context.Service<
                 ref,
                 fileId: entry.fileId,
                 ...found,
+                duration: durations.get(entry.id) ?? null,
                 placeholder: placeholders.get(entry.id) ?? null,
                 token: tokens.issue(ref, entry.modifiedAt),
               },
