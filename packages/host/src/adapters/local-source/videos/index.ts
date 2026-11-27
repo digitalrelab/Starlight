@@ -58,12 +58,15 @@ const childrenOf = (bytes: Uint8Array, { start, end }: Pick<Box, "start" | "end"
 const childOf = (bytes: Uint8Array, parent: Pick<Box, "start" | "end">, type: string) =>
   childrenOf(bytes, parent).find((child) => child.type === type);
 
+const UNKNOWN_DURATION_32 = 0xffffffff;
+const UNKNOWN_DURATION_64 = 0xffffffffffffffffn;
+
 const durationOf = (view: DataView, header: Box) => {
-  const version = view.getUint8(header.start);
-  const timescale = view.getUint32(header.start + (version === 1 ? 20 : 12));
-  const duration =
-    version === 1 ? Number(view.getBigUint64(header.start + 24)) : view.getUint32(header.start + 16);
-  return timescale > 0 ? duration / timescale : null;
+  const long = view.getUint8(header.start) === 1;
+  const timescale = view.getUint32(header.start + (long ? 20 : 12));
+  const raw = long ? view.getBigUint64(header.start + 24) : BigInt(view.getUint32(header.start + 16));
+  const unknown = raw === 0n || raw === (long ? UNKNOWN_DURATION_64 : BigInt(UNKNOWN_DURATION_32));
+  return timescale > 0 && !unknown ? Number(raw) / timescale : null;
 };
 
 const displaySizeOf = (view: DataView, header: Box): Dimensions | null => {
