@@ -17,7 +17,6 @@ export class Workspaces extends Context.Service<
     readonly open: (path: string) => Effect.Effect<Workspace, NotADirectory | FileSystemError, CurrentActor>;
     readonly recent: Effect.Effect<ReadonlyArray<Workspace>>;
     readonly get: (id: WorkspaceId) => Effect.Effect<Workspace, WorkspaceNotFound>;
-    /** Resolves a workspace-relative path to its symlink-free absolute and canonical relative forms. */
     readonly resolve: (
       id: WorkspaceId,
       relative: string,

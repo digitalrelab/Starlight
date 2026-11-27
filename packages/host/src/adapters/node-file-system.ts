@@ -20,7 +20,6 @@ const kindOf = (s: Stats): EntryKind =>
 
 const toFileStat = (s: Stats): FileStat => ({ kind: kindOf(s), size: s.size, modifiedAt: s.mtimeMs });
 
-/** Entries that vanish or cannot be stat'd between `readdir` and `lstat` are skipped. */
 const statEntry = (directory: string, name: string): Promise<DirectoryEntry | undefined> =>
   lstat(join(directory, name)).then(
     (s) => ({ name, ...toFileStat(s) }),

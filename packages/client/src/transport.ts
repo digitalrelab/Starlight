@@ -2,7 +2,6 @@ import { Effect, Layer, Queue, Schema } from "effect";
 import { RpcClient } from "effect/rpc";
 import type { FromServerEncoded } from "effect/rpc/RpcMessage";
 
-/** One client per port. Messages are structured-cloned; no serialization layer. */
 export const layerProtocolPort = (acquire: () => Promise<MessagePort>) =>
   Layer.effect(RpcClient.Protocol)(
     RpcClient.Protocol.make(

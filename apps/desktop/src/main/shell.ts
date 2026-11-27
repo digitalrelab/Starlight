@@ -16,6 +16,5 @@ const ShellServerLive = (window: BrowserWindow) =>
     ),
   );
 
-/** Serves OS-shell capabilities to one window until the port closes. */
 export const serveShell = (port: MessagePortMain, window: BrowserWindow) =>
   Effect.runFork(serve(port, ShellServerLive(window)));

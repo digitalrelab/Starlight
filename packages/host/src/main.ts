@@ -1,4 +1,3 @@
-/** Host process entry (Electron utilityProcess). One RPC server per connected port. */
 import { NodePath, NodeRuntime } from "@effect/platform-node";
 import { ConnectRequest } from "@starlight/contracts";
 import { CoreLive } from "@starlight/core";

@@ -16,7 +16,6 @@ const HandlersLive = WorkspaceRpcs.toLayer(
   }),
 );
 
-/** RPC server for one connection, bound to that connection's actor. */
 export const WorkspaceServerLive = (actor: Actor) =>
   RpcServer.layer(WorkspaceRpcs).pipe(
     Layer.provide(HandlersLive),

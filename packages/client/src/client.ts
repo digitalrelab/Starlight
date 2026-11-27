@@ -14,7 +14,6 @@ export interface PortSources {
   readonly shell: () => Promise<MessagePort>;
 }
 
-/** Promise API over the RPC contracts. Failures reject with the tagged error. */
 export const createClient = (ports: PortSources) => {
   const runtime = ManagedRuntime.make(
     Layer.mergeAll(

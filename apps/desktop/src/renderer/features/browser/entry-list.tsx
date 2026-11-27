@@ -12,7 +12,6 @@ interface Props {
   readonly onOpen: (entry: Entry) => void;
 }
 
-/** Virtualized listing. Key it by directory so selection resets on navigation. */
 export const EntryList = ({ entries, onOpen }: Props) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState(-1);

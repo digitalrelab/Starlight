@@ -12,7 +12,6 @@ const renderer = resolve(root, "src/renderer");
 export default defineConfig({
   main: {
     build: {
-      // Bundle everything: workspace packages ship TS source, and there are no native deps.
       externalizeDeps: false,
       rolldownOptions: {
         input: {
@@ -27,7 +26,6 @@ export default defineConfig({
       externalizeDeps: false,
       rolldownOptions: {
         input: { index: resolve(root, "src/preload/index.ts") },
-        // Sandboxed preloads must be CommonJS.
         output: { format: "cjs", entryFileNames: "[name].cjs" },
       },
     },

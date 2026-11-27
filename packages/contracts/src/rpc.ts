@@ -5,7 +5,6 @@ import { FileSystemError, NotADirectory, PathOutsideWorkspace, WorkspaceNotFound
 import { RelativePath, WorkspaceId } from "./ids.ts";
 import { Workspace } from "./workspace.ts";
 
-/** Commands served by the host. The single command surface for UI and agents. */
 export class WorkspaceRpcs extends RpcGroup.make(
   Rpc.make("OpenWorkspace", {
     payload: { path: Schema.String },
@@ -27,7 +26,6 @@ export class WorkspaceRpcs extends RpcGroup.make(
   }),
 ) {}
 
-/** OS-shell capabilities served by the Electron main process. */
 export class ShellRpcs extends RpcGroup.make(
   Rpc.make("PickDirectory", {
     success: Schema.NullOr(Schema.String),

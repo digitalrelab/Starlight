@@ -1,7 +1,6 @@
 import { defineConfig } from "vite-plus";
 import type { OxlintOverride } from "vite-plus/lint";
 
-/** Import boundaries. Each package may only reach downward. */
 const forbid = (...groups: string[]): OxlintOverride["rules"] => ({
   "no-restricted-imports": [
     "error",
@@ -76,7 +75,6 @@ export default defineConfig({
         files: ["apps/desktop/src/renderer/**"],
         plugins: ["react"],
         rules: {
-          // Not using the React Compiler.
           "react/incompatible-library": "off",
           ...forbid(
             "@starlight/contracts",

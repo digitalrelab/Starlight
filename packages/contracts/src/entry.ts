@@ -9,7 +9,6 @@ export const Entry = Schema.Struct({
   path: RelativePath,
   kind: EntryKind,
   size: Schema.Number,
-  /** Epoch milliseconds. */
   modifiedAt: Schema.Number,
   hidden: Schema.Boolean,
 });

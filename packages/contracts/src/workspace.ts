@@ -5,7 +5,6 @@ export const Workspace = Schema.Struct({
   id: WorkspaceId,
   name: Schema.String,
   rootPath: Schema.String,
-  /** Epoch milliseconds. */
   openedAt: Schema.Number,
 });
 export type Workspace = typeof Workspace.Type;

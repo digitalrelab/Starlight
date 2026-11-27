@@ -12,7 +12,6 @@ const client = createClient(portSources);
 
 export const router = createRouter({
   routeTree,
-  // Production loads from file://.
   history: createHashHistory(),
   context: {
     queries: createQueries(client),

@@ -11,7 +11,6 @@ export interface DirectoryEntry extends FileStat {
   readonly name: string;
 }
 
-/** Disk access. */
 export class FileSystemPort extends Context.Service<
   FileSystemPort,
   {
@@ -21,7 +20,6 @@ export class FileSystemPort extends Context.Service<
   }
 >()("@starlight/core/FileSystemPort") {}
 
-/** Persistence for known workspaces. Infra failures are defects. */
 export class WorkspaceStore extends Context.Service<
   WorkspaceStore,
   {
@@ -40,11 +38,9 @@ export interface AuditRecord {
   readonly target: string;
 }
 
-/** Append-only record of mutating commands and who issued them. */
 export class AuditLog extends Context.Service<
   AuditLog,
   { readonly record: (entry: AuditRecord) => Effect.Effect<void> }
 >()("@starlight/core/AuditLog") {}
 
-/** The actor bound to the current connection. */
 export class CurrentActor extends Context.Service<CurrentActor, Actor>()("@starlight/core/CurrentActor") {}

@@ -1,4 +1,3 @@
-/** Page posts `Channel.connect` → main replies with ports → forwarded to the page. Nothing else is exposed. */
 import { ipcRenderer } from "electron";
 import { Channel } from "../shared/channels.ts";
 
