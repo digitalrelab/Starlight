@@ -5,7 +5,7 @@ import {
   startup,
 } from "@anthropic-ai/claude-agent-sdk";
 import type { ModelChoice } from "@starlight/contracts";
-import { AGENT_INSTRUCTIONS } from "#adapters/agent-instructions.ts";
+import { AGENT_INSTRUCTIONS } from "#adapters/agent.ts";
 import { isEffort } from "./models.ts";
 
 const createInput = () => {

@@ -1,20 +1,10 @@
 import { type AgentModel, type AgentProviderStatus, type ModelChoice, ModelId } from "@starlight/contracts";
 import { type AgentProviderDriver, type AgentTurnEvent, AgentTurnFailed } from "@starlight/core";
 import { Cause, Effect, Option, Queue, Stream } from "effect";
-import { AGENT_INSTRUCTIONS } from "#adapters/agent-instructions.ts";
+import { AGENT_INSTRUCTIONS, asError, capitalized, effortLabel, notReady } from "#adapters/agent.ts";
 import { output } from "#adapters/cli.ts";
 import type { Notification } from "./app-server.ts";
 import { type Connection, findExecutable, makeConnector } from "./connection.ts";
-
-const EFFORTS: Readonly<Record<string, string>> = {
-  minimal: "Minimal",
-  low: "Low",
-  medium: "Medium",
-  high: "High",
-  xhigh: "Extra High",
-  max: "Max",
-  ultra: "Ultra",
-};
 
 interface CodexModel {
   readonly model: string;
@@ -35,13 +25,6 @@ interface CodexAccount {
 interface TurnCompleted {
   readonly turn: { readonly status: string; readonly error: { readonly message: string } | null };
 }
-
-const failure = (cause: unknown) =>
-  new AgentTurnFailed({ message: cause instanceof Error ? cause.message : String(cause) });
-
-const notReady = (message: string): AgentProviderStatus => ({ _tag: "NotReady", message });
-
-const label = (value: string) => EFFORTS[value] ?? value.charAt(0).toUpperCase() + value.slice(1);
 
 const listModels = async ({ server }: Connection) => {
   const models: Array<CodexModel> = [];
@@ -102,9 +85,10 @@ export const makeCodexDriver = (workingDirectory: string): AgentProviderDriver =
     const [version, { account }] = yield* Effect.all(
       [
         output(executable.value, ["--version"]),
-        Effect.tryPromise(() =>
-          connect().then(({ server }) => server.request<CodexAccount>("account/read", {})),
-        ),
+        Effect.tryPromise({
+          try: () => connect().then(({ server }) => server.request<CodexAccount>("account/read", {})),
+          catch: asError,
+        }),
       ],
       { concurrency: "unbounded" },
     );
@@ -114,7 +98,7 @@ export const makeCodexDriver = (workingDirectory: string): AgentProviderDriver =
       version: version.split(" ").at(-1) ?? version,
       ...(account.email ? { account: account.email } : {}),
       ...(account.planType
-        ? { plan: label(account.planType) }
+        ? { plan: capitalized(account.planType) }
         : account.type === "apiKey"
           ? { plan: "API key" }
           : {}),
@@ -131,7 +115,7 @@ export const makeCodexDriver = (workingDirectory: string): AgentProviderDriver =
           name: model.displayName,
           efforts: model.supportedReasoningEfforts.map(({ reasoningEffort }) => ({
             id: reasoningEffort,
-            label: label(reasoningEffort),
+            label: effortLabel(reasoningEffort),
           })),
         })),
       ),
@@ -148,12 +132,15 @@ export const makeCodexDriver = (workingDirectory: string): AgentProviderDriver =
     respond: ({ prompt, session, model }) =>
       Stream.callback<AgentTurnEvent, AgentTurnFailed>((queue) =>
         Effect.gen(function* () {
-          const connection = yield* Effect.tryPromise({ try: connect, catch: failure });
+          const connection = yield* Effect.tryPromise({ try: connect, catch: AgentTurnFailed.from });
           const threadId = yield* Effect.tryPromise({
             try: () => openThread(connection, session, model),
-            catch: failure,
+            catch: AgentTurnFailed.from,
           });
-          const effort = yield* Effect.tryPromise({ try: () => effortOf(connection, model), catch: failure });
+          const effort = yield* Effect.tryPromise({
+            try: () => effortOf(connection, model),
+            catch: AgentTurnFailed.from,
+          });
           let turnId: string | undefined;
           let finished = false;
 
@@ -196,7 +183,7 @@ export const makeCodexDriver = (workingDirectory: string): AgentProviderDriver =
                 effort,
                 disabledPluginIds: connection.plugins,
               }),
-            catch: failure,
+            catch: AgentTurnFailed.from,
           });
           turnId = started.turn.id;
         }),

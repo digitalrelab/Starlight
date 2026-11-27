@@ -2,6 +2,7 @@ import { deleteSession } from "@anthropic-ai/claude-agent-sdk";
 import type { AgentProviderStatus } from "@starlight/contracts";
 import type { AgentProviderDriver } from "@starlight/core";
 import { Effect, Option, Schema } from "effect";
+import { capitalized, notReady } from "#adapters/agent.ts";
 import { findCommand, output } from "#adapters/cli.ts";
 import { makeModels } from "./models.ts";
 import { makePool } from "./pool.ts";
@@ -17,10 +18,6 @@ const AuthStatus = Schema.fromJsonString(
     subscriptionType: Schema.optionalKey(Schema.String),
   }),
 );
-
-const notReady = (message: string): AgentProviderStatus => ({ _tag: "NotReady", message });
-
-const planLabel = (plan: string) => plan.charAt(0).toUpperCase() + plan.slice(1);
 
 const status: Effect.Effect<AgentProviderStatus> = Effect.gen(function* () {
   const executable = yield* findExecutable;
@@ -41,7 +38,7 @@ const status: Effect.Effect<AgentProviderStatus> = Effect.gen(function* () {
     _tag: "Ready",
     version: version.split(" ")[0] ?? version,
     ...(auth.email ? { account: auth.email } : {}),
-    ...(auth.subscriptionType ? { plan: planLabel(auth.subscriptionType) } : {}),
+    ...(auth.subscriptionType ? { plan: capitalized(auth.subscriptionType) } : {}),
   } satisfies AgentProviderStatus;
 }).pipe(Effect.catch((error) => Effect.succeed(notReady(error.message))));
 

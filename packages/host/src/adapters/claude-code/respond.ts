@@ -3,9 +3,6 @@ import { type AgentTurnEvent, AgentTurnFailed, type AgentTurnInput } from "@star
 import { Effect, Exit, Option, Stream } from "effect";
 import type { Pool } from "./pool.ts";
 
-const failure = (cause: unknown) =>
-  new AgentTurnFailed({ message: cause instanceof Error ? cause.message : String(cause) });
-
 const toEvents = (message: SDKMessage): Stream.Stream<AgentTurnEvent, AgentTurnFailed> => {
   if (
     message.type === "stream_event" &&
@@ -27,9 +24,12 @@ export const respond =
   ({ prompt, session, model }: AgentTurnInput): Stream.Stream<AgentTurnEvent, AgentTurnFailed> =>
     Stream.unwrap(
       Effect.map(
-        Effect.tryPromise({ try: () => pool.acquire(Option.getOrUndefined(session)), catch: failure }),
+        Effect.tryPromise({
+          try: () => pool.acquire(Option.getOrUndefined(session)),
+          catch: AgentTurnFailed.from,
+        }),
         (claude) =>
-          Stream.fromAsyncIterable(claude.turn(prompt, model), failure).pipe(
+          Stream.fromAsyncIterable(claude.turn(prompt, model), AgentTurnFailed.from).pipe(
             Stream.flatMap(toEvents),
             Stream.onExit((exit) =>
               Effect.sync(() => (Exit.isSuccess(exit) ? pool.park(claude) : claude.close())),

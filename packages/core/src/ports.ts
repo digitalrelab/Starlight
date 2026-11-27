@@ -180,7 +180,10 @@ export type AgentTurnEvent =
   | { readonly _tag: "TextDelta"; readonly text: string }
   | { readonly _tag: "Completed"; readonly session: Option.Option<string> };
 
-export class AgentTurnFailed extends Data.TaggedError("AgentTurnFailed")<{ readonly message: string }> {}
+export class AgentTurnFailed extends Data.TaggedError("AgentTurnFailed")<{ readonly message: string }> {
+  static from = (cause: unknown) =>
+    new AgentTurnFailed({ message: cause instanceof Error ? cause.message : String(cause) });
+}
 
 export interface AgentProviderDriver {
   readonly name: string;
