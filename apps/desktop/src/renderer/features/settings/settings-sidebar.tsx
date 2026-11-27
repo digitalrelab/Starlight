@@ -1,4 +1,4 @@
-import { ArrowLeft01Icon, PaintBoardIcon } from "@hugeicons-pro/core-stroke-rounded";
+import { AiChat02Icon, ArrowLeft01Icon, PaintBoardIcon } from "@hugeicons-pro/core-stroke-rounded";
 import { NavItem, NavSection } from "@starlight/ui";
 import { Link } from "@tanstack/react-router";
 
@@ -10,6 +10,9 @@ export const SettingsSidebar = () => (
     <NavSection title="Settings">
       <NavItem icon={PaintBoardIcon} render={<Link to="/settings/appearance" />}>
         Appearance
+      </NavItem>
+      <NavItem icon={AiChat02Icon} render={<Link to="/settings/agents" />}>
+        Agents
       </NavItem>
     </NavSection>
   </>

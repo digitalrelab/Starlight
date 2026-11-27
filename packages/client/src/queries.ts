@@ -32,6 +32,9 @@ const createQueries = (client: StarlightClient) => ({
       queryFn: () => client.media.list(workspaceId, directory),
     }),
 
+  agentProviders: () =>
+    queryOptions({ queryKey: ["agentProviders"], queryFn: () => client.agents.providers() }),
+
   update: () =>
     queryOptions({
       queryKey: ["update"],

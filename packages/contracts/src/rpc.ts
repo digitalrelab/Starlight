@@ -1,5 +1,6 @@
 import { Schema } from "effect";
 import { Rpc, RpcGroup } from "effect/rpc";
+import { AgentProvider } from "./agent.ts";
 import { EntryChange, Listing } from "./entry.ts";
 import { DirectoryError, MountError, SourceError, SourceUnavailable, WorkspaceNotFound } from "./errors.ts";
 import { EntryRef, WorkspaceId } from "./ids.ts";
@@ -43,6 +44,9 @@ export class HostRpcs extends RpcGroup.make(
     success: EntryChange,
     error: Schema.Union([WorkspaceNotFound, SourceUnavailable, SourceError]),
     stream: true,
+  }),
+  Rpc.make("ListAgentProviders", {
+    success: Schema.Array(AgentProvider),
   }),
 ) {}
 

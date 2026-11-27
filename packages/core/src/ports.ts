@@ -1,5 +1,7 @@
 import type {
   Actor,
+  AgentProviderId,
+  AgentProviderStatus,
   EntryId,
   EntryKind,
   EntryRef,
@@ -81,3 +83,13 @@ export class AuditLog extends Context.Service<
 >()("@starlight/core/AuditLog") {}
 
 export class CurrentActor extends Context.Service<CurrentActor, Actor>()("@starlight/core/CurrentActor") {}
+
+export interface AgentProviderDriver {
+  readonly name: string;
+  readonly status: Effect.Effect<AgentProviderStatus>;
+}
+
+export class AgentProviderDrivers extends Context.Service<
+  AgentProviderDrivers,
+  ReadonlyMap<AgentProviderId, AgentProviderDriver>
+>()("@starlight/core/AgentProviderDrivers") {}
