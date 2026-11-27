@@ -3,14 +3,16 @@ import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import { cn } from "cn";
 import { Icon } from "./icon.tsx";
+import type { Shortcut } from "./kbd.tsx";
 import { Tooltip } from "./tooltip.tsx";
 
 export interface IconButtonProps extends useRender.ComponentProps<"button"> {
   readonly icon: IconSvgElement;
   readonly label: string;
+  readonly shortcut?: Shortcut | undefined;
 }
 
-export const IconButton = ({ icon, label, render, className, ...props }: IconButtonProps) => {
+export const IconButton = ({ icon, label, shortcut, render, className, ...props }: IconButtonProps) => {
   const element = useRender({
     render,
     defaultTagName: "button",
@@ -27,5 +29,9 @@ export const IconButton = ({ icon, label, render, className, ...props }: IconBut
       props,
     ),
   });
-  return <Tooltip label={label}>{element}</Tooltip>;
+  return (
+    <Tooltip label={label} shortcut={shortcut}>
+      {element}
+    </Tooltip>
+  );
 };

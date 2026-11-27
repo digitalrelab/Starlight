@@ -16,6 +16,9 @@ interface Props {
   readonly onClose: () => void;
 }
 
+const PREVIOUS_KEY = "ArrowLeft";
+const NEXT_KEY = "ArrowRight";
+
 const isKeyConsumed = (event: KeyboardEvent) =>
   event.defaultPrevented ||
   event.altKey ||
@@ -76,9 +79,10 @@ export const FileViewer = ({
   const showPrevious = previous && (() => onShow(previous.ref));
   const showNext = next && (() => onShow(next.ref));
   const keys: Readonly<Record<string, (() => void) | undefined>> = {
-    ArrowLeft: showPrevious,
-    ArrowRight: showNext,
+    [PREVIOUS_KEY]: showPrevious,
+    [NEXT_KEY]: showNext,
   };
+  const sequenced = files.length > 1;
   const onKeyDown = (event: KeyboardEvent) => {
     const run = keys[event.key];
     if (!run || isKeyConsumed(event)) return;
@@ -90,9 +94,9 @@ export const FileViewer = ({
     <Theater.Root onClose={onClose} onKeyDown={onKeyDown}>
       <Theater.Header className="h-titlebar pl-traffic-lights app-drag">
         <Theater.Start className="app-no-drag">
-          <Button onClick={onClose}>
+          <Button onClick={onClose} className="max-w-48">
             <Icon icon={ArrowLeft01Icon} />
-            {directoryName}
+            <span className="truncate">{directoryName}</span>
           </Button>
         </Theater.Start>
         <Theater.Title>
@@ -100,25 +104,38 @@ export const FileViewer = ({
             <>
               <Icon icon={presentationIcons[presentationOf(current.name)]} className="text-subtle" />
               <span className="truncate">{current.name}</span>
-              <span className="text-subtle tabular-nums">
-                {(index + 1).toLocaleString()} / {files.length.toLocaleString()}
-              </span>
+              {sequenced ? (
+                <span className="shrink-0 whitespace-nowrap text-subtle tabular-nums">
+                  {(index + 1).toLocaleString()} / {files.length.toLocaleString()}
+                </span>
+              ) : null}
             </>
           ) : null}
         </Theater.Title>
         <Theater.End className="app-no-drag">
-          <IconButton
-            label="Previous"
-            icon={ArrowLeft01Icon}
-            disabled={!showPrevious}
-            onClick={showPrevious}
-          />
-          <IconButton label="Next" icon={ArrowRight01Icon} disabled={!showNext} onClick={showNext} />
-          <Theater.Separator />
+          {sequenced ? (
+            <>
+              <IconButton
+                label="Previous"
+                icon={ArrowLeft01Icon}
+                shortcut={[PREVIOUS_KEY]}
+                disabled={!showPrevious}
+                onClick={showPrevious}
+              />
+              <IconButton
+                label="Next"
+                icon={ArrowRight01Icon}
+                shortcut={[NEXT_KEY]}
+                disabled={!showNext}
+                onClick={showNext}
+              />
+              <Theater.Separator />
+            </>
+          ) : null}
           <Theater.Close />
         </Theater.End>
       </Theater.Header>
-      <Theater.Stage onPrevious={showPrevious} onNext={showNext}>
+      <Theater.Stage>
         {current ? (
           <FileStage key={file.id} workspaceId={workspaceId} directory={directory} entry={current} />
         ) : null}

@@ -1,5 +1,5 @@
 import { Dialog } from "@base-ui/react/dialog";
-import { ArrowLeft01Icon, ArrowRight01Icon, Cancel01Icon } from "@hugeicons-pro/core-stroke-rounded";
+import { Cancel01Icon } from "@hugeicons-pro/core-stroke-rounded";
 import { cn } from "cn";
 import { type KeyboardEventHandler, type ReactNode, useRef } from "react";
 import { IconButton } from "./icon-button.tsx";
@@ -65,31 +65,13 @@ const End = ({ className, children }: SlotProps) => (
 
 const Separator = () => <span aria-hidden className="mx-1 h-5 border-l border-default" />;
 
-const Close = () => <Dialog.Close render={<IconButton label="Close" icon={Cancel01Icon} />} />;
+const Close = () => (
+  <Dialog.Close render={<IconButton label="Close" icon={Cancel01Icon} shortcut={["Escape"]} />} />
+);
 
-const edge =
-  "absolute top-1/2 z-10 -translate-y-1/2 bg-surface-raised shadow-lifted opacity-0 transition-opacity group-hover/stage:opacity-100 focus-visible:opacity-100";
-
-interface StageProps {
-  readonly onPrevious: (() => void) | undefined;
-  readonly onNext: (() => void) | undefined;
-  readonly children: ReactNode;
-}
-
-const Stage = ({ onPrevious, onNext, children }: StageProps) => (
-  <div className="group/stage relative mx-2 mb-2 min-h-0 flex-1 overflow-hidden rounded-lg bg-surface shadow-lifted">
+const Stage = ({ children }: { readonly children: ReactNode }) => (
+  <div className="relative mx-2 mb-2 min-h-0 flex-1 overflow-hidden rounded-lg bg-surface shadow-lifted">
     {children}
-    {onPrevious ? (
-      <IconButton
-        label="Previous"
-        icon={ArrowLeft01Icon}
-        className={cn(edge, "left-4")}
-        onClick={onPrevious}
-      />
-    ) : null}
-    {onNext ? (
-      <IconButton label="Next" icon={ArrowRight01Icon} className={cn(edge, "right-4")} onClick={onNext} />
-    ) : null}
   </div>
 );
 
