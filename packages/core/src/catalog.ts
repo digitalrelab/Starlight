@@ -50,13 +50,15 @@ export class Catalog extends Context.Service<
         stored: ReadonlyMap<EntryId, StoredFact>,
       ) =>
         Effect.gen(function* () {
+          const decode = Schema.decodeOption(codec);
+          const encode = Schema.encodeSync(codec);
           const values = new Map<EntryId, A>();
           const stale: Array<SourceEntry> = [];
           for (const entry of entries) {
             const known = stored.get(entry.id);
             if (!known || !isFresh(known, entry, extractor.version)) stale.push(entry);
             else if (known.value !== null) {
-              const decoded = Schema.decodeOption(codec)(known.value);
+              const decoded = decode(known.value);
               if (Option.isSome(decoded)) values.set(entry.id, decoded.value);
               else stale.push(entry);
             }
@@ -78,7 +80,7 @@ export class Catalog extends Context.Service<
               size: entry.size,
               modifiedAt: entry.modifiedAt,
               version: extractor.version,
-              value: Option.match(value, { onNone: () => null, onSome: Schema.encodeSync(codec) }),
+              value: Option.match(value, { onNone: () => null, onSome: encode }),
             })),
           );
           return values;
