@@ -6,6 +6,8 @@ import { stepHistory } from "./history.ts";
 const EXTERNAL_URL = /^(?:https?|mailto):/i;
 const READY_TIMEOUT_MS = 5000;
 
+const backgroundColor = () => (nativeTheme.shouldUseDarkColors ? "#12131c" : "#f0f1f5");
+
 export const createWindow = () => {
   const window = new BrowserWindow({
     width: 1200,
@@ -15,7 +17,7 @@ export const createWindow = () => {
     show: false,
     titleBarStyle: "hiddenInset",
     trafficLightPosition: { x: 14, y: 13 },
-    backgroundColor: nativeTheme.shouldUseDarkColors ? "#12131c" : "#f0f1f5",
+    backgroundColor: backgroundColor(),
     webPreferences: {
       preload: join(import.meta.dirname, "../preload/index.cjs"),
       sandbox: true,
@@ -30,7 +32,12 @@ export const createWindow = () => {
     window.show();
   };
   const fallback = setTimeout(show, READY_TIMEOUT_MS);
-  window.once("closed", () => clearTimeout(fallback));
+  const followTheme = () => window.setBackgroundColor(backgroundColor());
+  nativeTheme.on("updated", followTheme);
+  window.once("closed", () => {
+    clearTimeout(fallback);
+    nativeTheme.off("updated", followTheme);
+  });
   window.webContents.ipc.once(Channel.ready, show);
   window.webContents.setWindowOpenHandler(({ url }) => {
     if (EXTERNAL_URL.test(url)) void shell.openExternal(url);

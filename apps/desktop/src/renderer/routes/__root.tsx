@@ -5,6 +5,7 @@ import {
   cursor,
   useChatAppearance,
   useInterfaceZoom,
+  useNativeColorScheme,
 } from "#renderer/features/settings/appearance.ts";
 import type { RouterContext } from "#renderer/lib/context.ts";
 import { useStored } from "#renderer/lib/storage.ts";
@@ -13,6 +14,7 @@ import { useWindowReady } from "#renderer/lib/use-window-ready.ts";
 
 const Root = () => {
   useInterfaceZoom();
+  useNativeColorScheme();
   useChatAppearance();
   useWindowReady();
   useHistoryButtons();

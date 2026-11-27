@@ -50,6 +50,13 @@ export const useInterfaceZoom = () => {
   }, []);
 };
 
+export const useNativeColorScheme = () => {
+  const scheme = useStored(colorScheme);
+  useLayoutEffect(() => {
+    window.postMessage({ type: Channel.colorScheme, scheme }, "*");
+  }, [scheme]);
+};
+
 export const useChatAppearance = () => {
   const font = useStored(chatFont);
   const textSize = useStored(chatTextSize);
