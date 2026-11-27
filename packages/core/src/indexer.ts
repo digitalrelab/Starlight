@@ -106,7 +106,7 @@ export const IndexerLive = Layer.effectDiscard(
         if (remaining.some((other) => covers(other, root))) continue;
         yield* index.drop(
           root.ref,
-          remaining.filter((inner) => covers(root, inner)).map((inner) => inner.ref.id),
+          remaining.flatMap(({ ref }) => (ref.source === root.ref.source ? [ref.id] : [])),
         );
       }
       for (const [key, root] of next) {

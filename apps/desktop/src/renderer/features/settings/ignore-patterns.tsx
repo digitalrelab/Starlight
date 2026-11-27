@@ -24,7 +24,7 @@ export const IgnorePatterns = () => {
   return (
     <Item.List>
       <Collapsible.Root>
-        <Item.Root render={<Collapsible.Trigger />} className="group w-full cursor-interactive text-left">
+        <Item.Root render={<Collapsible.Trigger />} className="w-full cursor-interactive text-left">
           <Item.Content>
             <Item.Title>Ignored</Item.Title>
             <Item.Description>Left out of search</Item.Description>

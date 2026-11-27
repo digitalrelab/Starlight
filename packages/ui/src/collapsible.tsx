@@ -4,6 +4,14 @@ import { cn } from "cn";
 import type { ComponentProps } from "react";
 import { Icon } from "./icon.tsx";
 
+interface TriggerProps extends Omit<ComponentProps<typeof BaseCollapsible.Trigger>, "className"> {
+  readonly className?: string;
+}
+
+const Trigger = ({ className, ...props }: TriggerProps) => (
+  <BaseCollapsible.Trigger className={cn("group", className)} {...props} />
+);
+
 interface PanelProps extends Omit<ComponentProps<typeof BaseCollapsible.Panel>, "className"> {
   readonly className?: string;
 }
@@ -27,7 +35,7 @@ const Indicator = () => (
 
 export const Collapsible = {
   Root: BaseCollapsible.Root,
-  Trigger: BaseCollapsible.Trigger,
+  Trigger,
   Panel,
   Indicator,
 };
