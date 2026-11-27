@@ -63,14 +63,18 @@ export const SqliteEntryStoreLive = Layer.effect(EntryStore)(
     });
 
     const remove = SqlSchema.findAll({
-      Request: Schema.Struct({ source: Schema.String, ids: Schema.Array(Schema.String) }),
+      Request: Schema.Struct({
+        source: Schema.String,
+        ids: Schema.Array(Schema.String),
+        keep: Schema.Array(Schema.String),
+      }),
       Result: Removed,
-      execute: ({ source, ids }) => sql`
+      execute: ({ source, ids, keep }) => sql`
         WITH RECURSIVE doomed (id) AS (
           SELECT id FROM entries WHERE source = ${source} AND id IN ${sql.in(ids)}
           UNION
           SELECT entries.id FROM entries JOIN doomed ON entries.parent = doomed.id
-          WHERE entries.source = ${source}
+          WHERE entries.source = ${source} ${keep.length === 0 ? sql.literal("") : sql`AND doomed.id NOT IN ${sql.in(keep)}`}
         )
         DELETE FROM entries WHERE source = ${source} AND id IN (SELECT id FROM doomed)
         RETURNING file_id
@@ -130,10 +134,10 @@ export const SqliteEntryStoreLive = Layer.effect(EntryStore)(
                 upsert,
               );
         }),
-      remove: (source, ids) =>
+      remove: (source, ids, keep) =>
         sql
           .withTransaction(
-            Effect.forEach(Arr.chunksOf(ids, BATCH_SIZE), (batch) => remove({ source, ids: batch })),
+            Effect.forEach(Arr.chunksOf(ids, BATCH_SIZE), (batch) => remove({ source, ids: batch, keep })),
           )
           .pipe(
             Effect.map((removed) => removed.flat().flatMap(({ file_id }) => (file_id ? [file_id] : []))),

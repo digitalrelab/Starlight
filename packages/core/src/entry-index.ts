@@ -37,7 +37,7 @@ export class EntryIndex extends Context.Service<
     readonly sync: (driver: SourceDriver, directory: EntryRef, deep: boolean) => Effect.Effect<Synced>;
     readonly forget: (source: SourceId, ids: ReadonlyArray<EntryId>) => Effect.Effect<void>;
     readonly roots: Effect.Effect<ReadonlyArray<EntryRef>>;
-    readonly drop: (root: EntryRef) => Effect.Effect<void>;
+    readonly drop: (root: EntryRef, keep: ReadonlyArray<EntryId>) => Effect.Effect<void>;
   }
 >()("@starlight/core/EntryIndex") {
   static readonly layer = Layer.effect(EntryIndex)(
@@ -103,8 +103,8 @@ export class EntryIndex extends Context.Service<
         return changed.length > 0;
       });
 
-      const forget = (source: SourceId, ids: ReadonlyArray<EntryId>) =>
-        ids.length === 0 ? Effect.void : Effect.flatMap(store.remove(source, ids), facts.remove);
+      const forget = (source: SourceId, ids: ReadonlyArray<EntryId>, keep: ReadonlyArray<EntryId> = []) =>
+        ids.length === 0 ? Effect.void : Effect.flatMap(store.remove(source, ids, keep), facts.remove);
 
       return EntryIndex.of({
         bind: Effect.fn("EntryIndex.bind")(function* (driver, directory, files) {
@@ -149,11 +149,12 @@ export class EntryIndex extends Context.Service<
         }),
         forget,
         roots: store.roots,
-        drop: (root) =>
+        drop: (root, keep) =>
           Effect.flatMap(store.children(root.source, root.id), (rows) =>
             forget(
               root.source,
               rows.map((row) => row.id),
+              keep,
             ),
           ),
       });

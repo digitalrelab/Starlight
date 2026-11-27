@@ -143,7 +143,11 @@ export class EntryStore extends Context.Service<
       directory: EntryId,
       entries: ReadonlyArray<StoredEntry>,
     ) => Effect.Effect<void>;
-    readonly remove: (source: SourceId, ids: ReadonlyArray<EntryId>) => Effect.Effect<ReadonlyArray<FileId>>;
+    readonly remove: (
+      source: SourceId,
+      ids: ReadonlyArray<EntryId>,
+      keep: ReadonlyArray<EntryId>,
+    ) => Effect.Effect<ReadonlyArray<FileId>>;
   }
 >()("@starlight/core/EntryStore") {}
 

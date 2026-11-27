@@ -90,7 +90,12 @@ export const IndexerLive = Layer.effectDiscard(
       for (const [key, root] of current) {
         if (next.has(key)) continue;
         yield* FiberMap.remove(fibers, key);
-        if (![...next.values()].some((other) => covers(other, root))) yield* index.drop(root.ref);
+        const remaining = [...next.values()];
+        if (remaining.some((other) => covers(other, root))) continue;
+        yield* index.drop(
+          root.ref,
+          remaining.filter((inner) => covers(root, inner)).map((inner) => inner.ref.id),
+        );
       }
       for (const [key, root] of next) {
         yield* FiberMap.run(fibers, key, { onlyIfMissing: true })(follow(root));
