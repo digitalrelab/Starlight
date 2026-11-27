@@ -100,9 +100,10 @@ interface MarkdownFileProps {
   readonly projectId: string;
   readonly entry: Entry;
   readonly source: FileSource;
+  readonly composing: boolean;
 }
 
-const MarkdownFile = ({ projectId, entry, source }: MarkdownFileProps) => {
+const MarkdownFile = ({ projectId, entry, source, composing }: MarkdownFileProps) => {
   const { session, document, status, unsaved } = useFileSession(projectId, entry.ref, source, textCodec);
   const statusSlot = useContext(StatusSlot);
   if (!document) return status === "failed" ? <Notice kind="markdown">Can’t open this file</Notice> : null;
@@ -117,6 +118,7 @@ const MarkdownFile = ({ projectId, entry, source }: MarkdownFileProps) => {
             value={document.value}
             label={entry.name}
             editable={document.editable}
+            autoFocus={composing && document.editable}
             onChange={session.edit}
             className="pt-[12vh] pb-[40vh]"
           />
@@ -130,9 +132,10 @@ interface Props {
   readonly projectId: string;
   readonly directory: EntryRef;
   readonly entry: Entry;
+  readonly composing: boolean;
 }
 
-export const FileStage = ({ projectId, directory, entry }: Props) => {
+export const FileStage = ({ projectId, directory, entry, composing }: Props) => {
   const { queries } = useStarlight();
   const presentation = presentationOf(entry);
   const source = useQuery({
@@ -145,6 +148,6 @@ export const FileStage = ({ projectId, directory, entry }: Props) => {
   if (presentation === "video") return <Video source={source.data} />;
   if (presentation === "audio") return <Audio source={source.data} />;
   if (presentation === "markdown")
-    return <MarkdownFile projectId={projectId} entry={entry} source={source.data} />;
+    return <MarkdownFile projectId={projectId} entry={entry} source={source.data} composing={composing} />;
   return <Picture name={entry.name} source={source.data} presentation={presentation} />;
 };

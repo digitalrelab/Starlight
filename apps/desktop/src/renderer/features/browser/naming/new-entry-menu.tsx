@@ -1,41 +1,56 @@
 import { Add01Icon } from "@hugeicons-pro/core-stroke-rounded";
 import type { Entry, EntryRef } from "@starlight/client";
 import { IconButton, Menu } from "@starlight/ui";
-import { BLUEPRINTS, type Blueprint } from "./blueprints.ts";
+import { useMutation } from "@tanstack/react-query";
+import { useStarlight } from "#renderer/lib/context.ts";
+import { BLUEPRINTS, type Blueprint, freeName } from "./blueprints.ts";
 import { startCreating } from "./session.ts";
 import { useNamingMenu } from "./use-naming-menu.ts";
 
-interface Props {
+export interface NewEntryOptions {
+  readonly projectId: string;
   readonly directory: EntryRef;
   readonly entries: ReadonlyArray<Entry>;
+  readonly onCompose: (file: EntryRef) => void;
 }
 
+export const useNewEntry = ({ projectId, directory, entries, onCompose }: NewEntryOptions) => {
+  const { mutations } = useStarlight();
+  const create = useMutation(mutations.nameEntry(projectId, directory));
+  return (blueprint: Blueprint) => {
+    const { kind, instant } = blueprint;
+    const name = freeName(blueprint, entries);
+    if (!instant) return startCreating(directory, kind, name);
+    create.mutate(
+      { name, kind },
+      { onSuccess: onCompose, onError: (error) => startCreating(directory, kind, name, error.message) },
+    );
+  };
+};
+
 export const NewEntryItems = ({
-  directory,
-  entries,
+  pick,
   start,
   label,
-}: Props & {
+}: {
+  readonly pick: (blueprint: Blueprint) => void;
   readonly start: ReturnType<typeof useNamingMenu>["start"];
   readonly label: (blueprint: Blueprint) => string;
 }) =>
   BLUEPRINTS.map((blueprint) => (
-    <Menu.Item
-      key={blueprint.label}
-      icon={blueprint.icon}
-      onClick={start(() => startCreating(directory, blueprint, entries))}
-    >
+    <Menu.Item key={blueprint.label} icon={blueprint.icon} onClick={start(() => pick(blueprint))}>
       {label(blueprint)}
     </Menu.Item>
   ));
 
-export const NewEntryMenu = (props: Props) => {
+export const NewEntryMenu = (props: NewEntryOptions) => {
   const { onOpenChange, finalFocus, start } = useNamingMenu();
+  const pick = useNewEntry(props);
   return (
     <Menu.Root onOpenChange={onOpenChange}>
       <Menu.Trigger render={<IconButton icon={Add01Icon} label="New" />} />
       <Menu.Popup finalFocus={finalFocus}>
-        <NewEntryItems {...props} start={start} label={({ label }) => label} />
+        <NewEntryItems pick={pick} start={start} label={({ label }) => label} />
       </Menu.Popup>
     </Menu.Root>
   );

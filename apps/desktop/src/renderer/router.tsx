@@ -44,5 +44,6 @@ declare module "@tanstack/react-router" {
   }
   interface HistoryState {
     readonly fromDirectory?: boolean;
+    readonly composing?: string | undefined;
   }
 }
