@@ -1,6 +1,6 @@
-import { InformationCircleIcon, Refresh01Icon } from "@hugeicons-pro/core-stroke-rounded";
+import { InformationCircleIcon } from "@hugeicons-pro/core-stroke-rounded";
 import type { AgentProvider } from "@starlight/client";
-import { Badge, cn, Icon, IconButton } from "@starlight/ui";
+import { Badge, cn, Icon } from "@starlight/ui";
 import { providerAppearance } from "./provider-appearance.ts";
 
 const StatusPill = ({ ready }: { readonly ready: boolean }) => (
@@ -15,13 +15,7 @@ const StatusPill = ({ ready }: { readonly ready: boolean }) => (
   </span>
 );
 
-interface Props {
-  readonly provider: AgentProvider;
-  readonly checking: boolean;
-  readonly onCheck: () => void;
-}
-
-export const ProviderRow = ({ provider: { id, name, status }, checking, onCheck }: Props) => {
+export const ProviderRow = ({ provider: { id, name, status } }: { readonly provider: AgentProvider }) => {
   const appearance = providerAppearance(id);
 
   return (
@@ -47,7 +41,6 @@ export const ProviderRow = ({ provider: { id, name, status }, checking, onCheck 
           </p>
         )}
       </div>
-      <IconButton icon={Refresh01Icon} label="Check again" disabled={checking} onClick={onCheck} />
     </div>
   );
 };

@@ -4,24 +4,19 @@ import { ProviderRow } from "../features/agents/provider-row.tsx";
 import { SettingsPage } from "../features/settings/settings-page.tsx";
 import { useStarlight } from "../lib/context.ts";
 
-export const Route = createFileRoute("/settings/agents")({
+export const Route = createFileRoute("/settings/connections")({
   loader: ({ context: { queryClient, queries } }) => queryClient.ensureQueryData(queries.agentProviders()),
-  component: Agents,
+  component: Connections,
 });
 
-function Agents() {
+function Connections() {
   const { queries } = useStarlight();
-  const { data: providers, isFetching, refetch } = useSuspenseQuery(queries.agentProviders());
+  const { data: providers } = useSuspenseQuery(queries.agentProviders());
 
   return (
-    <SettingsPage title="Agents">
+    <SettingsPage title="Connections">
       {providers.map((provider) => (
-        <ProviderRow
-          key={provider.id}
-          provider={provider}
-          checking={isFetching}
-          onCheck={() => void refetch()}
-        />
+        <ProviderRow key={provider.id} provider={provider} />
       ))}
     </SettingsPage>
   );
