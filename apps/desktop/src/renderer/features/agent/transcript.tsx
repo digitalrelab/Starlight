@@ -40,7 +40,7 @@ export const Transcript = ({ messages, draft, failure, className }: Props) => {
   return (
     <ScrollArea
       className="flex-1"
-      viewportRef={viewport}
+      ref={viewport}
       contentRef={content}
       contentClassName={cn("flex flex-col gap-6", className)}
     >
