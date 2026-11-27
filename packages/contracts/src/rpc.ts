@@ -68,6 +68,7 @@ export class HostRpcs extends RpcGroup.make(
   Rpc.make("ListAgentProviders", {
     success: Schema.Array(AgentProvider),
   }),
+  Rpc.make("PrepareAgentProviders"),
   Rpc.make("ListChats", {
     success: Schema.Array(Chat),
   }),

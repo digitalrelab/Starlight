@@ -145,6 +145,7 @@ export interface AgentProviderDriver {
   readonly name: string;
   readonly status: Effect.Effect<AgentProviderStatus>;
   readonly models: Effect.Effect<ReadonlyArray<AgentModel>>;
+  readonly prepare: Effect.Effect<void>;
   readonly forget: (session: string) => Effect.Effect<void>;
   readonly respond: (input: AgentTurnInput) => Stream.Stream<AgentTurnEvent, AgentTurnFailed>;
 }
