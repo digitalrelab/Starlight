@@ -8,7 +8,7 @@ export const Sidebar = () => {
 
   return (
     <aside className="flex w-60 shrink-0 flex-col">
-      <div className="h-11 shrink-0 [-webkit-app-region:drag]" />
+      <div className="h-11 shrink-0 app-drag" />
       <nav className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-2 pb-2">
         <div className="flex flex-col gap-1">
           <NavItem onClick={openWorkspace.run} disabled={openWorkspace.pending}>

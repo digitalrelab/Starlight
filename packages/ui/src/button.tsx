@@ -16,8 +16,7 @@ export const Button = ({ variant = "ghost", className, ...props }: ButtonProps) 
   <BaseButton
     className={cn(
       "inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 text-[13px] font-medium select-none",
-      "transition-[background-color,filter] duration-100 outline-none",
-      "focus-visible:ring-2 focus-visible:ring-accent/60 data-[disabled]:opacity-50",
+      "transition-[background-color,filter] duration-100 focus-ring data-[disabled]:opacity-50",
       variants[variant],
       className,
     )}

@@ -11,8 +11,8 @@ export const NavItem = ({ render, className, ...props }: NavItemProps) =>
     props: mergeProps<"button">(
       {
         className: cn(
-          "flex h-7 w-full items-center gap-2 rounded-md px-2 text-[13px] text-muted outline-none",
-          "hover:bg-hover hover:text-fg focus-visible:ring-2 focus-visible:ring-accent/60",
+          "flex h-7 w-full items-center gap-2 rounded-md px-2 text-[13px] text-muted focus-ring",
+          "hover:bg-hover hover:text-fg",
           "disabled:opacity-50 aria-[current=page]:bg-selected aria-[current=page]:text-fg",
           className,
         ),

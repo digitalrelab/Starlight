@@ -43,3 +43,7 @@
   --color-accent-fg: var(--sl-accent-fg);
   --color-danger: var(--sl-danger);
 }
+
+@utility focus-ring {
+  @apply outline-none focus-visible:ring-2 focus-visible:ring-accent/60;
+}
