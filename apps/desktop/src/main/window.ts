@@ -1,7 +1,7 @@
 import { join } from "node:path";
 import { BrowserWindow, nativeTheme, shell } from "electron";
 import { Channel } from "#shared/channels.ts";
-import { stepHistory } from "./history.ts";
+import { watchHistory } from "./history.ts";
 
 const EXTERNAL_URL = /^(?:https?|mailto):/i;
 const READY_TIMEOUT_MS = 5000;
@@ -37,10 +37,7 @@ export const createWindow = () => {
     return { action: "deny" };
   });
   window.webContents.on("will-navigate", (event) => event.preventDefault());
-  window.on("swipe", (_event, direction) => {
-    if (direction === "left") stepHistory(window.webContents, -1);
-    else if (direction === "right") stepHistory(window.webContents, 1);
-  });
+  watchHistory(window);
 
   const devUrl = process.env["ELECTRON_RENDERER_URL"];
   if (devUrl) void window.loadURL(devUrl);

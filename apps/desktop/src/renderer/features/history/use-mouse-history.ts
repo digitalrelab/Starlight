@@ -1,15 +1,15 @@
 import { useRouter } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { HISTORY_STEPS, type HistoryDirection } from "#shared/history.ts";
 
-const BACK_BUTTON = 3;
-const FORWARD_BUTTON = 4;
+const BUTTONS: Readonly<Record<number, HistoryDirection>> = { 3: "back", 4: "forward" };
 
-export const useHistoryButtons = () => {
+export const useMouseHistory = () => {
   const { history } = useRouter();
   useEffect(() => {
     const onMouseUp = (event: MouseEvent) => {
-      if (event.button === BACK_BUTTON) history.back();
-      else if (event.button === FORWARD_BUTTON) history.forward();
+      const direction = BUTTONS[event.button];
+      if (direction) history.go(HISTORY_STEPS[direction].offset);
     };
     window.addEventListener("mouseup", onMouseUp);
     return () => window.removeEventListener("mouseup", onMouseUp);
