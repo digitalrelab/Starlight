@@ -97,10 +97,10 @@ export class InvalidName extends Schema.TaggedError<InvalidName>()("InvalidName"
 }
 
 export class EntryExists extends Schema.TaggedError<EntryExists>()("EntryExists", {
-  entry: EntryRef,
+  name: Schema.String,
 }) {
   override get message() {
-    return `Already exists: ${this.entry.id}`;
+    return `Already exists: ${this.name}`;
   }
 }
 

@@ -1,5 +1,5 @@
 import { Add01Icon, FolderIcon } from "@hugeicons-pro/core-stroke-rounded";
-import { type CreatableKind, type Entry, EntryExists, type EntryRef, InvalidName } from "@starlight/client";
+import type { CreatableKind, Entry, EntryRef } from "@starlight/client";
 import { IconButton, Menu, NameDialog } from "@starlight/ui";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
@@ -22,13 +22,6 @@ const freeName = ({ extension }: Blueprint, entries: ReadonlyArray<Entry>) => {
     if (!taken.has(name.toLowerCase())) return name;
   }
 };
-
-const describe = (error: Error) =>
-  error instanceof EntryExists
-    ? "Something with this name is already here."
-    : error instanceof InvalidName
-      ? "Names can’t contain “/” or “\\”, or be “.” or “..”."
-      : error.message;
 
 interface Props {
   readonly projectId: string;
@@ -90,7 +83,7 @@ export const NewEntryMenu = ({ projectId, directory, directoryName, entries, onC
         icon={blueprint.icon}
         value={name}
         onValueChange={edit}
-        error={create.error && describe(create.error)}
+        error={create.error?.message ?? null}
         pending={create.isPending}
         onSubmit={submit}
       />

@@ -130,7 +130,7 @@ export class Entries extends Context.Service<
             .create(directory.id, name, kind)
             .pipe(
               Effect.mapError((error) =>
-                error.reason === "AlreadyExists" ? new EntryExists({ entry: error.entry }) : error,
+                error.reason === "AlreadyExists" ? new EntryExists({ name }) : error,
               ),
             );
           const ref = { source: directory.source, id: created.id };
