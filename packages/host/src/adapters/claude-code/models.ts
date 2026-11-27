@@ -24,6 +24,7 @@ const load = (pool: Pool) =>
             id: effort,
             label: effortLabel(effort),
           })),
+          legacy: model.resolvedModel === undefined || model.resolvedModel === model.value,
         })),
     ),
   );

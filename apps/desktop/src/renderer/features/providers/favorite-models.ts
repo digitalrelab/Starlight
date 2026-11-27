@@ -24,12 +24,13 @@ const parse = (raw: string): ReadonlyArray<Favorite> => {
   }
 };
 
-const same = (a: Favorite, b: Favorite) =>
-  a.provider === b.provider && a.model === b.model && a.effort === b.effort;
+type ModelKey = Pick<Favorite, "provider" | "model">;
+
+const same = (a: ModelKey, b: ModelKey) => a.provider === b.provider && a.model === b.model;
 
 export const useFavoriteModels = () => {
   const favorites = parse(useStored(favoriteModels));
-  const isFavorite = (favorite: Favorite) => favorites.some((candidate) => same(candidate, favorite));
+  const isFavorite = (key: ModelKey) => favorites.some((candidate) => same(candidate, key));
   return {
     favorites,
     isFavorite,

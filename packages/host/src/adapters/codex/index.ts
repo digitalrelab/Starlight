@@ -12,6 +12,7 @@ interface CodexModel {
   readonly hidden: boolean;
   readonly supportedReasoningEfforts: ReadonlyArray<{ readonly reasoningEffort: string }>;
   readonly defaultReasoningEffort: string;
+  readonly upgrade: string | null;
 }
 
 interface CodexAccount {
@@ -29,6 +30,33 @@ interface Opened {
 interface TurnCompleted {
   readonly turn: { readonly status: string; readonly error: { readonly message: string } | null };
 }
+
+const VERSIONED_SLUG = /^gpt-([\d.]+)-(.+)$/;
+
+const lineOf = (slug: string) => {
+  const match = VERSIONED_SLUG.exec(slug);
+  return match?.[1] && match[2] ? { family: match[2], version: match[1].split(".").map(Number) } : undefined;
+};
+
+const isNewer = (a: ReadonlyArray<number>, b: ReadonlyArray<number>) => {
+  for (let index = 0; index < Math.max(a.length, b.length); index++) {
+    const difference = (a[index] ?? 0) - (b[index] ?? 0);
+    if (difference !== 0) return difference > 0;
+  }
+  return false;
+};
+
+const isLegacy = (model: CodexModel, catalog: ReadonlyArray<CodexModel>) => {
+  if (model.upgrade !== null) return true;
+  const line = lineOf(model.model);
+  return (
+    line !== undefined &&
+    catalog.some((other) => {
+      const candidate = lineOf(other.model);
+      return candidate?.family === line.family && isNewer(candidate.version, line.version);
+    })
+  );
+};
 
 const catalogs = new WeakMap<Connection, Promise<ReadonlyArray<CodexModel>>>();
 
@@ -126,6 +154,7 @@ export const makeCodexDriver = (workingDirectory: string): AgentProviderDriver =
             id: reasoningEffort,
             label: effortLabel(reasoningEffort),
           })),
+          legacy: isLegacy(model, models),
         })),
       ),
       Effect.orElseSucceed((): ReadonlyArray<AgentModel> => []),

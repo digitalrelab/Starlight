@@ -1,9 +1,15 @@
 import { StarIcon as StarFilledIcon } from "@hugeicons-pro/core-solid-rounded";
-import { ArrowDown01Icon, Search01Icon, StarIcon, Tick02Icon } from "@hugeicons-pro/core-stroke-rounded";
+import {
+  ArrowDown01Icon,
+  ArrowRight01Icon,
+  Search01Icon,
+  StarIcon,
+  Tick02Icon,
+} from "@hugeicons-pro/core-stroke-rounded";
 import type { AgentEffort, AgentModel, AgentProvider, ModelChoice } from "@starlight/client";
 import { cn, Icon, Kbd, Popover, PopoverContent, PopoverTrigger, ScrollArea } from "@starlight/ui";
 import { type ReactNode, useEffect, useEffectEvent, useState } from "react";
-import { type Favorite, useFavoriteModels } from "./favorite-models.ts";
+import { useFavoriteModels } from "./favorite-models.ts";
 import { providerAppearance } from "./provider-appearance.ts";
 
 const FAVORITES = "favorites";
@@ -15,7 +21,7 @@ interface Props {
   readonly onChoose: (choice: ModelChoice) => void;
 }
 
-interface Starred {
+interface Entry {
   readonly choice: ModelChoice;
   readonly provider: AgentProvider;
   readonly model: AgentModel;
@@ -27,54 +33,58 @@ const Mark = ({ provider, size = 16 }: { readonly provider: string; readonly siz
   return <Icon icon={icon} size={size} className={cn("shrink-0", color)} />;
 };
 
-const Option = ({
+const Row = ({
   selected,
   onClick,
   trailing,
+  className,
   children,
 }: {
   readonly selected: boolean;
   readonly onClick: () => void;
   readonly trailing?: ReactNode;
+  readonly className?: string;
   readonly children: ReactNode;
 }) => (
-  <button
-    type="button"
-    aria-pressed={selected}
-    onClick={onClick}
-    className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-subtle focus-ring highlighted:bg-neutral-subtle-hovered highlighted:text-default aria-pressed:text-default"
+  <div
+    className={cn(
+      "group/row flex h-8 shrink-0 items-center rounded-md text-subtle highlighted:bg-neutral-subtle-hovered highlighted:text-default has-[>button[aria-pressed=true]]:text-default",
+      className,
+    )}
   >
-    {children}
-    <span className="ml-auto flex shrink-0 items-center gap-2">
+    <button
+      type="button"
+      aria-pressed={selected}
+      onClick={onClick}
+      className="flex h-full min-w-0 flex-1 items-center gap-2 rounded-md pl-2 text-left focus-ring"
+    >
+      {children}
+    </button>
+    <span className="flex shrink-0 items-center gap-2 px-2">
       {trailing}
-      {selected ? <Icon icon={Tick02Icon} size={14} /> : null}
+      <Icon icon={Tick02Icon} size={14} className={cn(!selected && "invisible")} />
     </span>
-  </button>
+  </div>
 );
 
-const Starrable = ({
+const Star = ({
   label,
   starred,
   onToggle,
-  children,
 }: {
   readonly label: string;
   readonly starred: boolean;
   readonly onToggle: () => void;
-  readonly children: ReactNode;
 }) => (
-  <div className="group/starrable relative [&>button:first-child]:pr-9">
-    {children}
-    <button
-      type="button"
-      aria-label={starred ? `Remove ${label} from favorites` : `Add ${label} to favorites`}
-      aria-pressed={starred}
-      onClick={onToggle}
-      className="absolute inset-y-0 right-1 my-auto inline-flex size-6 items-center justify-center rounded-md text-subtlest opacity-0 focus-ring group-hover/starrable:opacity-100 hover:text-default focus-visible:opacity-100 aria-pressed:text-default aria-pressed:opacity-100"
-    >
-      <Icon icon={starred ? StarFilledIcon : StarIcon} size={14} />
-    </button>
-  </div>
+  <button
+    type="button"
+    aria-label={starred ? `Remove ${label} from favorites` : `Add ${label} to favorites`}
+    aria-pressed={starred}
+    onClick={onToggle}
+    className="inline-flex size-5 items-center justify-center rounded-sm text-subtlest opacity-0 focus-ring group-hover/row:opacity-100 hover:text-default focus-visible:opacity-100 aria-pressed:text-accent-yellow aria-pressed:opacity-100"
+  >
+    <Icon icon={starred ? StarFilledIcon : StarIcon} size={14} />
+  </button>
 );
 
 const RailButton = ({
@@ -99,30 +109,24 @@ const RailButton = ({
   </button>
 );
 
-const resolve = (providers: ReadonlyArray<AgentProvider>, key: Favorite): ReadonlyArray<Starred> => {
-  const provider = providers.find(({ id }) => id === key.provider);
-  const model = provider?.models.find(({ id }) => id === key.model);
-  const effort = model?.efforts.find(({ id }) => id === key.effort) ?? null;
-  return provider && model && (effort !== null || key.effort === null)
-    ? [
-        {
-          choice: { provider: provider.id, model: model.id, effort: effort?.id ?? null },
-          provider,
-          model,
-          effort,
-        },
-      ]
-    : [];
+const entryOf = (provider: AgentProvider, model: AgentModel, effortId: string | null): Entry | undefined => {
+  const effort = model.efforts.find(({ id }) => id === effortId) ?? null;
+  if (effortId !== null && effort === null) return undefined;
+  return { choice: { provider: provider.id, model: model.id, effort: effortId }, provider, model, effort };
 };
-
-const labelOf = ({ model, effort }: Pick<Starred, "model" | "effort">) =>
-  effort ? `${model.name} ${effort.label}` : model.name;
 
 export const ModelPicker = ({ providers, choice, onChoose }: Props) => {
   const { favorites, isFavorite, toggle } = useFavoriteModels();
   const [browsing, setBrowsing] = useState<string>(choice.provider);
   const [search, setSearch] = useState("");
-  const starred = favorites.flatMap((key) => resolve(providers, key));
+  const [showLegacy, setShowLegacy] = useState(false);
+
+  const starred = favorites.flatMap((favorite) => {
+    const provider = providers.find(({ id }) => id === favorite.provider);
+    const model = provider?.models.find(({ id }) => id === favorite.model);
+    const entry = provider && model ? entryOf(provider, model, favorite.effort) : undefined;
+    return entry ? [entry] : [];
+  });
 
   const onShortcut = useEffectEvent((event: KeyboardEvent) => {
     const slot = Number(event.key);
@@ -145,8 +149,22 @@ export const ModelPicker = ({ providers, choice, onChoose }: Props) => {
   const shown = providers.find(({ id }) => id === browsing) ?? provider;
   const query = search.trim().toLowerCase();
   const matches = ({ name }: AgentModel) => name.toLowerCase().includes(query);
-  const chosen = (key: Favorite) =>
-    key.provider === choice.provider && key.model === choice.model && key.effort === choice.effort;
+  const listed = shown.models.filter(
+    (candidate) => matches(candidate) && (query !== "" || showLegacy || !candidate.legacy),
+  );
+  const hasLegacy = query === "" && shown.models.some((candidate) => candidate.legacy);
+
+  const withCurrentEffort = (candidate: AgentModel) =>
+    entryOf(shown, candidate, choice.effort) ?? entryOf(shown, candidate, null);
+
+  const star = (entry: Entry | undefined) =>
+    entry ? (
+      <Star
+        label={entry.model.name}
+        starred={isFavorite(entry.choice)}
+        onToggle={() => toggle(entry.choice)}
+      />
+    ) : null;
 
   return (
     <Popover
@@ -154,6 +172,7 @@ export const ModelPicker = ({ providers, choice, onChoose }: Props) => {
         if (!open) return;
         setBrowsing(starred.length > 0 ? FAVORITES : choice.provider);
         setSearch("");
+        setShowLegacy(false);
       }}
     >
       <PopoverTrigger className="inline-flex h-control items-center gap-1.5 rounded-full px-2.5 text-sm text-subtle focus-ring highlighted:bg-neutral-subtle-hovered highlighted:text-default">
@@ -174,7 +193,7 @@ export const ModelPicker = ({ providers, choice, onChoose }: Props) => {
             pressed={browsing === FAVORITES}
             onClick={() => setBrowsing(FAVORITES)}
           >
-            <Icon icon={StarFilledIcon} size={18} className="text-default" />
+            <Icon icon={StarFilledIcon} size={18} className="text-accent-yellow" />
           </RailButton>
           <div className="m-1 border-t border-default" />
           {providers.map(({ id, name }) => (
@@ -182,7 +201,10 @@ export const ModelPicker = ({ providers, choice, onChoose }: Props) => {
               key={id}
               label={name}
               pressed={browsing !== FAVORITES && id === shown.id}
-              onClick={() => setBrowsing(id)}
+              onClick={() => {
+                setBrowsing(id);
+                setShowLegacy(false);
+              }}
             >
               <Mark provider={id} size={18} />
             </RailButton>
@@ -201,77 +223,93 @@ export const ModelPicker = ({ providers, choice, onChoose }: Props) => {
             />
           </label>
           <ScrollArea className="flex-1" contentClassName="flex flex-col gap-0.5 p-1.5">
-            {browsing === FAVORITES
-              ? starred.map((favorite, index) =>
-                  matches(favorite.model) ? (
-                    <Starrable
-                      key={JSON.stringify(favorite.choice)}
-                      label={labelOf(favorite)}
-                      starred
-                      onToggle={() => toggle(favorite.choice)}
+            {browsing === FAVORITES ? (
+              <>
+                {starred.map((entry, index) =>
+                  matches(entry.model) ? (
+                    <Row
+                      key={`${entry.choice.provider}/${entry.choice.model}`}
+                      selected={
+                        entry.choice.provider === choice.provider &&
+                        entry.choice.model === choice.model &&
+                        entry.choice.effort === choice.effort
+                      }
+                      onClick={() => onChoose(entry.choice)}
+                      trailing={
+                        <>
+                          {star(entry)}
+                          {index < SHORTCUT_SLOTS ? <Kbd shortcut={["Meta", String(index + 1)]} /> : null}
+                        </>
+                      }
                     >
-                      <Option
-                        selected={chosen(favorite.choice)}
-                        onClick={() => onChoose(favorite.choice)}
-                        trailing={
-                          index < SHORTCUT_SLOTS ? <Kbd shortcut={["Meta", String(index + 1)]} /> : null
-                        }
-                      >
-                        <Mark provider={favorite.provider.id} />
-                        <span className="truncate">{favorite.model.name}</span>
-                        {favorite.effort ? (
-                          <span className="shrink-0 text-subtlest">{favorite.effort.label}</span>
-                        ) : null}
-                      </Option>
-                    </Starrable>
+                      <Mark provider={entry.provider.id} />
+                      <span className="truncate">{entry.model.name}</span>
+                      {entry.effort ? (
+                        <span className="shrink-0 text-subtlest">{entry.effort.label}</span>
+                      ) : null}
+                    </Row>
                   ) : null,
-                )
-              : shown.models.filter(matches).map((candidate) => (
-                  <Option
-                    key={candidate.id}
-                    selected={shown.id === provider.id && candidate.id === model.id}
-                    onClick={() =>
-                      onChoose({
-                        provider: shown.id,
-                        model: candidate.id,
-                        effort: candidate.efforts.some(({ id }) => id === choice.effort)
-                          ? choice.effort
-                          : null,
-                      })
-                    }
+                )}
+                {starred.length === 0 ? (
+                  <p className="px-2 py-1.5 text-sm text-subtlest">
+                    Star a model to keep it here with its reasoning level.
+                  </p>
+                ) : null}
+              </>
+            ) : (
+              <>
+                {listed.map((candidate) => {
+                  const entry = withCurrentEffort(candidate);
+                  return (
+                    <Row
+                      key={candidate.id}
+                      selected={shown.id === provider.id && candidate.id === model.id}
+                      onClick={() => entry && onChoose(entry.choice)}
+                      trailing={star(entry)}
+                      className={cn(candidate.legacy && "text-subtlest")}
+                    >
+                      <Mark provider={shown.id} />
+                      <span className="truncate">{candidate.name}</span>
+                    </Row>
+                  );
+                })}
+                {hasLegacy ? (
+                  <button
+                    type="button"
+                    aria-expanded={showLegacy}
+                    onClick={() => setShowLegacy(!showLegacy)}
+                    className="flex h-8 shrink-0 items-center gap-2 rounded-md px-2 text-sm text-subtlest focus-ring highlighted:bg-neutral-subtle-hovered highlighted:text-subtle"
                   >
-                    <Mark provider={shown.id} />
-                    <span className="truncate">{candidate.name}</span>
-                  </Option>
-                ))}
-            {browsing === FAVORITES && starred.length === 0 ? (
-              <p className="px-2 py-1.5 text-sm text-subtlest">
-                Star a reasoning level to keep that combo here.
-              </p>
-            ) : null}
+                    <Icon
+                      icon={ArrowRight01Icon}
+                      size={14}
+                      className={cn("transition-transform", showLegacy && "rotate-90")}
+                    />
+                    Older models
+                  </button>
+                ) : null}
+                {listed.length === 0 && !hasLegacy ? (
+                  <p className="px-2 py-1.5 text-sm text-subtlest">No models found</p>
+                ) : null}
+              </>
+            )}
           </ScrollArea>
         </div>
-        <div className="flex w-48 shrink-0 flex-col">
+        <div className="flex w-44 shrink-0 flex-col">
           <div className="flex items-baseline justify-between gap-2 border-b border-default px-3 py-2.5">
             <span className="text-subtle">Reasoning</span>
             <span className="truncate text-sm text-subtlest">{model.name}</span>
           </div>
           <ScrollArea className="flex-1" contentClassName="flex flex-col gap-0.5 p-1.5">
-            {[null, ...model.efforts].map((level) => {
-              const key: ModelChoice = { provider: provider.id, model: model.id, effort: level?.id ?? null };
-              return (
-                <Starrable
-                  key={key.effort ?? ""}
-                  label={labelOf({ model, effort: level })}
-                  starred={isFavorite(key)}
-                  onToggle={() => toggle(key)}
-                >
-                  <Option selected={chosen(key)} onClick={() => onChoose(key)}>
-                    {level?.label ?? "Default"}
-                  </Option>
-                </Starrable>
-              );
-            })}
+            {[null, ...model.efforts].map((level) => (
+              <Row
+                key={level?.id ?? ""}
+                selected={choice.effort === (level?.id ?? null)}
+                onClick={() => onChoose({ ...choice, effort: level?.id ?? null })}
+              >
+                {level?.label ?? "Default"}
+              </Row>
+            ))}
           </ScrollArea>
         </div>
       </PopoverContent>
