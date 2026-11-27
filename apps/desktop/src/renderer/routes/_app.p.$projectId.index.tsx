@@ -56,7 +56,7 @@ function Browser() {
   const layout = useStored(preference);
   const showHidden = useStored(hiddenFiles) === "show";
   const entries = showHidden ? listing.entries : listing.entries.filter((entry) => !entry.hidden);
-  useEffect(() => subscriptions.entries(projectId), [subscriptions, projectId, project.mounts]);
+  useEffect(() => subscriptions.entries(projectId), [subscriptions, projectId]);
 
   const directoryKey = directory ? entryKey(directory) : "";
   const [selection, setSelection] = useState<Selection>({ directory: directoryKey, key: undefined });
