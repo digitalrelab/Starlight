@@ -1,6 +1,5 @@
 import { Dimensions, type EntryId, type EntryRef } from "@starlight/contracts";
 import { Context, type Duration, Effect, Layer, Option, Schema, Stream } from "effect";
-import type { PixelSample } from "@starlight/contracts";
 import {
   type Extractor,
   type FactName,
@@ -13,7 +12,7 @@ import {
   type SourceEntry,
   type StoredFact,
 } from "./ports.ts";
-import { processors } from "./processors.ts";
+import { processedNames, processSample, processors } from "./processors.ts";
 
 const EXTRACT_CONCURRENCY = 32;
 const SAMPLE_CONCURRENCY = 3;
@@ -26,12 +25,6 @@ const codecs: { readonly [F in FactName]: Schema.Codec<Facts[F], string> } = {
 };
 
 type ProcessedName = keyof ProcessedFacts;
-
-const processedNames = Object.keys(processors) as ReadonlyArray<ProcessedName>;
-
-const processAll = (sample: PixelSample): ProcessedFacts => ({
-  placeholder: processors.placeholder.process(sample),
-});
 
 export interface Processed {
   readonly entry: SourceEntry;
@@ -174,14 +167,14 @@ export class Catalog extends Context.Service<
         processed: (fact, directory, entries) =>
           Effect.gen(function* () {
             const stored = yield* store.inDirectory({ source: directory.source, fact }, directory.id);
-            const known = new Map(stored.map((fact) => [fact.entry, fact]));
+            const known = new Map(stored.map((known) => [known.entry, known]));
             const decode = Schema.decodeOption(codecs[fact]);
             const values = new Map<EntryId, ProcessedFacts[typeof fact]>();
             for (const entry of entries) {
-              const stored = known.get(entry.id);
-              if (!stored || stored.value === null || !isFresh(stored, entry, processors[fact].version))
+              const found = known.get(entry.id);
+              if (!found || found.value === null || !isFresh(found, entry, processors[fact].version))
                 continue;
-              const decoded = decode(stored.value);
+              const decoded = decode(found.value);
               if (Option.isSome(decoded)) values.set(entry.id, decoded.value);
             }
             return values;
@@ -194,14 +187,14 @@ export class Catalog extends Context.Service<
               for (const fact of processedNames) {
                 const scope = { source: directory.source, fact };
                 const stored = yield* store.inDirectory(scope, directory.id);
-                const gone = stored.filter((stored) => !ids.has(stored.entry)).map((stored) => stored.entry);
+                const gone = stored.filter((found) => !ids.has(found.entry)).map((found) => found.entry);
                 if (gone.length > 0) yield* store.forget(scope, gone);
-                known.set(fact, new Map(stored.map((stored) => [stored.entry, stored])));
+                known.set(fact, new Map(stored.map((found) => [found.entry, found])));
               }
               const pending = entries.filter((entry) =>
                 processedNames.some((fact) => {
-                  const stored = known.get(fact)?.get(entry.id);
-                  return !stored || !isFresh(stored, entry, processors[fact].version);
+                  const found = known.get(fact)?.get(entry.id);
+                  return !found || !isFresh(found, entry, processors[fact].version);
                 }),
               );
               return Stream.fromIterable(pending).pipe(
@@ -209,7 +202,7 @@ export class Catalog extends Context.Service<
                   (entry) =>
                     Effect.map(driver.sample(entry), (sample) => ({
                       entry,
-                      facts: Option.getOrNull(Option.map(sample, processAll)),
+                      facts: Option.getOrNull(Option.map(sample, processSample)),
                     })),
                   { concurrency: SAMPLE_CONCURRENCY },
                 ),
