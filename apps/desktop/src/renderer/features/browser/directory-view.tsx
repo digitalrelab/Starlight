@@ -1,5 +1,5 @@
 import { type Entry, type EntryRef, entryKey } from "@starlight/client";
-import { type KeyboardEvent, Suspense, useCallback, useMemo } from "react";
+import { type KeyboardEvent, Suspense, useCallback, useEffect, useMemo, useRef } from "react";
 import { type LayoutId, layouts } from "./layouts/registry.ts";
 
 interface Props {
@@ -10,7 +10,22 @@ interface Props {
   readonly selectedKey: string | undefined;
   readonly onSelectKey: (key: string | undefined) => void;
   readonly onOpen: (entry: Entry) => void;
+  readonly onIntent: (entry: Entry) => void;
 }
+
+const INTENT_DWELL_MS = 100;
+
+const useDwell = (onDwell: (entry: Entry) => void) => {
+  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(timer.current), []);
+  return useCallback(
+    (entry: Entry | undefined) => {
+      clearTimeout(timer.current);
+      if (entry) timer.current = setTimeout(() => onDwell(entry), INTENT_DWELL_MS);
+    },
+    [onDwell],
+  );
+};
 
 export const DirectoryView = ({
   workspaceId,
@@ -20,6 +35,7 @@ export const DirectoryView = ({
   selectedKey,
   onSelectKey,
   onOpen,
+  onIntent,
 }: Props) => {
   const selected = useMemo(
     () => entries.findIndex((entry) => entryKey(entry.ref) === selectedKey),
@@ -32,6 +48,12 @@ export const DirectoryView = ({
     },
     [entries, onSelectKey],
   );
+  const dwell = useDwell(onIntent);
+  const onHover = useCallback(
+    (index: number | null) => dwell(index === null ? undefined : entries[index]),
+    [dwell, entries],
+  );
+  useEffect(() => dwell(entries[selected]), [dwell, entries, selected]);
 
   if (entries.length === 0) {
     return <div className="flex flex-1 items-center justify-center text-subtle">Empty folder</div>;
@@ -54,6 +76,7 @@ export const DirectoryView = ({
           entries={entries}
           selected={selected}
           onSelect={onSelect}
+          onHover={onHover}
           onOpen={onOpen}
         />
       </Suspense>
