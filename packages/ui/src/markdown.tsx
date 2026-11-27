@@ -4,10 +4,10 @@ import { Prose } from "./prose.tsx";
 
 export interface MarkdownProps {
   readonly source: string;
-  readonly className?: string;
+  readonly className?: string | undefined;
 }
 
 export const Markdown = ({ source, className }: MarkdownProps) => {
   const html = useMemo(() => marked.parse(source, { async: false, gfm: true, breaks: true }), [source]);
-  return <Prose html={html} {...(className ? { className } : {})} />;
+  return <Prose html={html} className={className} />;
 };

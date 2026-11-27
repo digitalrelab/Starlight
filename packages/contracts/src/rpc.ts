@@ -66,7 +66,7 @@ export class HostRpcs extends RpcGroup.make(
     error: ConversationNotFound,
   }),
   Rpc.make("SendMessage", {
-    payload: { conversationId: Schema.NullOr(ConversationId), text: Schema.String },
+    payload: { conversationId: Schema.NullOr(ConversationId), text: Schema.NonEmptyString },
     success: Conversation,
     error: Schema.Union([ConversationNotFound, ConversationBusy, NoAgentProvider]),
   }),

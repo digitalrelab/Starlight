@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Composer } from "../features/agent/composer.tsx";
@@ -17,7 +17,6 @@ function ConversationPage() {
   const { queries, mutations, subscriptions } = useStarlight();
   useEffect(() => subscriptions.conversation(conversationId), [subscriptions, conversationId]);
   const { data: detail } = useSuspenseQuery(queries.conversation(conversationId));
-  const { data: failure = null } = useQuery(queries.conversationFailure(conversationId));
   const send = useMutation(mutations.sendMessage());
 
   return (
@@ -27,7 +26,7 @@ function ConversationPage() {
       </PageHeader>
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto w-full max-w-2xl px-6 py-8">
-          <Transcript messages={detail.messages} draft={detail.draft} failure={failure} />
+          <Transcript messages={detail.messages} draft={detail.draft} failure={detail.failure} />
         </div>
       </div>
       <div className="mx-auto flex w-full max-w-2xl flex-col gap-2 px-6 pb-6">

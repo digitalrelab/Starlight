@@ -8,7 +8,7 @@ import {
   ConversationNotFound,
   NoAgentProvider,
 } from "@starlight/contracts";
-import { Context, Effect, FiberSet, Layer, Option, PubSub, Stream } from "effect";
+import { Cause, Context, Effect, FiberSet, Layer, Option, PubSub, Stream } from "effect";
 import {
   type AgentProviderDriver,
   AgentProviderDrivers,
@@ -50,6 +50,7 @@ export class Conversations extends Context.Service<
       const events = yield* PubSub.unbounded<Published>();
       const turns = yield* FiberSet.make();
       const drafts = new Map<ConversationId, string>();
+      const failures = new Map<ConversationId, string>();
 
       const publish = (conversationId: ConversationId, event: ConversationEvent) =>
         PubSub.publish(events, { conversationId, event });
@@ -71,13 +72,16 @@ export class Conversations extends Context.Service<
       const driverFor = (provider: AgentProviderId) =>
         Effect.fromNullishOr(drivers.get(provider)).pipe(Effect.mapError(() => new NoAgentProvider()));
 
+      const failureOf = (cause: Cause.Cause<unknown>) => {
+        const error = Cause.squash(cause);
+        return error instanceof Error ? error.message : String(error);
+      };
+
       const respond = (stored: StoredConversation, driver: AgentProviderDriver, prompt: string) => {
         const id = stored.conversation.id;
         return Effect.gen(function* () {
-          drafts.set(id, "");
-          yield* publish(id, { _tag: "Draft", text: "" });
           let session = stored.session;
-          yield* driver.respond({ prompt, history: stored.messages, session: stored.session }).pipe(
+          yield* driver.respond({ prompt, history: stored.messages, session }).pipe(
             Stream.runForEach((event) => {
               if (event._tag === "Completed") {
                 session = event.session;
@@ -93,10 +97,28 @@ export class Conversations extends Context.Service<
           yield* publish(id, { _tag: "MessageAdded", message });
           yield* publish(id, { _tag: "TurnFinished" });
         }).pipe(
-          Effect.catch((error) => publish(id, { _tag: "TurnFailed", message: error.message })),
+          Effect.catchCause((cause) => {
+            if (Cause.hasInterruptsOnly(cause)) return Effect.failCause(cause);
+            const message = failureOf(cause);
+            failures.set(id, message);
+            return publish(id, { _tag: "TurnFailed", message });
+          }),
           Effect.ensuring(Effect.sync(() => drafts.delete(id))),
         );
       };
+
+      const begin = (id: ConversationId | null, text: string) =>
+        id === null
+          ? Effect.gen(function* () {
+              const [provider, driver] = yield* firstReadyProvider;
+              const conversation = yield* store.create({ provider, title: titleFrom(text) });
+              const stored: StoredConversation = { conversation, messages: [], session: Option.none() };
+              return [stored, driver] as const;
+            })
+          : Effect.gen(function* () {
+              const stored = yield* find(id);
+              return [stored, yield* driverFor(stored.conversation.provider)] as const;
+            });
 
       return Conversations.of({
         list: store.list,
@@ -105,27 +127,31 @@ export class Conversations extends Context.Service<
             conversation,
             messages,
             draft: drafts.get(id) ?? null,
+            failure: failures.get(id) ?? null,
           })),
         send: Effect.fn("Conversations.send")(function* (id, text) {
-          if (id !== null && drafts.has(id)) return yield* new ConversationBusy({ conversationId: id });
-          const [stored, driver] =
-            id === null
-              ? yield* Effect.gen(function* () {
-                  const [provider, driver] = yield* firstReadyProvider;
-                  const conversation = yield* store.create({ provider, title: titleFrom(text) });
-                  return [{ conversation, messages: [], session: Option.none() }, driver] as const;
-                })
-              : yield* Effect.gen(function* () {
-                  const stored = yield* find(id);
-                  return [stored, yield* driverFor(stored.conversation.provider)] as const;
-                });
-          const conversation = stored.conversation;
-          const message = yield* store.append(conversation.id, { role: "user", text });
-          yield* audit.record({ actor: yield* CurrentActor, action: "SendMessage", target: conversation.id });
-          drafts.set(conversation.id, "");
-          yield* publish(conversation.id, { _tag: "MessageAdded", message });
+          if (id !== null) {
+            if (drafts.has(id)) return yield* new ConversationBusy({ conversationId: id });
+            drafts.set(id, "");
+          }
+          const release = (conversationId: ConversationId | null) =>
+            Effect.sync(() => conversationId !== null && drafts.delete(conversationId));
+          const [stored, driver] = yield* begin(id, text).pipe(Effect.onError(() => release(id)));
+          const conversationId = stored.conversation.id;
+          drafts.set(conversationId, "");
+          failures.delete(conversationId);
+          yield* Effect.gen(function* () {
+            const message = yield* store.append(conversationId, { role: "user", text });
+            yield* audit.record({
+              actor: yield* CurrentActor,
+              action: "SendMessage",
+              target: conversationId,
+            });
+            yield* publish(conversationId, { _tag: "MessageAdded", message });
+            yield* publish(conversationId, { _tag: "Draft", text: "" });
+          }).pipe(Effect.onError(() => release(conversationId)));
           yield* FiberSet.run(turns)(respond(stored, driver, text));
-          return conversation;
+          return stored.conversation;
         }),
         watch: (id) =>
           Stream.unwrap(

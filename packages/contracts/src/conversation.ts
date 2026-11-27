@@ -25,6 +25,7 @@ export const ConversationDetail = Schema.Struct({
   conversation: Conversation,
   messages: Schema.Array(ChatMessage),
   draft: Schema.NullOr(Schema.String),
+  failure: Schema.NullOr(Schema.String),
 });
 export type ConversationDetail = typeof ConversationDetail.Type;
 

@@ -29,7 +29,7 @@ const toReact = (node: ChildNode, key: number): ReactNode => {
 
 export interface ProseProps {
   readonly html: string;
-  readonly className?: string;
+  readonly className?: string | undefined;
 }
 
 export const Prose = ({ html, className }: ProseProps) => {

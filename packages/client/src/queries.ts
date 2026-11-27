@@ -47,13 +47,6 @@ const createQueries = (client: StarlightClient) => ({
   conversation: (id: string) =>
     queryOptions({ queryKey: ["conversation", id], queryFn: () => client.conversations.get(id) }),
 
-  conversationFailure: (id: string) =>
-    queryOptions({
-      queryKey: ["conversationFailure", id],
-      queryFn: () => null as string | null,
-      staleTime: Infinity,
-    }),
-
   update: () =>
     queryOptions({
       queryKey: ["update"],
@@ -112,14 +105,11 @@ const createSubscriptions = (client: StarlightClient, queryClient: QueryClient, 
     const { queryKey } = queries.conversation(id);
     const update = (change: (detail: ConversationDetail) => ConversationDetail) =>
       queryClient.setQueryData(queryKey, (detail) => detail && change(detail));
-    const fail = (message: string | null) =>
-      queryClient.setQueryData(queries.conversationFailure(id).queryKey, message);
 
     return client.conversations.watch(id, (event) => {
       switch (event._tag) {
         case "Draft":
-          fail(null);
-          return update((detail) => ({ ...detail, draft: event.text }));
+          return update((detail) => ({ ...detail, draft: event.text, failure: null }));
         case "MessageAdded":
           void queryClient.invalidateQueries(queries.conversations());
           return update((detail) =>
@@ -130,12 +120,10 @@ const createSubscriptions = (client: StarlightClient, queryClient: QueryClient, 
         case "TurnFinished":
           return update((detail) => ({ ...detail, draft: null }));
         case "TurnFailed":
-          fail(event.message);
-          return update((detail) => ({ ...detail, draft: null }));
+          return update((detail) => ({ ...detail, draft: null, failure: event.message }));
       }
     });
   },
-
   entries: (workspaceId: string) =>
     client.entries.watch(workspaceId, (change) => {
       if (change._tag === "Resync") {
