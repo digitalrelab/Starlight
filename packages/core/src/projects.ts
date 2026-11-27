@@ -210,8 +210,9 @@ export class Projects extends Context.Service<
           if (entry.kind !== "file") return yield* new NotAFile({ entry: requested });
           return { driver, file, entry };
         }),
-        locateEntry: Effect.fn("Projects.locateEntry")(function* (ref) {
-          const driver = yield* driverFor(ref.source);
+        locateEntry: Effect.fn("Projects.locateEntry")(function* (requested) {
+          const driver = yield* driverFor(requested.source);
+          const ref = { source: requested.source, id: yield* driver.canonicalize(requested.id) };
           const entry = yield* driver.stat(ref.id);
           const project = (yield* store.list).find((candidate) => mountOf(candidate, driver, ref));
           return {
