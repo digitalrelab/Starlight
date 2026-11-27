@@ -44,21 +44,6 @@ export class Workspaces extends Context.Service<
           ),
         );
 
-      const resolve = Effect.fn("Workspaces.resolve")(function* (id: WorkspaceId, relative: string) {
-        const workspace = yield* get(id);
-        const lexical = path.resolve(workspace.rootPath, relative);
-        if (!isWithin(workspace.rootPath, lexical))
-          return yield* new PathOutsideWorkspace({ path: relative });
-        const absolute = yield* fs.realPath(lexical);
-        if (!isWithin(workspace.rootPath, absolute))
-          return yield* new PathOutsideWorkspace({ path: relative });
-        return {
-          workspace,
-          absolute,
-          relative: path.relative(workspace.rootPath, absolute).split(path.sep).join("/"),
-        };
-      });
-
       return Workspaces.of({
         open: Effect.fn("Workspaces.open")(function* (input) {
           const rootPath = yield* fs.realPath(input);
@@ -71,8 +56,16 @@ export class Workspaces extends Context.Service<
         recent: store.recent(RECENT_LIMIT),
         get,
         resolveDirectory: Effect.fn("Workspaces.resolveDirectory")(function* (id, relative) {
-          const resolved = yield* resolve(id, relative);
-          const info = yield* fs.stat(resolved.absolute);
+          const { rootPath } = yield* get(id);
+          const lexical = path.resolve(rootPath, relative);
+          if (!isWithin(rootPath, lexical)) return yield* new PathOutsideWorkspace({ path: relative });
+          const absolute = yield* fs.realPath(lexical);
+          if (!isWithin(rootPath, absolute)) return yield* new PathOutsideWorkspace({ path: relative });
+          const resolved = {
+            absolute,
+            relative: path.relative(rootPath, absolute).split(path.sep).join("/"),
+          };
+          const info = yield* fs.stat(absolute);
           if (info.kind !== "directory") return yield* new NotADirectory({ path: resolved.relative });
           return resolved;
         }),
