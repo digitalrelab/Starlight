@@ -1,4 +1,4 @@
-import { Tooltip as BaseTooltip } from "@base-ui/react/tooltip";
+import { Tooltip as BaseTooltip } from "@base-ui/react";
 import type { ReactElement } from "react";
 import { Kbd, type Shortcut } from "./kbd.tsx";
 

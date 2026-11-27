@@ -1,4 +1,4 @@
-import { Dialog } from "@base-ui/react/dialog";
+import { Dialog } from "@base-ui/react";
 import { Cancel01Icon } from "@hugeicons-pro/core-stroke-rounded";
 import { cn } from "cn";
 import { type KeyboardEventHandler, type ReactNode, useRef } from "react";

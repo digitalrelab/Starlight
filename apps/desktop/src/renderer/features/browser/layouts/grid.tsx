@@ -11,6 +11,7 @@ import { useElementWidth } from "../../../lib/use-element-width.ts";
 import { EntryIcon } from "../entry-icon.tsx";
 import { justify, nearestInRow } from "./justify.ts";
 import type { LayoutProps } from "./types.ts";
+import { useThumbnail } from "./use-thumbnail.ts";
 
 const TARGET_ROW_HEIGHT = 200;
 const MAX_ROW_HEIGHT = 320;
@@ -98,6 +99,10 @@ export const GridLayout = ({ workspaceId, directory, entries, selected, onSelect
         {virtualizer.getVirtualItems().map((item) => {
           const row = layout.rows[item.index];
           if (!row) return null;
+          const visible =
+            !!virtualizer.range &&
+            item.index >= virtualizer.range.startIndex &&
+            item.index <= virtualizer.range.endIndex;
           return (
             <div
               key={item.index}
@@ -116,6 +121,7 @@ export const GridLayout = ({ workspaceId, directory, entries, selected, onSelect
                     left={PADDING + (layout.left[index] ?? 0)}
                     width={layout.width[index] ?? 0}
                     height={row.height}
+                    visible={visible}
                     selected={index === selected}
                     onSelect={onSelect}
                     onOpen={onOpen}
@@ -137,46 +143,57 @@ interface TileProps {
   readonly left: number;
   readonly width: number;
   readonly height: number;
+  readonly visible: boolean;
   readonly selected: boolean;
   readonly onSelect: (index: number) => void;
   readonly onOpen: (entry: Entry) => void;
 }
 
-const Tile = memo(({ index, entry, media, left, width, height, selected, onSelect, onOpen }: TileProps) => {
+const Tile = memo(
+  ({ index, entry, media, left, width, height, visible, selected, onSelect, onOpen }: TileProps) => {
+    return (
+      <div
+        onClick={() => onSelect(index)}
+        onDoubleClick={() => onOpen(entry)}
+        title={entry.name}
+        className={cn(
+          "absolute top-0 overflow-hidden rounded-md bg-neutral",
+          selected && "ring-3 ring-selected",
+          entry.hidden && "opacity-50",
+        )}
+        style={{ left, width, height }}
+      >
+        {media ? (
+          <Thumbnail
+            url={thumbnailUrl(media.token, Math.max(width, height) * window.devicePixelRatio)}
+            visible={visible}
+          />
+        ) : (
+          <div className="flex size-full flex-col items-center justify-center gap-2 p-3">
+            <EntryIcon entry={entry} size={40} strokeWidth={1.25} />
+            <span className="w-full truncate text-center text-sm">{entry.name}</span>
+          </div>
+        )}
+      </div>
+    );
+  },
+);
+
+const Thumbnail = ({ url, visible }: { readonly url: string; readonly visible: boolean }) => {
+  const src = useThumbnail(url, visible);
   return (
-    <div
-      onClick={() => onSelect(index)}
-      onDoubleClick={() => onOpen(entry)}
-      title={entry.name}
-      className={cn(
-        "absolute top-0 overflow-hidden rounded-md bg-neutral",
-        selected && "ring-3 ring-selected",
-        entry.hidden && "opacity-50",
+    <>
+      <Icon icon={Image01Icon} size={24} className="absolute top-1/2 left-1/2 -translate-1/2 text-subtlest" />
+      {src && (
+        <img
+          src={src}
+          alt=""
+          decoding="async"
+          draggable={false}
+          onLoad={reveal}
+          className="relative size-full object-cover opacity-0 transition-opacity duration-150 data-loaded:opacity-100"
+        />
       )}
-      style={{ left, width, height }}
-    >
-      {media ? (
-        <>
-          <Icon
-            icon={Image01Icon}
-            size={24}
-            className="absolute top-1/2 left-1/2 -translate-1/2 text-subtlest"
-          />
-          <img
-            src={thumbnailUrl(media.token, Math.max(width, height) * window.devicePixelRatio)}
-            alt=""
-            decoding="async"
-            draggable={false}
-            onLoad={reveal}
-            className="relative size-full object-cover opacity-0 transition-opacity duration-150 data-loaded:opacity-100"
-          />
-        </>
-      ) : (
-        <div className="flex size-full flex-col items-center justify-center gap-2 p-3">
-          <EntryIcon entry={entry} size={40} strokeWidth={1.25} />
-          <span className="w-full truncate text-center text-sm">{entry.name}</span>
-        </div>
-      )}
-    </div>
+    </>
   );
-});
+};

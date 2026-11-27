@@ -1,10 +1,12 @@
 import { defineConfig } from "vite-plus";
 import type { OxlintOverride } from "vite-plus/lint";
 
+const baseUiSubpaths = { group: ["@base-ui/react/*"], message: "Import from @base-ui/react." };
+
 const forbid = (...groups: string[]): OxlintOverride["rules"] => ({
   "no-restricted-imports": [
     "error",
-    { patterns: [{ group: groups, message: "Crosses a package boundary." }] },
+    { patterns: [{ group: groups, message: "Crosses a package boundary." }, baseUiSubpaths] },
   ],
 });
 
