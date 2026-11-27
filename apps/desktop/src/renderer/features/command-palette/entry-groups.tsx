@@ -30,6 +30,29 @@ const Leading = ({ match }: { readonly match: EntryMatch }) => {
   );
 };
 
+const locationOf = (match: EntryMatch, depth: number) => match.folders.slice(-depth).join(" / ");
+
+const locate = (matches: ReadonlyArray<EntryMatch>) => {
+  const depths = new Map(matches.map((match) => [match, 1]));
+  const depthOf = (match: EntryMatch) => depths.get(match) ?? 1;
+  let ambiguous = true;
+  while (ambiguous) {
+    ambiguous = false;
+    const alike = Map.groupBy(matches, (match) =>
+      [match.location.name, locationOf(match, depthOf(match))].join("\0"),
+    );
+    for (const group of alike.values()) {
+      if (group.length < 2) continue;
+      for (const match of group) {
+        if (depthOf(match) >= match.folders.length) continue;
+        depths.set(match, depthOf(match) + 1);
+        ambiguous = true;
+      }
+    }
+  }
+  return (match: EntryMatch) => locationOf(match, depthOf(match));
+};
+
 export const useEntryGroups = (text: string, projectId: string | null): ReadonlyArray<CommandGroup> => {
   const { queries } = useStarlight();
   const navigate = useNavigate();
@@ -40,10 +63,11 @@ export const useEntryGroups = (text: string, projectId: string | null): Readonly
     placeholderData: keepPreviousData,
   });
   if (!searching) return [];
+  const location = locate(data);
   const itemOf = (match: EntryMatch): CommandItem => ({
     key: JSON.stringify(match.ref),
     label: match.location.name,
-    detail: match.folders.join(" / "),
+    detail: location(match),
     leading: <Leading match={match} />,
     run: () => {
       const link = entryLink(match.ref, match.location);
