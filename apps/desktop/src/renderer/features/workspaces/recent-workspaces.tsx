@@ -1,5 +1,5 @@
 import { FolderIcon } from "@hugeicons-pro/core-stroke-rounded";
-import { Icon, NavItem, NavSection } from "@starlight/ui";
+import { NavItem, NavSection } from "@starlight/ui";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useStarlight } from "../../lib/context.ts";
@@ -14,6 +14,7 @@ export const RecentWorkspaces = () => {
       {workspaces.map((workspace) => (
         <NavItem
           key={workspace.id}
+          icon={FolderIcon}
           title={workspace.rootPath}
           render={
             <Link
@@ -24,8 +25,7 @@ export const RecentWorkspaces = () => {
             />
           }
         >
-          <Icon icon={FolderIcon} />
-          <span className="truncate">{workspace.name}</span>
+          {workspace.name}
         </NavItem>
       ))}
     </NavSection>

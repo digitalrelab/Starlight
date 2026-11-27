@@ -1,5 +1,5 @@
 import { FolderOpenIcon, Settings01Icon } from "@hugeicons-pro/core-stroke-rounded";
-import { Icon, IconButton, NavItem } from "@starlight/ui";
+import { IconButton, NavItem } from "@starlight/ui";
 import { Link } from "@tanstack/react-router";
 import { UpdateButton } from "../updates/update-button.tsx";
 import { RecentWorkspaces } from "../workspaces/recent-workspaces.tsx";
@@ -11,8 +11,7 @@ export const MainSidebar = () => {
   return (
     <>
       <div className="flex flex-col gap-1">
-        <NavItem onClick={openWorkspace.run} disabled={openWorkspace.pending}>
-          <Icon icon={FolderOpenIcon} />
+        <NavItem icon={FolderOpenIcon} onClick={openWorkspace.run} disabled={openWorkspace.pending}>
           Open Folder…
         </NavItem>
         {openWorkspace.error ? (
