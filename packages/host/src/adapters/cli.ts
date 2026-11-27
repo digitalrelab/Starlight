@@ -6,13 +6,6 @@ import { Effect, Option } from "effect";
 
 export const COMMAND_TIMEOUT_MS = 10_000;
 
-const installLocations = [
-  join(homedir(), ".local/bin/claude"),
-  join(homedir(), ".claude/local/claude"),
-  "/opt/homebrew/bin/claude",
-  "/usr/local/bin/claude",
-];
-
 export const output = (file: string, args: ReadonlyArray<string>) =>
   Effect.callback<string, Error>((resume) => {
     const child = execFile(file, args, { timeout: COMMAND_TIMEOUT_MS }, (error, stdout) => {
@@ -28,11 +21,18 @@ const isExecutable = (path: string) =>
     Effect.orElseSucceed(() => false),
   );
 
-const fromLoginShell = output(process.env["SHELL"] ?? "/bin/zsh", ["-ilc", "command -v claude"]).pipe(
-  Effect.map((stdout) => Option.fromNullishOr(stdout.split("\n").at(-1)).pipe(Option.filter(isAbsolute))),
-  Effect.orElseSucceed(() => Option.none<string>()),
-);
+const fromLoginShell = (name: string) =>
+  output(process.env["SHELL"] ?? "/bin/zsh", ["-ilc", `command -v ${name}`]).pipe(
+    Effect.map((stdout) => Option.fromNullishOr(stdout.split("\n").at(-1)).pipe(Option.filter(isAbsolute))),
+    Effect.orElseSucceed(() => Option.none<string>()),
+  );
 
-export const findExecutable = Effect.findFirst(installLocations, isExecutable).pipe(
-  Effect.flatMap((found) => (Option.isSome(found) ? Effect.succeed(found) : fromLoginShell)),
-);
+export const findCommand = (name: string, homeLocations: ReadonlyArray<string>) =>
+  Effect.findFirst(
+    [
+      ...homeLocations.map((location) => join(homedir(), location)),
+      `/opt/homebrew/bin/${name}`,
+      `/usr/local/bin/${name}`,
+    ],
+    isExecutable,
+  ).pipe(Effect.flatMap((found) => (Option.isSome(found) ? Effect.succeed(found) : fromLoginShell(name))));

@@ -1,20 +1,15 @@
 import type { EffortLevel } from "@anthropic-ai/claude-agent-sdk";
 import { type AgentModel, ModelId } from "@starlight/contracts";
 import { Effect } from "effect";
-import { COMMAND_TIMEOUT_MS } from "./executable.ts";
+import { effortLabel } from "#adapters/agent.ts";
+import { COMMAND_TIMEOUT_MS } from "#adapters/cli.ts";
 import type { Pool } from "./pool.ts";
 
-const EFFORTS: Readonly<Record<EffortLevel, string>> = {
-  low: "Low",
-  medium: "Medium",
-  high: "High",
-  xhigh: "Extra High",
-  max: "Max",
-};
+const EFFORTS: ReadonlySet<string> = new Set<EffortLevel>(["low", "medium", "high", "xhigh", "max"]);
 
 const DEFAULT_ALIAS = "default";
 
-export const isEffort = (effort: string): effort is EffortLevel => Object.hasOwn(EFFORTS, effort);
+export const isEffort = (effort: string): effort is EffortLevel => EFFORTS.has(effort);
 
 const load = (pool: Pool) =>
   Effect.tryPromise(() => pool.prepare().then((session) => session.models())).pipe(
@@ -27,7 +22,7 @@ const load = (pool: Pool) =>
           name: model.displayName,
           efforts: (model.supportedEffortLevels ?? []).map((effort) => ({
             id: effort,
-            label: EFFORTS[effort],
+            label: effortLabel(effort),
           })),
         })),
     ),

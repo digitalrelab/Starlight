@@ -5,10 +5,8 @@ import {
   startup,
 } from "@anthropic-ai/claude-agent-sdk";
 import type { ModelChoice } from "@starlight/contracts";
+import { AGENT_INSTRUCTIONS } from "#adapters/agent.ts";
 import { isEffort } from "./models.ts";
-
-const SYSTEM_PROMPT =
-  "You are the assistant inside Starlight, a desktop file manager. Answer clearly and concisely. You cannot see or change the user's files yet.";
 
 const createInput = () => {
   const pending: Array<SDKUserMessage> = [];
@@ -44,7 +42,7 @@ export const openSession = async (
     options: {
       pathToClaudeCodeExecutable: executable,
       cwd: workingDirectory,
-      systemPrompt: SYSTEM_PROMPT,
+      systemPrompt: AGENT_INSTRUCTIONS,
       tools: [],
       settingSources: [],
       includePartialMessages: true,
