@@ -9,7 +9,6 @@ export * from "./item.tsx";
 export * from "./nav-item.tsx";
 export * from "./nav-section.tsx";
 export * from "./popover.tsx";
-export * from "./preference.ts";
 export * from "./progress-ring.tsx";
 export * from "./prose.tsx";
 export * from "./segmented-control.tsx";

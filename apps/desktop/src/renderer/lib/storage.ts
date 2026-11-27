@@ -1,5 +1,16 @@
 import { useSyncExternalStore } from "react";
 
+const PREFIX = "starlight.";
+
+type Guard<Value extends string> = (raw: string) => raw is Value;
+
+export const oneOf =
+  <Value extends string>(values: readonly Value[]): Guard<Value> =>
+  (raw): raw is Value =>
+    (values as readonly string[]).includes(raw);
+
+export const anyString: Guard<string> = (_raw): _raw is string => true;
+
 const read = (key: string) => {
   try {
     return localStorage.getItem(key);
@@ -14,12 +25,9 @@ const write = (key: string, value: string) => {
   } catch {}
 };
 
-export const definePreference = <Value extends string>(
-  key: string,
-  values: readonly Value[],
-  fallback: Value,
-) => {
-  const parse = (raw: string | null) => values.find((value) => value === raw) ?? fallback;
+export const defineStored = <Value extends string>(name: string, guard: Guard<Value>, fallback: Value) => {
+  const key = PREFIX + name;
+  const parse = (raw: string | null) => (raw !== null && guard(raw) ? raw : fallback);
   const listeners = new Set<() => void>();
   let current = parse(read(key));
 
@@ -48,17 +56,17 @@ export const definePreference = <Value extends string>(
   };
 };
 
-export const definePreferenceFamily = <Value extends string>(
-  keyOf: (id: string) => string,
-  values: readonly Value[],
+export const defineStoredFamily = <Value extends string>(
+  nameOf: (id: string) => string,
+  guard: Guard<Value>,
   fallback: Value,
 ) => {
-  const preferences = new Map<string, ReturnType<typeof definePreference<Value>>>();
+  const members = new Map<string, ReturnType<typeof defineStored<Value>>>();
   return (id: string) => {
-    const existing = preferences.get(id);
+    const existing = members.get(id);
     if (existing) return existing;
-    const preference = definePreference(keyOf(id), values, fallback);
-    preferences.set(id, preference);
-    return preference;
+    const member = defineStored(nameOf(id), guard, fallback);
+    members.set(id, member);
+    return member;
   };
 };
