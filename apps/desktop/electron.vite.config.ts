@@ -65,7 +65,7 @@ export default defineConfig({
         routesDirectory: resolve(renderer, "routes"),
         generatedRouteTree: resolve(renderer, "routeTree.gen.ts"),
       }),
-      react(),
+      react({ compiler: true }),
       tailwindcss(),
       devInstanceLabel(),
     ],
