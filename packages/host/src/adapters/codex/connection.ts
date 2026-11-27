@@ -18,6 +18,7 @@ const DISABLED_FEATURES = [
   "shell_tool",
   "skill_search",
   "sleep_tool",
+  "view_image",
 ];
 
 interface EffectiveConfig {
