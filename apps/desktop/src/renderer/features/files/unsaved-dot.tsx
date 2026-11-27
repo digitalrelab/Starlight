@@ -4,6 +4,6 @@ const LABEL = "Unsaved changes";
 
 export const UnsavedDot = () => (
   <Tooltip label={LABEL}>
-    <span role="status" aria-label={LABEL} className="size-2 rounded-full bg-neutral-bold" />
+    <span role="img" aria-label={LABEL} className="size-2 rounded-full bg-neutral-bold" />
   </Tooltip>
 );
