@@ -4,7 +4,8 @@ import type { EditorView, KeyBinding } from "@codemirror/view";
 const wrappingOf = (state: EditorState, { from, to }: SelectionRange, marker: string) => {
   const size = marker.length;
   const text = state.sliceDoc(from, to);
-  if (text.length >= size * 2 && text.startsWith(marker) && text.endsWith(marker)) return "inside";
+  const wrapped = text.length >= size * 2 && text.startsWith(marker) && text.endsWith(marker);
+  if (wrapped && !text.slice(size, -size).includes(marker)) return "inside";
   if (state.sliceDoc(from - size, from) === marker && state.sliceDoc(to, to + size) === marker)
     return "outside";
   return undefined;
