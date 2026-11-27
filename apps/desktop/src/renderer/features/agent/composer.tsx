@@ -1,15 +1,16 @@
 import { ArrowUp02Icon } from "@hugeicons-pro/core-stroke-rounded";
 import { IconButton } from "@starlight/ui";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 
 interface Props {
   readonly placeholder: string;
   readonly disabled?: boolean;
   readonly autoFocus?: boolean;
+  readonly tools?: ReactNode;
   readonly onSubmit: (text: string) => Promise<unknown>;
 }
 
-export const Composer = ({ placeholder, disabled = false, autoFocus = false, onSubmit }: Props) => {
+export const Composer = ({ placeholder, disabled = false, autoFocus = false, tools, onSubmit }: Props) => {
   const [text, setText] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,7 +51,8 @@ export const Composer = ({ placeholder, disabled = false, autoFocus = false, onS
           }}
           className="max-h-64 min-h-12 resize-none bg-transparent px-1 text-base outline-none field-sizing-content placeholder:text-subtlest"
         />
-        <div className="flex justify-end">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center">{tools}</div>
           <IconButton
             type="submit"
             icon={ArrowUp02Icon}

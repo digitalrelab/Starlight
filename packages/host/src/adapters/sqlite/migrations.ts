@@ -85,4 +85,9 @@ export const migrations = Migrator.fromRecord({
     `;
     yield* sql`CREATE INDEX conversation_messages_by_conversation ON conversation_messages (conversation_id, created_at)`;
   }),
+  "0006_conversation_models": Effect.gen(function* () {
+    const sql = yield* SqlClient.SqlClient;
+    yield* sql`ALTER TABLE conversations ADD COLUMN model TEXT`;
+    yield* sql`ALTER TABLE conversations ADD COLUMN effort TEXT`;
+  }),
 });

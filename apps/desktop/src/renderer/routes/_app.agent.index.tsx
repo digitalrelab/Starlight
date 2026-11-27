@@ -2,6 +2,9 @@ import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Composer } from "../features/agent/composer.tsx";
 import { ConversationList } from "../features/agent/conversation-list.tsx";
+import { useModelChoice } from "../features/agents/model-choice.ts";
+import { ModelPicker } from "../features/agents/model-picker.tsx";
+import { NoProvider } from "../features/agents/no-provider.tsx";
 import { PageHeader } from "../features/shell/page-header.tsx";
 import { useStarlight } from "../lib/context.ts";
 
@@ -15,6 +18,7 @@ function Agent() {
   const { queries, mutations } = useStarlight();
   const { data: conversations } = useSuspenseQuery(queries.conversations());
   const send = useMutation(mutations.sendMessage());
+  const { providers, choice, choose } = useModelChoice();
 
   return (
     <>
@@ -23,17 +27,22 @@ function Agent() {
       </PageHeader>
       <div className="overflow-y-auto">
         <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-6 py-16">
-          <Composer
-            placeholder="Ask Starlight…"
-            autoFocus
-            onSubmit={(text) =>
-              send
-                .mutateAsync({ conversationId: null, text })
-                .then((conversation) =>
-                  navigate({ to: "/agent/$conversationId", params: { conversationId: conversation.id } }),
-                )
-            }
-          />
+          {choice ? (
+            <Composer
+              placeholder="Ask Starlight…"
+              autoFocus
+              tools={<ModelPicker providers={providers} choice={choice} onChoose={choose} />}
+              onSubmit={(text) =>
+                send
+                  .mutateAsync({ conversationId: null, text, model: choice })
+                  .then((conversation) =>
+                    navigate({ to: "/agent/$conversationId", params: { conversationId: conversation.id } }),
+                  )
+              }
+            />
+          ) : (
+            <NoProvider />
+          )}
           <ConversationList conversations={conversations} />
         </div>
       </div>

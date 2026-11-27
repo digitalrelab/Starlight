@@ -1,6 +1,7 @@
 import type {
   Actor,
   AgentProviderId,
+  AgentModel,
   AgentProviderStatus,
   ChatMessage,
   Conversation,
@@ -8,6 +9,7 @@ import type {
   Dimensions,
   EntryId,
   EntryKind,
+  ModelChoice,
   EntryRef,
   Mount,
   SourceError,
@@ -87,6 +89,7 @@ export interface AgentTurnInput {
   readonly prompt: string;
   readonly history: ReadonlyArray<ChatMessage>;
   readonly session: Option.Option<string>;
+  readonly model: ModelChoice;
 }
 
 export type AgentTurnEvent =
@@ -98,6 +101,7 @@ export class AgentTurnFailed extends Data.TaggedError("AgentTurnFailed")<{ reado
 export interface AgentProviderDriver {
   readonly name: string;
   readonly status: Effect.Effect<AgentProviderStatus>;
+  readonly models: Effect.Effect<ReadonlyArray<AgentModel>>;
   readonly respond: (input: AgentTurnInput) => Stream.Stream<AgentTurnEvent, AgentTurnFailed>;
 }
 
@@ -117,9 +121,13 @@ export class ConversationStore extends Context.Service<
   {
     readonly list: Effect.Effect<ReadonlyArray<Conversation>>;
     readonly find: (id: ConversationId) => Effect.Effect<Option.Option<StoredConversation>>;
-    readonly create: (input: Pick<Conversation, "provider" | "title">) => Effect.Effect<Conversation>;
+    readonly create: (input: {
+      readonly model: ModelChoice;
+      readonly title: string;
+    }) => Effect.Effect<Conversation>;
     readonly append: (id: ConversationId, message: ChatMessage) => Effect.Effect<void>;
     readonly saveSession: (id: ConversationId, session: string) => Effect.Effect<void>;
+    readonly saveModel: (id: ConversationId, model: ModelChoice) => Effect.Effect<void>;
   }
 >()("@starlight/core/ConversationStore") {}
 

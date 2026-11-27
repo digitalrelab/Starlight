@@ -12,7 +12,12 @@ export class AgentProviders extends Context.Service<
       return AgentProviders.of({
         list: Effect.forEach(
           drivers,
-          ([id, driver]) => Effect.map(driver.status, (status) => ({ id, name: driver.name, status })),
+          ([id, driver]) =>
+            Effect.gen(function* () {
+              const status = yield* driver.status;
+              const models = status._tag === "Ready" ? yield* driver.models : [];
+              return { id, name: driver.name, status, models };
+            }),
           { concurrency: "unbounded" },
         ),
       });

@@ -1,5 +1,11 @@
 import { randomUUID } from "node:crypto";
-import { AgentProviderId, ChatMessage, type Conversation, ConversationId } from "@starlight/contracts";
+import {
+  AgentProviderId,
+  ChatMessage,
+  type Conversation,
+  ConversationId,
+  ModelId,
+} from "@starlight/contracts";
 import { ConversationStore } from "@starlight/core";
 import { Effect, Layer, Option, Schema } from "effect";
 import { SqlClient, SqlSchema } from "effect/sql";
@@ -7,6 +13,8 @@ import { SqlClient, SqlSchema } from "effect/sql";
 const ConversationRow = Schema.Struct({
   id: ConversationId,
   provider: AgentProviderId,
+  model: Schema.NullOr(ModelId),
+  effort: Schema.NullOr(Schema.String),
   title: Schema.String,
   session: Schema.NullOr(Schema.String),
   created_at: Schema.Number,
@@ -23,6 +31,8 @@ const MessageRow = Schema.Struct({
 const toConversation = (row: typeof ConversationRow.Type): Conversation => ({
   id: row.id,
   provider: row.provider,
+  model: row.model,
+  effort: row.effort,
   title: row.title,
   createdAt: row.created_at,
   updatedAt: row.updated_at,
@@ -74,19 +84,21 @@ export const SqliteConversationStoreLive = Layer.effect(ConversationStore)(
             session: Option.fromNullishOr(row.value.session),
           });
         }).pipe(Effect.orDie),
-      create: ({ provider, title }) =>
+      create: ({ model: { provider, model, effort }, title }) =>
         Effect.gen(function* () {
           const now = Date.now();
           const conversation: Conversation = {
             id: ConversationId.make(randomUUID()),
             provider,
+            model,
+            effort,
             title,
             createdAt: now,
             updatedAt: now,
           };
           yield* sql`
-            INSERT INTO conversations (id, provider, title, created_at, updated_at)
-            VALUES (${conversation.id}, ${provider}, ${title}, ${now}, ${now})
+            INSERT INTO conversations (id, provider, model, effort, title, created_at, updated_at)
+            VALUES (${conversation.id}, ${provider}, ${model}, ${effort}, ${title}, ${now}, ${now})
           `;
           return conversation;
         }).pipe(Effect.orDie),
@@ -102,6 +114,11 @@ export const SqliteConversationStoreLive = Layer.effect(ConversationStore)(
             }),
           )
           .pipe(Effect.orDie),
+      saveModel: (id, { model, effort }) =>
+        sql`UPDATE conversations SET model = ${model}, effort = ${effort} WHERE id = ${id}`.pipe(
+          Effect.asVoid,
+          Effect.orDie,
+        ),
       saveSession: (id, session) =>
         sql`UPDATE conversations SET session = ${session} WHERE id = ${id}`.pipe(Effect.asVoid, Effect.orDie),
     });

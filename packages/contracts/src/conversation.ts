@@ -1,5 +1,5 @@
 import { Schema } from "effect";
-import { AgentProviderId } from "./agent.ts";
+import { AgentProviderId, ModelId } from "./agent.ts";
 
 export const ConversationId = Schema.String.pipe(Schema.brand("ConversationId"));
 export type ConversationId = typeof ConversationId.Type;
@@ -7,6 +7,8 @@ export type ConversationId = typeof ConversationId.Type;
 export const Conversation = Schema.Struct({
   id: ConversationId,
   provider: AgentProviderId,
+  model: Schema.NullOr(ModelId),
+  effort: Schema.NullOr(Schema.String),
   title: Schema.String,
   createdAt: Schema.Number,
   updatedAt: Schema.Number,
@@ -56,8 +58,10 @@ export class ConversationBusy extends Schema.TaggedError<ConversationBusy>()("Co
   }
 }
 
-export class NoAgentProvider extends Schema.TaggedError<NoAgentProvider>()("NoAgentProvider", {}) {
+export class ModelUnavailable extends Schema.TaggedError<ModelUnavailable>()("ModelUnavailable", {
+  provider: AgentProviderId,
+}) {
   override get message() {
-    return "No agent is connected. Set one up in Settings → Connections.";
+    return "This model isn't available here. Check Settings › Providers, or start a new conversation.";
   }
 }

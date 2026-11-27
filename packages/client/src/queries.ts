@@ -4,7 +4,7 @@ import {
   queryOptions,
   type QueryClient,
 } from "@tanstack/react-query";
-import type { ConversationDetail, EntryRef, Listing, UpdaterState } from "@starlight/contracts";
+import type { ConversationDetail, EntryRef, Listing, ModelChoice, UpdaterState } from "@starlight/contracts";
 import type { StarlightClient } from "./client.ts";
 import { entryKey } from "./refs.ts";
 
@@ -91,10 +91,12 @@ const createMutations = (client: StarlightClient, queryClient: QueryClient, quer
       mutationFn: ({
         conversationId,
         text,
+        model,
       }: {
         readonly conversationId: string | null;
         readonly text: string;
-      }) => client.conversations.send(conversationId, text),
+        readonly model: ModelChoice;
+      }) => client.conversations.send(conversationId, text, model),
       onSuccess: () => queryClient.invalidateQueries(queries.conversations()),
     }),
 

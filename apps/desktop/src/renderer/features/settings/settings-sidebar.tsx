@@ -25,8 +25,8 @@ export const SettingsSidebar = () => (
       </NavItem>
     </NavSection>
     <NavSection title="AI">
-      <NavItem icon={Plug01Icon} render={<Link to="/settings/connections" />}>
-        Connections
+      <NavItem icon={Plug01Icon} render={<Link to="/settings/providers" />}>
+        Providers
       </NavItem>
     </NavSection>
   </>
