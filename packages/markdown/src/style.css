@@ -191,10 +191,7 @@
 }
 
 .markdown-editor[data-variant="document"] .cm-editor .cm-content {
-  box-sizing: content-box;
-  max-width: 64ch;
-  margin-inline: auto;
-  padding-inline: 8ch;
+  padding: 12vh max(8ch, calc((100% - 64ch) / 2)) 40vh;
 }
 
 .markdown-editor[data-variant="message"] .cm-editor .cm-scroller {

@@ -116,7 +116,7 @@ const DocumentFile = ({ projectId, entry, source, children }: DocumentFileProps)
     <>
       <FileSessionBanner status={status} session={session} />
       {unsaved && statusSlot ? createPortal(<UnsavedDot />, statusSlot) : null}
-      <ScrollArea className="h-full">
+      <ScrollArea className="h-full" contentClassName="flex min-h-full flex-col">
         <Suspense fallback={null}>{children(document, session.edit)}</Suspense>
       </ScrollArea>
     </>
@@ -132,7 +132,7 @@ const MarkdownFile = (props: FileProps) => (
         label={props.entry.name}
         editable={document.editable}
         onChange={onChange}
-        className="pt-[12vh] pb-[40vh]"
+        className="flex-1"
       />
     )}
   </DocumentFile>
@@ -152,7 +152,7 @@ const TextFile = (props: FileProps) => {
           fileName={props.entry.name}
           editable={document.editable}
           onChange={onChange}
-          className="pt-4 pb-[40vh]"
+          className="flex-1"
         />
       )}
     </DocumentFile>
