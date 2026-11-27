@@ -1,9 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AgentShell } from "#renderer/features/agent/agent-shell.tsx";
 import { NewChat } from "#renderer/features/agent/new-chat.tsx";
 import { usePrepareAgentProviders } from "#renderer/features/agent/use-prepare-agent-providers.ts";
 
-export const Route = createFileRoute("/agent")({
+export const Route = createFileRoute("/_app/agent")({
   loader: ({ context: { queryClient, queries } }) =>
     Promise.all([
       queryClient.ensureQueryData(queries.chats(null)),
@@ -14,9 +13,5 @@ export const Route = createFileRoute("/agent")({
 
 function Agent() {
   usePrepareAgentProviders();
-  return (
-    <AgentShell>
-      <NewChat projectId={null} />
-    </AgentShell>
-  );
+  return <NewChat projectId={null} />;
 }
