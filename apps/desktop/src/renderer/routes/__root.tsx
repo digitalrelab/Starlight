@@ -1,5 +1,5 @@
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
-import { useAppearance } from "../features/settings/use-appearance.ts";
+import { useApplyAppearance } from "../features/settings/use-apply-appearance.ts";
 import type { RouterContext } from "../lib/context.ts";
 
 export const Route = createRootRouteWithContext<RouterContext>()({
@@ -12,6 +12,6 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 });
 
 function Root() {
-  useAppearance();
+  useApplyAppearance();
   return <Outlet />;
 }

@@ -36,6 +36,7 @@ export const createMutations = (client: StarlightClient, queryClient: QueryClien
     updateSettings: () => {
       const { queryKey } = queries.settings();
       return mutationOptions({
+        scope: { id: "settings" },
         mutationFn: (patch: SettingsPatch) => client.settings.update(patch),
         onMutate: async (patch) => {
           await queryClient.cancelQueries({ queryKey });
