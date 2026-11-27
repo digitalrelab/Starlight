@@ -1,8 +1,11 @@
+import { join } from "node:path";
 import { app, BrowserWindow, ipcMain, MessageChannelMain } from "electron";
 import { Channel } from "../shared/channels.ts";
 import { superviseHost } from "./host.ts";
 import { serveShell } from "./shell.ts";
 import { createWindow } from "./window.ts";
+
+if (!app.isPackaged) app.setPath("userData", join(app.getAppPath(), ".data"));
 
 const main = async () => {
   await app.whenReady();
