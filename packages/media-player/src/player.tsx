@@ -3,6 +3,7 @@ import { type PointerEvent, type ReactNode, useEffect, useRef, useState } from "
 import { Controls } from "./controls.tsx";
 import { PlayerContext, PlayerFrame, usePlayerEngine } from "./engine.tsx";
 import { Center } from "./center.tsx";
+import type { PlayerSettingsStore } from "./settings.ts";
 import { AudioSurface, VideoSurface } from "./surface.tsx";
 import { releaseDetached } from "./visualizer.tsx";
 
@@ -38,6 +39,7 @@ const useActivity = () => {
 
 interface Props {
   readonly src: string;
+  readonly settings: PlayerSettingsStore;
   readonly autoPlay?: boolean;
   readonly hasPageShortcuts?: boolean;
   readonly failure?: ReactNode;
@@ -50,6 +52,7 @@ interface PlayerProps extends Props {
 
 const Player = ({
   src,
+  settings,
   autoPlay = false,
   hasPageShortcuts = false,
   failure = "This file can’t be played",
@@ -61,7 +64,7 @@ const Player = ({
   const [isFocusVisible, setIsFocusVisible] = useState(false);
   const controls = useRef<HTMLDivElement>(null);
   const { active, wake, hover, rest } = useActivity();
-  const engine = usePlayerEngine({ src, autoPlay, hasPageShortcuts, onKey: wake });
+  const engine = usePlayerEngine({ src, autoPlay, hasPageShortcuts, settings, onKey: wake });
   const { media, state, isVideo } = engine;
   const isPlaying = !state.paused && !state.buffering;
 

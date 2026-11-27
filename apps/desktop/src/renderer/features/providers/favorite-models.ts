@@ -1,4 +1,4 @@
-import { anyString, defineStored } from "#renderer/lib/storage.ts";
+import { defineStored, json } from "#renderer/lib/storage.ts";
 import { useStore } from "#renderer/lib/store.ts";
 
 export interface Favorite {
@@ -7,8 +7,6 @@ export interface Favorite {
   readonly effort: string | null;
 }
 
-const favoriteModels = defineStored("agent.favorite-models", anyString, "[]");
-
 const toFavorite = (value: unknown): ReadonlyArray<Favorite> => {
   if (typeof value !== "object" || value === null) return [];
   const { provider, model, effort } = value as Record<string, unknown>;
@@ -16,21 +14,17 @@ const toFavorite = (value: unknown): ReadonlyArray<Favorite> => {
   return [{ provider, model, effort: typeof effort === "string" ? effort : null }];
 };
 
-const parse = (raw: string): ReadonlyArray<Favorite> => {
-  try {
-    const value: unknown = JSON.parse(raw);
-    return Array.isArray(value) ? value.flatMap(toFavorite) : [];
-  } catch {
-    return [];
-  }
-};
+const toFavorites = (value: unknown): ReadonlyArray<Favorite> =>
+  Array.isArray(value) ? value.flatMap(toFavorite) : [];
+
+const favoriteModels = defineStored("agent.favorite-models", json(toFavorites), []);
 
 type ModelKey = Pick<Favorite, "provider" | "model">;
 
 export const sameModel = (a: ModelKey, b: ModelKey) => a.provider === b.provider && a.model === b.model;
 
 export const useFavoriteModels = () => {
-  const favorites = parse(useStore(favoriteModels));
+  const favorites = useStore(favoriteModels);
   const isFavorite = (key: ModelKey) => favorites.some((candidate) => sameModel(candidate, key));
   return {
     favorites,
@@ -41,11 +35,9 @@ export const useFavoriteModels = () => {
         return index === -1 ? order.length : index;
       };
       favoriteModels.set(
-        JSON.stringify(
-          isFavorite(favorite)
-            ? favorites.filter((candidate) => !sameModel(candidate, favorite))
-            : [...favorites, favorite].toSorted((a, b) => rank(a) - rank(b)),
-        ),
+        isFavorite(favorite)
+          ? favorites.filter((candidate) => !sameModel(candidate, favorite))
+          : [...favorites, favorite].toSorted((a, b) => rank(a) - rank(b)),
       );
     },
   };

@@ -2,14 +2,30 @@ import { defineStore, type Store } from "./store.ts";
 
 const PREFIX = "starlight.";
 
-type Guard<Value extends string> = (raw: string) => raw is Value;
+interface Codec<Value> {
+  readonly decode: (raw: string) => Value | undefined;
+  readonly encode: (value: Value) => string;
+}
 
-export const oneOf =
-  <Value extends string>(values: readonly Value[]): Guard<Value> =>
-  (raw): raw is Value =>
-    (values as readonly string[]).includes(raw);
+const verbatim = <Value extends string>(value: Value) => value;
 
-export const anyString: Guard<string> = (_raw): _raw is string => true;
+export const oneOf = <Value extends string>(values: readonly Value[]): Codec<Value> => ({
+  decode: (raw) => values.find((value) => value === raw),
+  encode: verbatim,
+});
+
+export const anyString: Codec<string> = { decode: verbatim, encode: verbatim };
+
+export const json = <Value>(decode: (value: unknown) => Value): Codec<Value> => ({
+  decode: (raw) => {
+    try {
+      return decode(JSON.parse(raw));
+    } catch {
+      return undefined;
+    }
+  },
+  encode: JSON.stringify,
+});
 
 const read = (key: string) => {
   try {
@@ -25,13 +41,9 @@ const write = (key: string, value: string) => {
   } catch {}
 };
 
-export const defineStored = <Value extends string>(
-  name: string,
-  guard: Guard<Value>,
-  fallback: Value,
-): Store<Value> => {
+export const defineStored = <Value>(name: string, codec: Codec<Value>, fallback: Value): Store<Value> => {
   const key = PREFIX + name;
-  const parse = (raw: string | null) => (raw !== null && guard(raw) ? raw : fallback);
+  const parse = (raw: string | null) => (raw === null ? undefined : codec.decode(raw)) ?? fallback;
   const store = defineStore(parse(read(key)));
 
   window.addEventListener("storage", (event) => {
@@ -41,22 +53,22 @@ export const defineStored = <Value extends string>(
   return {
     ...store,
     set: (next) => {
-      write(key, next);
+      write(key, codec.encode(next));
       store.set(next);
     },
   };
 };
 
-export const defineStoredFamily = <Value extends string>(
+export const defineStoredFamily = <Value>(
   nameOf: (id: string) => string,
-  guard: Guard<Value>,
+  codec: Codec<Value>,
   fallback: Value,
 ) => {
   const members = new Map<string, Store<Value>>();
   return (id: string) => {
     const existing = members.get(id);
     if (existing) return existing;
-    const member = defineStored(nameOf(id), guard, fallback);
+    const member = defineStored(nameOf(id), codec, fallback);
     members.set(id, member);
     return member;
   };

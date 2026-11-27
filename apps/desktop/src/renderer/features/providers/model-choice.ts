@@ -2,7 +2,7 @@ import type { AgentProvider, Chat, ModelChoice } from "@starlight/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useStarlight } from "#renderer/lib/context.ts";
-import { anyString, defineStored } from "#renderer/lib/storage.ts";
+import { defineStored, json } from "#renderer/lib/storage.ts";
 import { useStore } from "#renderer/lib/store.ts";
 
 interface Wanted {
@@ -11,16 +11,9 @@ interface Wanted {
   readonly effort?: string | null;
 }
 
-const lastChoice = defineStored("agent.model", anyString, "");
+const toWanted = (value: unknown): Wanted => (typeof value === "object" && value !== null ? value : {});
 
-const parse = (raw: string): Wanted => {
-  try {
-    const value: unknown = JSON.parse(raw);
-    return typeof value === "object" && value !== null ? value : {};
-  } catch {
-    return {};
-  }
-};
+const lastChoice = defineStored("agent.model", json(toWanted), {});
 
 const resolve = (providers: ReadonlyArray<AgentProvider>, wanted: Wanted): ModelChoice | null => {
   const preferred = providers.find((provider) => provider.id === wanted.provider);
@@ -46,14 +39,14 @@ export const useModelChoice = (chat?: Chat) => {
       provider.models.length > 0 &&
       (chat === undefined || provider.id === chat.provider),
   );
-  const wanted = picked?.scope === scope ? picked.choice : (chat ?? parse(stored));
+  const wanted = picked?.scope === scope ? picked.choice : (chat ?? stored);
 
   return {
     providers,
     choice: resolve(providers, wanted),
     choose: (choice: ModelChoice) => {
       setPicked({ scope, choice });
-      lastChoice.set(JSON.stringify(choice));
+      lastChoice.set(choice);
     },
   };
 };
