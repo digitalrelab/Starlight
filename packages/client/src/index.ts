@@ -12,6 +12,7 @@ export type {
   Listing,
   Media,
   Update,
+  UpdaterState,
   Workspace,
 } from "@starlight/contracts";
 export {

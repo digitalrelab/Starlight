@@ -3,7 +3,7 @@ import { cn } from "@starlight/ui";
 import { useQuery } from "@tanstack/react-query";
 import { type ReactNode, useState } from "react";
 import { fileUrl } from "../../../shared/files.ts";
-import { thumbnailUrl } from "../../../shared/thumbnails.ts";
+import { previewUrl } from "../../../shared/previews.ts";
 import { useStarlight } from "../../lib/context.ts";
 import { reveal } from "../../lib/reveal.ts";
 import { type ItemKind, KindIcon, itemKindOf } from "../files/kind-icon.tsx";
@@ -24,7 +24,7 @@ const Notice = ({ kind, children }: { readonly kind: ItemKind; readonly children
 interface PictureProps {
   readonly name: string;
   readonly source: FileSource;
-  readonly presentation: "image" | "rendition";
+  readonly presentation: "image" | "preview";
 }
 
 const Picture = ({ name, source, presentation }: PictureProps) => {
@@ -40,7 +40,7 @@ const Picture = ({ name, source, presentation }: PictureProps) => {
       }
     >
       <img
-        src={thumbnailUrl(source.token, PLACEHOLDER_PIXELS)}
+        src={previewUrl(source.token, PLACEHOLDER_PIXELS)}
         alt=""
         draggable={false}
         className={cn(fill, "group-has-data-loaded/fitted:invisible")}
@@ -65,7 +65,7 @@ const Video = ({ source }: { readonly source: FileSource }) => {
     <div className="flex size-full items-center justify-center">
       <video
         src={fileUrl(source.token)}
-        poster={thumbnailUrl(source.token, POSTER_PIXELS)}
+        poster={previewUrl(source.token, POSTER_PIXELS)}
         controls
         autoPlay
         onError={() => setFailed(true)}

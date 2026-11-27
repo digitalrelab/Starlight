@@ -95,7 +95,8 @@ export const createClient = (ports: PortSources) => {
       clearPreviews: () => shell((c) => c.ClearPreviews()),
     },
     updates: {
-      watch: () => shell((c) => Stream.toAsyncIterableEffect(c.WatchUpdates())),
+      watch: () => shell((c) => Stream.toAsyncIterableEffect(c.WatchUpdater())),
+      check: () => shell((c) => c.CheckForUpdates()),
       download: () => shell((c) => c.DownloadUpdate()),
       install: () => shell((c) => c.InstallUpdate()),
     },

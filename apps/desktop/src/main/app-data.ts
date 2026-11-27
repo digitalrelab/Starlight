@@ -8,16 +8,16 @@ export const appData = () => {
   return {
     root,
     database: join(root, "starlight.db"),
-    thumbnails: join(root, "thumbnails"),
+    previews: join(root, "previews"),
     agent: join(root, "agent"),
   };
 };
 
 export const measureAppData = async (): Promise<DiskUsage> => {
-  const { root, database, thumbnails } = appData();
+  const { root, database, previews } = appData();
   const usage = { previews: 0, library: 0, other: 0 };
   for (const { path, size } of await listFiles(root)) {
-    if (path.startsWith(thumbnails + sep)) usage.previews += size;
+    if (path.startsWith(previews + sep)) usage.previews += size;
     else if (path.startsWith(database)) usage.library += size;
     else usage.other += size;
   }
