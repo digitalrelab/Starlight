@@ -13,7 +13,7 @@ import type {
   SourceUnavailable,
 } from "@starlight/contracts";
 import { Array as Arr, Context, Effect, Layer, Result, Stream } from "effect";
-import { FileIdentities } from "./file-identities.ts";
+import { EntryIndex } from "./entry-index.ts";
 import type { SourceChange, SourceDriver, SourceEntry } from "./ports.ts";
 import { Projects } from "./projects.ts";
 
@@ -73,7 +73,7 @@ export class Entries extends Context.Service<
   static readonly layer = Layer.effect(Entries)(
     Effect.gen(function* () {
       const projects = yield* Projects;
-      const identities = yield* FileIdentities;
+      const index = yield* EntryIndex;
 
       const listMounts = Effect.fn("Entries.listMounts")(function* (projectId: ProjectId) {
         const { mounts } = yield* projects.get(projectId);
@@ -92,7 +92,7 @@ export class Entries extends Context.Service<
           if (!requested) return yield* listMounts(projectId);
           const { mount, driver, directory } = yield* projects.locateDirectory(projectId, requested);
           const children = yield* driver.list(directory.id);
-          const files = yield* identities.bind(
+          const files = yield* index.bind(
             driver,
             directory,
             children.filter((child) => child.kind === "file"),
