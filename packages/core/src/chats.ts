@@ -131,6 +131,15 @@ export class Chats extends Context.Service<
 
       const release = (id: ChatId) => Effect.sync(() => drafts.delete(id));
 
+      const resume = Effect.fnUntraced(function* (id: ChatId, model: ModelChoice) {
+        const stored = yield* find(id);
+        if (stored.chat.provider !== model.provider) {
+          return yield* new ModelUnavailable({ provider: model.provider });
+        }
+        yield* store.saveModel(id, model);
+        return [stored, yield* driverFor(model)] as const;
+      });
+
       const deliver = Effect.fnUntraced(function* (
         stored: StoredChat,
         driver: AgentProviderDriver,
@@ -174,14 +183,7 @@ export class Chats extends Context.Service<
           if (drafts.has(id)) return yield* new ChatBusy({ chatId: id });
           const draft: Draft = { id: yield* ids.next, text: "" };
           drafts.set(id, draft);
-          const [stored, driver] = yield* Effect.gen(function* () {
-            const stored = yield* find(id);
-            if (stored.chat.provider !== model.provider) {
-              return yield* new ModelUnavailable({ provider: model.provider });
-            }
-            yield* store.saveModel(id, model);
-            return [stored, yield* driverFor(model)] as const;
-          }).pipe(Effect.onError(() => release(id)));
+          const [stored, driver] = yield* resume(id, model).pipe(Effect.onError(() => release(id)));
           return yield* deliver(stored, driver, draft, text, model);
         }),
         rename: Effect.fn("Chats.rename")(function* (id, title) {

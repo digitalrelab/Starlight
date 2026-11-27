@@ -1,11 +1,12 @@
+import { ChatNotFound } from "@starlight/client";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import { Navigate } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { useModelChoice } from "#renderer/features/providers/model-choice.ts";
-import { ModelPicker } from "#renderer/features/providers/model-picker.tsx";
-import { NoProvider } from "#renderer/features/providers/no-provider.tsx";
+import { PageError } from "#renderer/features/shell/page-error.tsx";
 import { PageHeader } from "#renderer/features/shell/page-header.tsx";
 import { useStarlight } from "#renderer/lib/context.ts";
-import { Composer } from "./composer.tsx";
+import { chatsLink } from "./chat-links.ts";
+import { ModelComposer } from "./model-composer.tsx";
 import { Transcript } from "./transcript.tsx";
 
 export const ChatView = ({ chatId }: { readonly chatId: string }) => {
@@ -13,7 +14,6 @@ export const ChatView = ({ chatId }: { readonly chatId: string }) => {
   useEffect(() => subscriptions.chat(chatId), [subscriptions, chatId]);
   const { data: detail } = useSuspenseQuery(queries.chat(chatId));
   const send = useMutation(mutations.sendMessage());
-  const { providers, choice, choose } = useModelChoice(detail.chat);
 
   return (
     <>
@@ -27,18 +27,26 @@ export const ChatView = ({ chatId }: { readonly chatId: string }) => {
         className="mx-auto w-full max-w-2xl px-6 py-8"
       />
       <div className="mx-auto w-full max-w-2xl px-6 pb-6">
-        {choice ? (
-          <Composer
-            placeholder="Reply…"
-            autoFocus
-            disabled={detail.draft !== null}
-            actions={<ModelPicker providers={providers} choice={choice} onChoose={choose} />}
-            onSubmit={(text) => send.mutateAsync({ chatId, text, model: choice })}
-          />
-        ) : (
-          <NoProvider />
-        )}
+        <ModelComposer
+          chat={detail.chat}
+          placeholder="Reply…"
+          disabled={detail.draft !== null}
+          onSubmit={(text, model) => send.mutateAsync({ chatId, text, model })}
+        />
       </div>
     </>
   );
 };
+
+export const ChatError = ({
+  error,
+  projectId,
+}: {
+  readonly error: unknown;
+  readonly projectId: string | null;
+}) =>
+  error instanceof ChatNotFound ? (
+    <Navigate {...chatsLink(projectId)} replace />
+  ) : (
+    <PageError error={error} />
+  );

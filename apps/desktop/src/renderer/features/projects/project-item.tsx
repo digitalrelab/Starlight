@@ -18,7 +18,7 @@ export const ProjectItem = ({ project }: { readonly project: Project }) => {
   const rename = useRenameProject(project.id);
   const navigate = useNavigate();
   const params = { projectId: project.id };
-  const open = useParams({ strict: false }).projectId === project.id;
+  const active = useParams({ strict: false }).projectId === project.id;
 
   if (renaming) {
     return (
@@ -59,7 +59,7 @@ export const ProjectItem = ({ project }: { readonly project: Project }) => {
       >
         {project.name}
       </NavItem>
-      {open ? <ProjectChats projectId={project.id} /> : null}
+      {active ? <ProjectChats projectId={project.id} /> : null}
       <DeleteProjectDialog project={project} open={deleting} onOpenChange={setDeleting} />
     </>
   );
