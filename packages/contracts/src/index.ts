@@ -1,5 +1,4 @@
 export * from "./actor.ts";
-export * from "./appearance.ts";
 export * from "./connection.ts";
 export * from "./entry.ts";
 export * from "./errors.ts";

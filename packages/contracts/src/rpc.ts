@@ -1,6 +1,5 @@
 import { Schema } from "effect";
 import { Rpc, RpcGroup } from "effect/rpc";
-import { ColorScheme } from "./appearance.ts";
 import { Entry, EntryChange } from "./entry.ts";
 import { FileSystemError, NotADirectory, PathOutsideWorkspace, WorkspaceNotFound } from "./errors.ts";
 import { RelativePath, WorkspaceId } from "./ids.ts";
@@ -36,8 +35,5 @@ export class HostRpcs extends RpcGroup.make(
 export class ShellRpcs extends RpcGroup.make(
   Rpc.make("PickDirectory", {
     success: Schema.NullOr(Schema.String),
-  }),
-  Rpc.make("SetColorScheme", {
-    payload: { colorScheme: ColorScheme },
   }),
 ) {}

@@ -1,10 +1,4 @@
-import {
-  type EntryChange,
-  HostRpcs,
-  ShellRpcs,
-  type ColorScheme,
-  type WorkspaceId,
-} from "@starlight/contracts";
+import { type EntryChange, HostRpcs, ShellRpcs, type WorkspaceId } from "@starlight/contracts";
 import { Context, Effect, Layer, ManagedRuntime, Stream } from "effect";
 import { RpcClient, type RpcClientError } from "effect/rpc";
 import { layerProtocolPort } from "./transport.ts";
@@ -53,7 +47,6 @@ export const createClient = (ports: PortSources) => {
     },
     shell: {
       pickDirectory: () => shell((c) => c.PickDirectory()),
-      setColorScheme: (colorScheme: ColorScheme) => shell((c) => c.SetColorScheme({ colorScheme })),
     },
   };
 };
