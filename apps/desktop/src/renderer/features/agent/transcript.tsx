@@ -1,14 +1,20 @@
 import type { ChatMessage, Draft } from "@starlight/client";
 import { Markdown } from "@starlight/markdown";
-import { cn, ScrollArea } from "@starlight/ui";
+import { ScrollArea } from "@starlight/ui";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { useEffect, useRef } from "react";
 import { useRevealedText } from "./use-revealed-text.ts";
-import { useStickToBottom } from "./use-stick-to-bottom.ts";
+
+const ESTIMATED_MESSAGE_HEIGHT = 120;
+const MESSAGE_GAP = 24;
+const EDGE_SPACE = 32;
+const AT_END_WITHIN_PX = 48;
 
 interface Props {
   readonly messages: ReadonlyArray<ChatMessage>;
   readonly draft: Draft | null;
   readonly failure: string | null;
-  readonly className?: string;
+  readonly className: string;
 }
 
 const Reply = ({ text, pending }: { readonly text: string; readonly pending: boolean }) => {
@@ -35,27 +41,46 @@ const Message = ({
   );
 
 export const Transcript = ({ messages, draft, failure, className }: Props) => {
-  const { viewport, content } = useStickToBottom(messages.findLast((message) => message.role === "user")?.id);
+  const viewport = useRef<HTMLDivElement>(null);
+  const lastQuestion = messages.findLast((message) => message.role === "user")?.id;
   const items = draft
     ? [...messages, { id: draft.id, role: "assistant" as const, text: draft.text }]
     : messages;
+  const virtualizer = useVirtualizer({
+    count: items.length,
+    getScrollElement: () => viewport.current,
+    getItemKey: (index) => items[index]?.id ?? index,
+    estimateSize: () => ESTIMATED_MESSAGE_HEIGHT,
+    gap: MESSAGE_GAP,
+    paddingStart: EDGE_SPACE,
+    paddingEnd: failure ? MESSAGE_GAP : EDGE_SPACE,
+    overscan: 4,
+    anchorTo: "end",
+    followOnAppend: true,
+    scrollEndThreshold: AT_END_WITHIN_PX,
+  });
+  useEffect(() => virtualizer.scrollToEnd(), [virtualizer, lastQuestion]);
 
   return (
-    <ScrollArea
-      className="flex-1"
-      ref={viewport}
-      contentRef={content}
-      contentClassName={cn("flex flex-col gap-6", className)}
-    >
-      {items.map((message) => (
-        <Message
-          key={message.id}
-          role={message.role}
-          text={message.text}
-          pending={message.id === draft?.id}
-        />
-      ))}
-      {failure ? <p className="text-sm text-danger">{failure}</p> : null}
+    <ScrollArea className="flex-1" ref={viewport} contentClassName={className}>
+      <div className="relative" style={{ height: virtualizer.getTotalSize() }}>
+        {virtualizer.getVirtualItems().map((row) => {
+          const message = items[row.index];
+          if (!message) return null;
+          return (
+            <div
+              key={row.key}
+              ref={virtualizer.measureElement}
+              data-index={row.index}
+              className="absolute inset-x-0 top-0 flex flex-col"
+              style={{ transform: `translateY(${row.start}px)` }}
+            >
+              <Message role={message.role} text={message.text} pending={message.id === draft?.id} />
+            </div>
+          );
+        })}
+      </div>
+      {failure ? <p className="pb-8 text-sm text-danger">{failure}</p> : null}
     </ScrollArea>
   );
 };

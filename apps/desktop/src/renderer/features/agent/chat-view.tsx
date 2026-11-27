@@ -24,7 +24,7 @@ export const ChatView = ({ chatId }: { readonly chatId: string }) => {
         messages={detail.messages}
         draft={detail.draft}
         failure={detail.failure}
-        className="mx-auto w-full max-w-2xl px-6 py-8"
+        className="mx-auto w-full max-w-2xl px-6"
       />
       <div className="mx-auto w-full max-w-2xl px-6 pb-6">
         <ModelComposer
