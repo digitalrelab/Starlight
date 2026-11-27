@@ -32,7 +32,7 @@ const probedCodecs: { readonly [F in keyof ProbedFacts]: Schema.Codec<ProbedFact
 };
 
 const processedCodecs: { readonly [F in ProcessedName]: Schema.Codec<ProcessedFacts[F], string> } = {
-  placeholder: Schema.fromJsonString(Schema.String),
+  placeholder: Schema.fromJsonString(Schema.NullOr(Schema.String)),
   palette: Schema.fromJsonString(Palette),
   traits: Schema.fromJsonString(Schema.Array(Property)),
 };

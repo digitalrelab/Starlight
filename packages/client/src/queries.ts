@@ -4,7 +4,16 @@ import {
   queryOptions,
   type QueryClient,
 } from "@tanstack/react-query";
-import type { ChatDetail, EntryRef, Listing, ModelChoice, Project, UpdaterState } from "@starlight/contracts";
+import type {
+  AgentProviderUsage,
+  ChatDetail,
+  CreatableKind,
+  EntryRef,
+  Listing,
+  ModelChoice,
+  Project,
+  UpdaterState,
+} from "@starlight/contracts";
 import type { StarlightClient } from "./client.ts";
 import { createFileSession, type FileSessionOptions } from "./file-session.ts";
 import { entryKey } from "./refs.ts";
@@ -15,6 +24,16 @@ const listingKey = (projectId: string, directory: string | null, facet: "entries
   [...directoryKey(projectId), directory, facet] as const;
 
 const chatsKey = ["chats"] as const;
+
+const untilNextReset = (usage: ReadonlyArray<AgentProviderUsage> | undefined) => {
+  const now = Date.now();
+  const resets = (usage ?? []).flatMap(({ usage }) =>
+    usage._tag === "Metered"
+      ? usage.windows.flatMap(({ resetsAt }) => (resetsAt !== null && resetsAt > now ? [resetsAt] : []))
+      : [],
+  );
+  return resets.length > 0 ? Math.min(...resets) - now : false;
+};
 const chatKey = ["chat"] as const;
 
 const createQueries = (client: StarlightClient) => ({
@@ -47,13 +66,31 @@ const createQueries = (client: StarlightClient) => ({
       queryFn: () => client.files.details(projectId, file),
     }),
 
+  entryLocation: (ref: EntryRef) =>
+    queryOptions({ queryKey: ["entryLocation", entryKey(ref)], queryFn: () => client.entries.locate(ref) }),
+
+  entrySearch: (query: string, projectId: string | null, includeHidden: boolean) =>
+    queryOptions({
+      queryKey: ["entrySearch", query, projectId, includeHidden],
+      queryFn: () => client.entries.search(query, projectId, includeHidden),
+      staleTime: 0,
+    }),
+
   agentProviders: () =>
     queryOptions({
       queryKey: ["agentProviders"],
       queryFn: () => client.agents.providers(),
       gcTime: Infinity,
-      refetchOnMount: "always",
-      refetchOnWindowFocus: "always",
+      refetchOnMount: false,
+      refetchOnWindowFocus: true,
+    }),
+
+  agentUsage: () =>
+    queryOptions({
+      queryKey: ["agentUsage"],
+      queryFn: () => client.agents.usage(),
+      refetchOnWindowFocus: true,
+      refetchInterval: ({ state }) => untilNextReset(state.data),
     }),
 
   chats: (projectId: string | null) =>
@@ -197,6 +234,13 @@ const createMutations = (client: StarlightClient, queryClient: QueryClient, quer
       },
     }),
 
+  createEntry: (projectId: string, directory: EntryRef) =>
+    mutationOptions({
+      mutationFn: ({ name, kind }: { readonly name: string; readonly kind: CreatableKind }) =>
+        client.entries.create(projectId, directory, name, kind),
+      onSuccess: () => queryClient.invalidateQueries(queries.entries(projectId, directory)),
+    }),
+
   removeMount: (projectId: string) =>
     mutationOptions({
       mutationFn: (root: EntryRef) => client.projects.removeMount(projectId, root),
@@ -208,6 +252,10 @@ const createMutations = (client: StarlightClient, queryClient: QueryClient, quer
 });
 
 const createSubscriptions = (client: StarlightClient, queryClient: QueryClient, queries: Queries) => ({
+  settledTurns: () =>
+    client.chats.watchSettled(
+      () => void queryClient.invalidateQueries({ queryKey: queries.agentUsage().queryKey }),
+    ),
   chat: (id: string) => {
     const { queryKey } = queries.chat(id);
     const update = (change: (detail: ChatDetail) => ChatDetail) =>

@@ -1,7 +1,7 @@
 import { DirectoryMissing, type Entry, type EntryRef, entryKey } from "@starlight/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, type ErrorComponentProps, Navigate, useRouter } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { DirectoryBreadcrumbs } from "#renderer/features/browser/directory-breadcrumbs.tsx";
 import {
   parseDirectorySearch,
@@ -14,6 +14,7 @@ import { DirectoryView } from "#renderer/features/browser/directory-view.tsx";
 import { layoutPreference } from "#renderer/features/browser/layout-preference.ts";
 import { LayoutSwitcher } from "#renderer/features/browser/layout-switcher.tsx";
 import { layouts } from "#renderer/features/browser/layouts/registry.ts";
+import { NewEntryContextMenu, NewEntryMenu } from "#renderer/features/browser/new-entry/new-entry-menu.tsx";
 import { useFoldersAhead } from "#renderer/features/browser/use-folders-ahead.ts";
 import { hiddenFiles } from "#renderer/features/settings/files.ts";
 import { PageError } from "#renderer/features/shell/page-error.tsx";
@@ -21,12 +22,7 @@ import { PageHeader } from "#renderer/features/shell/page-header.tsx";
 import { FileViewer } from "#renderer/features/viewer/file-viewer.tsx";
 import { AddMountButton } from "#renderer/features/projects/add-mount-button.tsx";
 import { useStarlight } from "#renderer/lib/context.ts";
-import { useStored } from "#renderer/lib/storage.ts";
-
-interface Selection {
-  readonly directory: string;
-  readonly key: string | undefined;
-}
+import { useStore } from "#renderer/lib/store.ts";
 
 export const Route = createFileRoute("/_app/p/$projectId/")({
   validateSearch: parseDirectorySearch,
@@ -46,31 +42,26 @@ function Browser() {
   const { projectId } = Route.useParams();
   const { directory } = Route.useLoaderDeps();
   const file = toFile(Route.useSearch());
-  const fileKey = file ? entryKey(file) : undefined;
   const navigate = Route.useNavigate();
   const router = useRouter();
   const { queries, subscriptions } = useStarlight();
   const { data: project } = useSuspenseQuery(queries.project(projectId));
   const { data: listing, error, isFetching } = useSuspenseQuery(queries.entries(projectId, directory));
   const preference = layoutPreference(projectId);
-  const layout = useStored(preference);
-  const showHidden = useStored(hiddenFiles) === "show";
+  const layout = useStore(preference);
+  const showHidden = useStore(hiddenFiles) === "show";
   const entries = showHidden ? listing.entries : listing.entries.filter((entry) => !entry.hidden);
   useEffect(() => subscriptions.entries(projectId), [subscriptions, projectId]);
 
   const directoryKey = directory ? entryKey(directory) : "";
-  const [selection, setSelection] = useState<Selection>({ directory: directoryKey, key: undefined });
-  const select = (key: string | undefined) => setSelection({ directory: directoryKey, key });
-  if (fileKey && (selection.directory !== directoryKey || selection.key !== fileKey)) select(fileKey);
-  const selectedKey = selection.directory === directoryKey ? selection.key : undefined;
 
   const showFile = (shown: EntryRef) => {
     if (directory) void navigate({ search: toFileSearch(directory, shown), replace: true, state: true });
   };
-  const onOpen = (entry: Entry) => {
-    if (entry.kind === "directory") void navigate({ search: toDirectorySearch(entry.ref) });
-    else if (entry.kind === "file" && directory)
-      void navigate({ search: toFileSearch(directory, entry.ref), state: { fromDirectory: true } });
+  const onOpen = ({ ref, kind }: Pick<Entry, "ref" | "kind">) => {
+    if (kind === "directory") void navigate({ search: toDirectorySearch(ref) });
+    else if (kind === "file" && directory)
+      void navigate({ search: toFileSearch(directory, ref), state: { fromDirectory: true } });
   };
   const preloadFolder = (folder: EntryRef) =>
     router.preloadRoute({
@@ -89,11 +80,25 @@ function Browser() {
 
   if (error && !isFetching) throw error;
 
+  const view = (
+    <DirectoryView
+      key={directoryKey}
+      projectId={projectId}
+      directory={directory}
+      entries={entries}
+      layout={layout}
+      shown={file}
+      onOpen={onOpen}
+      onIntent={prefetch}
+    />
+  );
+
   return (
     <>
       <PageHeader
         actions={
           <>
+            {directory ? <NewEntryMenu directory={directory} entries={listing.entries} /> : null}
             <AddMountButton projectId={projectId} />
             <LayoutSwitcher value={layout} onChange={preference.set} />
           </>
@@ -101,17 +106,13 @@ function Browser() {
       >
         <DirectoryBreadcrumbs project={project} trail={listing.trail} />
       </PageHeader>
-      <DirectoryView
-        key={directoryKey}
-        projectId={projectId}
-        directory={directory}
-        entries={entries}
-        layout={layout}
-        selectedKey={selectedKey}
-        onSelectKey={select}
-        onOpen={onOpen}
-        onIntent={prefetch}
-      />
+      {directory ? (
+        <NewEntryContextMenu directory={directory} entries={listing.entries}>
+          {view}
+        </NewEntryContextMenu>
+      ) : (
+        view
+      )}
       {directory && file ? (
         <FileViewer
           projectId={projectId}

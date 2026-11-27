@@ -8,6 +8,7 @@ import { makeModels } from "./models.ts";
 import { makePool } from "./pool.ts";
 import { respond } from "./respond.ts";
 import { openSession } from "./session.ts";
+import { makeUsage } from "./usage.ts";
 
 const findExecutable = findCommand("claude", [".local/bin/claude", ".claude/local/claude"]);
 
@@ -52,6 +53,7 @@ export const makeClaudeCodeDriver = (workingDirectory: string): AgentProviderDri
     name: "Claude Code",
     status,
     models: makeModels(pool),
+    usage: makeUsage(pool),
     prepare: Effect.sync(() => void pool.prepare().catch(() => {})),
     forget: (session) =>
       Effect.sync(() => pool.forget(session)).pipe(

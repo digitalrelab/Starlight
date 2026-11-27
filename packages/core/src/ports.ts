@@ -3,9 +3,11 @@ import type {
   AgentProviderId,
   AgentModel,
   AgentProviderStatus,
+  AgentUsage,
   ChatMessage,
   Chat,
   ChatId,
+  CreatableKind,
   Dimensions,
   EntryId,
   EntryKind,
@@ -23,6 +25,7 @@ import type {
   Project,
   ProjectId,
 } from "@starlight/contracts";
+import { FileVersion } from "@starlight/contracts";
 import { Context, Data, type Effect, type Option, type Stream } from "effect";
 
 export interface SourceEntry {
@@ -35,6 +38,8 @@ export interface SourceEntry {
   readonly modifiedAt: number;
   readonly hidden: boolean;
 }
+
+export const versionOf = ({ modifiedAt, size }: SourceEntry) => FileVersion.make(`${modifiedAt}:${size}`);
 
 export interface IdentifiedEntry extends SourceEntry {
   readonly fileId: FileId;
@@ -55,7 +60,7 @@ export interface ProbedFacts {
 }
 
 export interface ProcessedFacts {
-  readonly placeholder: string;
+  readonly placeholder: string | null;
   readonly palette: Palette;
   readonly traits: ReadonlyArray<Property>;
 }
@@ -85,6 +90,11 @@ export interface SourceDriver {
   readonly stat: (id: EntryId) => Effect.Effect<SourceEntry, SourceError>;
   readonly list: (id: EntryId) => Effect.Effect<ReadonlyArray<SourceEntry>, SourceError>;
   readonly write: (id: EntryId, content: Uint8Array) => Effect.Effect<SourceEntry, SourceError>;
+  readonly create: (
+    parent: EntryId,
+    name: string,
+    kind: CreatableKind,
+  ) => Effect.Effect<SourceEntry, SourceError>;
   readonly watch: (root: EntryId) => Stream.Stream<SourceChange, SourceError>;
   readonly extractors: Extractors;
   readonly sample: (entry: SourceEntry) => Effect.Effect<Option.Option<PixelSample>, SampleFailed>;
@@ -96,7 +106,7 @@ export class SourceDrivers extends Context.Service<SourceDrivers, ReadonlyMap<So
 
 export class FileTokens extends Context.Service<
   FileTokens,
-  { readonly issue: (ref: EntryRef, version: number) => FileToken }
+  { readonly issue: (ref: EntryRef, entry: IdentifiedEntry) => FileToken }
 >()("@starlight/core/FileTokens") {}
 
 export interface StoredFact {
@@ -118,33 +128,48 @@ export class FactStore extends Context.Service<
     readonly inDirectory: (scope: FactScope, directory: EntryId) => Effect.Effect<ReadonlyArray<StoredFact>>;
     readonly find: (fact: FactName, fileId: FileId) => Effect.Effect<Option.Option<StoredFact>>;
     readonly save: (fact: FactName, facts: ReadonlyArray<StoredFact>) => Effect.Effect<void>;
+    readonly remove: (fileIds: ReadonlyArray<FileId>) => Effect.Effect<void>;
   }
 >()("@starlight/core/FactStore") {}
 
-export interface FileIdentity {
-  readonly id: FileId;
-  readonly entry: EntryId;
-  readonly key: string;
+export interface StoredEntry extends SourceEntry {
+  readonly fileId: FileId | null;
 }
 
-export class FileIdentityStore extends Context.Service<
-  FileIdentityStore,
+export interface FoundEntry extends StoredEntry {
+  readonly source: SourceId;
+  readonly parent: EntryId;
+}
+
+export interface EntryQuery {
+  readonly text: string;
+  readonly group: "folders" | "files";
+  readonly includeHidden: boolean;
+  readonly limit: number;
+}
+
+export class EntryStore extends Context.Service<
+  EntryStore,
   {
-    readonly inDirectory: (
-      source: SourceId,
-      directory: EntryId,
-    ) => Effect.Effect<ReadonlyArray<FileIdentity>>;
+    readonly roots: Effect.Effect<ReadonlyArray<EntryRef>>;
+    readonly children: (source: SourceId, directory: EntryId) => Effect.Effect<ReadonlyArray<StoredEntry>>;
     readonly withKeys: (
       source: SourceId,
       keys: ReadonlyArray<string>,
-    ) => Effect.Effect<ReadonlyArray<FileIdentity>>;
+    ) => Effect.Effect<ReadonlyArray<StoredEntry>>;
     readonly save: (
       source: SourceId,
       directory: EntryId,
-      identities: ReadonlyArray<FileIdentity>,
+      entries: ReadonlyArray<StoredEntry>,
     ) => Effect.Effect<void>;
+    readonly remove: (
+      source: SourceId,
+      ids: ReadonlyArray<EntryId>,
+      keep: ReadonlyArray<EntryId>,
+    ) => Effect.Effect<ReadonlyArray<FileId>>;
+    readonly search: (query: EntryQuery) => Effect.Effect<ReadonlyArray<FoundEntry>>;
   }
->()("@starlight/core/FileIdentityStore") {}
+>()("@starlight/core/EntryStore") {}
 
 export class ProjectStore extends Context.Service<
   ProjectStore,
@@ -195,6 +220,7 @@ export interface AgentProviderDriver {
   readonly name: string;
   readonly status: Effect.Effect<AgentProviderStatus>;
   readonly models: Effect.Effect<ReadonlyArray<AgentModel>>;
+  readonly usage: Effect.Effect<AgentUsage>;
   readonly prepare: Effect.Effect<void>;
   readonly forget: (session: string) => Effect.Effect<void>;
   readonly respond: (input: AgentTurnInput) => Stream.Stream<AgentTurnEvent, AgentTurnFailed>;

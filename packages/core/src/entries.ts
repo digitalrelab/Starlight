@@ -1,20 +1,24 @@
-import type {
-  DirectoryError,
-  Entry,
-  EntryChange,
-  EntryRef,
-  FileId,
-  Listing,
-  Mount,
-  ProjectId,
-  ProjectNotFound,
-  SourceError,
-  SourceId,
-  SourceUnavailable,
+import {
+  type CreatableKind,
+  type CreateError,
+  type DirectoryError,
+  type Entry,
+  type EntryChange,
+  EntryExists,
+  type EntryRef,
+  type FileId,
+  InvalidName,
+  type Listing,
+  type Mount,
+  type ProjectId,
+  type ProjectNotFound,
+  type SourceError,
+  type SourceId,
+  type SourceUnavailable,
 } from "@starlight/contracts";
 import { Array as Arr, Context, Effect, Layer, Result, Stream } from "effect";
-import { FileIdentities } from "./file-identities.ts";
-import type { SourceChange, SourceDriver, SourceEntry } from "./ports.ts";
+import { EntryIndex } from "./entry-index.ts";
+import { AuditLog, CurrentActor, type SourceChange, type SourceDriver, type SourceEntry } from "./ports.ts";
 import { Projects } from "./projects.ts";
 
 const MAX_CHANGED_DIRECTORIES = 1024;
@@ -36,6 +40,9 @@ const toEntry = (
   ref: { source, id },
   fileId,
 });
+
+const isValidName = (name: string) =>
+  name.trim() !== "" && name !== "." && name !== ".." && !/[/\\\0]/.test(name);
 
 const resync: EntryChange = { _tag: "Resync" };
 
@@ -65,6 +72,12 @@ export class Entries extends Context.Service<
       projectId: ProjectId,
       directory: EntryRef | null,
     ) => Effect.Effect<Listing, DirectoryError>;
+    readonly create: (
+      projectId: ProjectId,
+      directory: EntryRef,
+      name: string,
+      kind: CreatableKind,
+    ) => Effect.Effect<EntryRef, CreateError, CurrentActor>;
     readonly watch: (
       projectId: ProjectId,
     ) => Stream.Stream<EntryChange, ProjectNotFound | SourceUnavailable | SourceError>;
@@ -73,7 +86,8 @@ export class Entries extends Context.Service<
   static readonly layer = Layer.effect(Entries)(
     Effect.gen(function* () {
       const projects = yield* Projects;
-      const identities = yield* FileIdentities;
+      const index = yield* EntryIndex;
+      const audit = yield* AuditLog;
 
       const listMounts = Effect.fn("Entries.listMounts")(function* (projectId: ProjectId) {
         const { mounts } = yield* projects.get(projectId);
@@ -92,7 +106,7 @@ export class Entries extends Context.Service<
           if (!requested) return yield* listMounts(projectId);
           const { mount, driver, directory } = yield* projects.locateDirectory(projectId, requested);
           const children = yield* driver.list(directory.id);
-          const files = yield* identities.bind(
+          const files = yield* index.bind(
             driver,
             directory,
             children.filter((child) => child.kind === "file"),
@@ -107,6 +121,25 @@ export class Entries extends Context.Service<
               .map((child) => toEntry(directory.source, child, fileIds.get(child.id) ?? null))
               .sort(byKindThenName),
           };
+        }),
+
+        create: Effect.fn("Entries.create")(function* (projectId, requested, name, kind) {
+          if (!isValidName(name)) return yield* new InvalidName({ name });
+          const { driver, directory } = yield* projects.locateDirectory(projectId, requested);
+          const created = yield* driver
+            .create(directory.id, name, kind)
+            .pipe(
+              Effect.mapError((error) =>
+                error.reason === "AlreadyExists" ? new EntryExists({ name }) : error,
+              ),
+            );
+          const ref = { source: directory.source, id: created.id };
+          yield* audit.record({
+            actor: yield* CurrentActor,
+            action: kind === "file" ? "CreateFile" : "CreateDirectory",
+            target: JSON.stringify(ref),
+          });
+          return ref;
         }),
 
         watch: (projectId) =>

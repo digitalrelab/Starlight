@@ -13,6 +13,7 @@ import { type ItemKind, KindIcon, itemKindOf } from "#renderer/features/files/ki
 import { UnsavedDot } from "#renderer/features/files/unsaved-dot.tsx";
 import { useFileSession } from "#renderer/features/files/use-file-session.ts";
 import { MarkdownEditor } from "./markdown-file.ts";
+import { playerSettings } from "./player-settings.ts";
 import { pictureUrl, presentationOf } from "./presentation.ts";
 import { StatusSlot } from "./status-slot.ts";
 
@@ -75,6 +76,7 @@ const playbackFailure = (kind: "video" | "audio") => (
 const Video = ({ source }: { readonly source: FileSource }) => (
   <MediaPlayer.Video
     src={fileUrl(source.token)}
+    settings={playerSettings}
     poster={previewUrl(source.token, POSTER_PIXELS)}
     autoPlay
     hasPageShortcuts
@@ -86,6 +88,7 @@ const Video = ({ source }: { readonly source: FileSource }) => (
 const Audio = ({ source }: { readonly source: FileSource }) => (
   <MediaPlayer.Audio
     src={fileUrl(source.token)}
+    settings={playerSettings}
     autoPlay
     hasPageShortcuts
     failure={playbackFailure("audio")}

@@ -1,19 +1,28 @@
 import { type Entry, type EntryRef, entryKey } from "@starlight/client";
-import { type KeyboardEvent, Suspense, useEffect, useRef } from "react";
+import { Suspense, useEffect, useEffectEvent, useLayoutEffect, useRef, useState } from "react";
 import { type LayoutId, layouts } from "./layouts/registry.ts";
+import { DraftField } from "./new-entry/draft-field.tsx";
+import { useDraft } from "./new-entry/draft.ts";
+import { createSelection, type SelectionStore, selectionId, useSelectedCount } from "./selection.ts";
 
 interface Props {
   readonly projectId: string;
   readonly directory: EntryRef | null;
   readonly entries: ReadonlyArray<Entry>;
   readonly layout: LayoutId;
-  readonly selectedKey: string | undefined;
-  readonly onSelectKey: (key: string | undefined) => void;
-  readonly onOpen: (entry: Entry) => void;
+  readonly shown: EntryRef | null;
+  readonly onOpen: (entry: Pick<Entry, "ref" | "kind">) => void;
   readonly onIntent: (entry: Entry) => void;
 }
 
 const INTENT_DWELL_MS = 100;
+
+const selectionIdOf = (entries: ReadonlyArray<Entry>, ref: EntryRef | null) => {
+  if (!ref) return undefined;
+  const key = entryKey(ref);
+  const entry = entries.find((candidate) => entryKey(candidate.ref) === key);
+  return entry && selectionId(entry);
+};
 
 const useDwell = (onDwell: (entry: Entry) => void) => {
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -24,53 +33,70 @@ const useDwell = (onDwell: (entry: Entry) => void) => {
   };
 };
 
-export const DirectoryView = ({
-  projectId,
-  directory,
-  entries,
-  layout,
-  selectedKey,
-  onSelectKey,
-  onOpen,
-  onIntent,
-}: Props) => {
-  const selected = entries.findIndex((entry) => entryKey(entry.ref) === selectedKey);
+export const DirectoryView = ({ projectId, directory, entries, layout, shown, onOpen, onIntent }: Props) => {
+  const [selection] = useState(createSelection);
+  const ids = entries.map(selectionId);
+  useLayoutEffect(() => selection.setItems(ids), [selection, ids]);
+
+  const shownId = selectionIdOf(entries, shown);
+  useLayoutEffect(() => {
+    if (shownId) selection.follow(shownId);
+  }, [selection, shownId]);
+
+  const draft = useDraft(directory);
+  const [landing, setLanding] = useState<EntryRef | null>(null);
+  const landedId = selectionIdOf(entries, landing);
+  useLayoutEffect(() => {
+    if (landedId) selection.follow(landedId);
+  }, [selection, landedId]);
+
   const dwell = useDwell(onIntent);
-  const onSelect = (index: number) => {
-    const entry = entries[Math.max(0, Math.min(entries.length - 1, index))];
-    onSelectKey(entry && entryKey(entry.ref));
-    dwell(entry);
-  };
+  const intend = useEffectEvent((index: number) => dwell(entries[index]));
+  useEffect(() => selection.subscribeFocus((index) => intend(index)), [selection]);
   const onHover = (index: number | null) => dwell(index === null ? undefined : entries[index]);
 
-  if (entries.length === 0) {
+  if (entries.length === 0 && !draft) {
     return <div className="flex flex-1 items-center justify-center text-subtle">Empty folder</div>;
   }
 
-  const onKeyDown = (event: KeyboardEvent) => {
-    const entry = entries[selected];
-    if (event.key !== "Enter" || !entry) return;
-    event.preventDefault();
-    onOpen(entry);
-  };
-
   const Layout = layouts[layout].component;
   return (
-    <div className="flex min-h-0 flex-1 flex-col" onKeyDown={onKeyDown}>
+    <div className="flex min-h-0 flex-1 flex-col">
       <Suspense fallback={<div className="flex-1" />}>
         <Layout
           projectId={projectId}
           directory={directory}
           entries={entries}
-          selected={selected}
-          onSelect={onSelect}
+          selection={selection}
+          draft={
+            draft && directory ? (
+              <DraftField
+                key={draft.key}
+                projectId={projectId}
+                directory={directory}
+                draft={draft}
+                onCreated={(created) =>
+                  created.kind === "directory" ? setLanding(created.ref) : onOpen(created)
+                }
+              />
+            ) : null
+          }
           onHover={onHover}
           onOpen={onOpen}
         />
       </Suspense>
-      <footer className="border-t border-default px-4 py-1 text-xs text-subtle">
-        {entries.length.toLocaleString()} {entries.length === 1 ? "item" : "items"}
-      </footer>
+      <Footer selection={selection} total={entries.length} />
     </div>
+  );
+};
+
+const Footer = ({ selection, total }: { readonly selection: SelectionStore; readonly total: number }) => {
+  const selected = useSelectedCount(selection);
+  return (
+    <footer className="border-t border-default px-4 py-1 text-xs text-subtle tabular-nums">
+      {selected > 0
+        ? `${selected.toLocaleString()} of ${total.toLocaleString()} selected`
+        : `${total.toLocaleString()} ${total === 1 ? "item" : "items"}`}
+    </footer>
   );
 };

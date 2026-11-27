@@ -2,7 +2,9 @@ import { COLOR_SCHEMES } from "@starlight/ui";
 import { useEffect, useLayoutEffect } from "react";
 import { Channel } from "#shared/channels.ts";
 import type { ZoomStep } from "#shared/zoom.ts";
-import { defineStored, oneOf, useStored } from "#renderer/lib/storage.ts";
+import { onMainMessage } from "#renderer/lib/main-messages.ts";
+import { defineStored, oneOf } from "#renderer/lib/storage.ts";
+import { useStore } from "#renderer/lib/store.ts";
 
 export const colorScheme = defineStored("color-scheme", oneOf(COLOR_SCHEMES), "system");
 
@@ -34,25 +36,31 @@ const stepped = (size: Size, step: ZoomStep) => {
 };
 
 export const useInterfaceZoom = () => {
-  const factor = ZOOM_FACTORS[useStored(interfaceSize)];
+  const factor = ZOOM_FACTORS[useStore(interfaceSize)];
   useLayoutEffect(() => {
     document.documentElement.style.setProperty("--interface-zoom", String(factor));
     window.postMessage({ type: Channel.zoom, factor }, "*");
   }, [factor]);
 
-  useEffect(() => {
-    const onMessage = (event: MessageEvent) => {
-      if (event.source !== window || event.data?.type !== Channel.zoomStep) return;
-      interfaceSize.set(stepped(interfaceSize.get(), event.data.step));
-    };
-    window.addEventListener("message", onMessage);
-    return () => window.removeEventListener("message", onMessage);
-  }, []);
+  useEffect(
+    () =>
+      onMainMessage(Channel.zoomStep, (event) =>
+        interfaceSize.set(stepped(interfaceSize.get(), event.data.step)),
+      ),
+    [],
+  );
+};
+
+export const useNativeColorScheme = () => {
+  const scheme = useStore(colorScheme);
+  useLayoutEffect(() => {
+    window.postMessage({ type: Channel.colorScheme, scheme }, "*");
+  }, [scheme]);
 };
 
 export const useChatAppearance = () => {
-  const font = useStored(chatFont);
-  const textSize = useStored(chatTextSize);
+  const font = useStore(chatFont);
+  const textSize = useStore(chatTextSize);
   useLayoutEffect(() => {
     Object.assign(document.documentElement.dataset, { chatFont: font, chatTextSize: textSize });
   }, [font, textSize]);

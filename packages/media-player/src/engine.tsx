@@ -1,7 +1,16 @@
 import { cn } from "cn";
-import { type ComponentProps, createContext, use, useEffect, useEffectEvent, useState } from "react";
+import {
+  type ComponentProps,
+  createContext,
+  use,
+  useEffect,
+  useEffectEvent,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { type Acknowledgement, createEcho } from "./echo.tsx";
-import { play, prepare, seekBy, setVolume, toggle, toggleMute, useMediaSnapshot } from "./media.ts";
+import { levelOf, play, seekBy, setVolume, toggle, toggleMute, useMediaSnapshot } from "./media.ts";
+import { applySettings, type PlayerSettings, type PlayerSettingsStore, recordSettings } from "./settings.ts";
 import { isOccupied, statusOf } from "./status.ts";
 
 const SEEK_STEP = 5;
@@ -39,10 +48,11 @@ export interface EngineOptions {
   readonly src: string;
   readonly autoPlay: boolean;
   readonly hasPageShortcuts: boolean;
+  readonly settings: PlayerSettingsStore;
   readonly onKey: () => void;
 }
 
-export const usePlayerEngine = ({ src, autoPlay, hasPageShortcuts, onKey }: EngineOptions) => {
+export const usePlayerEngine = ({ src, autoPlay, hasPageShortcuts, settings, onKey }: EngineOptions) => {
   const [root, setRoot] = useState<HTMLDivElement | null>(null);
   const [media, setMedia] = useState<HTMLMediaElement | null>(null);
   const [echo] = useState(createEcho);
@@ -58,7 +68,7 @@ export const usePlayerEngine = ({ src, autoPlay, hasPageShortcuts, onKey }: Engi
   const attachMedia = (node: HTMLMediaElement | null) => {
     setMedia(node);
     if (!node) return;
-    prepare(node);
+    applySettings(node, settings.get());
     if (autoPlay) play(node);
   };
 
@@ -74,8 +84,9 @@ export const usePlayerEngine = ({ src, autoPlay, hasPageShortcuts, onKey }: Engi
         k: togglePlayback,
         ArrowLeft: () => acknowledge({ kind: "seek", seconds: seekBy(media, -SEEK_STEP) }),
         ArrowRight: () => acknowledge({ kind: "seek", seconds: seekBy(media, SEEK_STEP) }),
-        ArrowUp: () => acknowledge({ kind: "volume", level: setVolume(media, media.volume + VOLUME_STEP) }),
-        ArrowDown: () => acknowledge({ kind: "volume", level: setVolume(media, media.volume - VOLUME_STEP) }),
+        ArrowUp: () => acknowledge({ kind: "volume", level: setVolume(media, levelOf(media) + VOLUME_STEP) }),
+        ArrowDown: () =>
+          acknowledge({ kind: "volume", level: setVolume(media, levelOf(media) - VOLUME_STEP) }),
         m: () => acknowledge({ kind: "volume", level: toggleMute(media) }),
         ...(isVideo && { f: toggleFullscreen }),
       }
@@ -103,6 +114,8 @@ export const usePlayerEngine = ({ src, autoPlay, hasPageShortcuts, onKey }: Engi
     return () => window.removeEventListener("keydown", listener);
   }, [hasPageShortcuts]);
 
+  useEffect(() => (media ? recordSettings(media, settings) : undefined), [media, settings]);
+
   useEffect(() => {
     if (state.failed && !state.paused) media?.pause();
   }, [media, state.failed, state.paused]);
@@ -117,6 +130,7 @@ export const usePlayerEngine = ({ src, autoPlay, hasPageShortcuts, onKey }: Engi
     attachMedia,
     togglePlayback,
     echo,
+    settings,
     isVideo,
     isFullscreen,
     toggleFullscreen,
@@ -132,6 +146,11 @@ export const usePlayer = () => {
   const engine = use(PlayerContext);
   if (engine === null) throw new Error("usePlayer needs a PlayerContext");
   return engine;
+};
+
+export const usePlayerSetting = <Key extends keyof PlayerSettings>(key: Key) => {
+  const { settings } = usePlayer();
+  return useSyncExternalStore(settings.subscribe, () => settings.get()[key]);
 };
 
 export const PlayerFrame = ({

@@ -11,7 +11,7 @@ import {
   inspectorPreference,
   toggleInspector,
 } from "#renderer/features/inspector/inspector-toggle.tsx";
-import { useStored } from "#renderer/lib/storage.ts";
+import { useStore } from "#renderer/lib/store.ts";
 import { useStarlight } from "#renderer/lib/context.ts";
 import { FileStage } from "./file-stage.tsx";
 import { fileBytes } from "#renderer/features/files/file-bytes.ts";
@@ -79,7 +79,7 @@ export const FileViewer = ({
   onShow,
   onClose,
 }: Props) => {
-  const inspector = useStored(inspectorPreference);
+  const inspector = useStore(inspectorPreference);
   const files = entries.filter((entry) => entry.kind === "file");
   const sequenced = files.length > 1;
   const [statusSlot, setStatusSlot] = useState<HTMLElement | null>(null);

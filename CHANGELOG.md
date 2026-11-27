@@ -1,5 +1,52 @@
 # Changelog
 
+## [0.5.0](https://github.com/digitalrelab/Starlight/compare/v0.4.0...v0.5.0) (2026-11-27)
+
+
+### Features
+
+* **agent:** add Codex as a provider ([#68](https://github.com/digitalrelab/Starlight/issues/68)) ([bb9408c](https://github.com/digitalrelab/Starlight/commit/bb9408cdf2bc8aadc934e7f390fe593abde0109a))
+* **agent:** chats sidebar with rename and delete ([#48](https://github.com/digitalrelab/Starlight/issues/48)) ([bd60bbf](https://github.com/digitalrelab/Starlight/commit/bd60bbfdb11e9adc17c2afe8b9edcb0ed8a0e17c))
+* **agent:** favourite models with their reasoning, and curated model lists ([#73](https://github.com/digitalrelab/Starlight/issues/73)) ([f717839](https://github.com/digitalrelab/Starlight/commit/f7178395b0f62430221a47d221f7b5f274fb1a81))
+* **agent:** write chat messages in the markdown editor ([#70](https://github.com/digitalrelab/Starlight/issues/70)) ([6b93947](https://github.com/digitalrelab/Starlight/commit/6b939471301d86faabcfdf5f7697849afa696fd3))
+* **browser:** captioned grid tiles and a folder shelf ([#56](https://github.com/digitalrelab/Starlight/issues/56)) ([a2626b1](https://github.com/digitalrelab/Starlight/commit/a2626b1b4a8612702fb77c8291dd94d508957da6))
+* **browser:** prefetch a folder when it is hovered or selected ([#46](https://github.com/digitalrelab/Starlight/issues/46)) ([07c05a8](https://github.com/digitalrelab/Starlight/commit/07c05a8e2ce7769a9de04adb13c8e01dd01c043a))
+* **browser:** work ahead on the open folder's previews and subfolders ([#49](https://github.com/digitalrelab/Starlight/issues/49)) ([e244f05](https://github.com/digitalrelab/Starlight/commit/e244f05d97aee3b8a532a2c0fdee9f9e37c847f8))
+* **catalog:** extract palettes and pixel traits as properties, shown in the viewer ([#67](https://github.com/digitalrelab/Starlight/issues/67)) ([5f87162](https://github.com/digitalrelab/Starlight/commit/5f8716261efac742b9e975aaec4ca44907e939c4))
+* **catalog:** give files stable ids that follow renames, moves and safe saves ([#60](https://github.com/digitalrelab/Starlight/issues/60)) ([1a62e2a](https://github.com/digitalrelab/Starlight/commit/1a62e2ae2b58b2cff5ef9a326e1e44defed0d30d))
+* **catalog:** process pixel facts in the background, starting with ThumbHash placeholders ([#54](https://github.com/digitalrelab/Starlight/issues/54)) ([dc99b02](https://github.com/digitalrelab/Starlight/commit/dc99b02e1578b405f6d146a7c204d1b17d04872d))
+* **catalog:** treat MP4 and MOV videos as media with dimensions, duration and frame previews ([#79](https://github.com/digitalrelab/Starlight/issues/79)) ([9720084](https://github.com/digitalrelab/Starlight/commit/9720084ea6c3d50a628fc461bb3231582fe892a7))
+* **core:** keep entry and media watches in step with mounts and folder contents ([#75](https://github.com/digitalrelab/Starlight/issues/75)) ([2d47ac5](https://github.com/digitalrelab/Starlight/commit/2d47ac558566d3ad9cf6a7a9088b3f3ef1caeb3e))
+* **desktop:** back and forward from the Go menu, swipes and mouse buttons ([#78](https://github.com/digitalrelab/Starlight/issues/78)) ([3744001](https://github.com/digitalrelab/Starlight/commit/3744001387659941d7273c7df9157e9459d430ec))
+* **desktop:** follow the theme setting in the window and native UI ([#84](https://github.com/digitalrelab/Starlight/issues/84)) ([adc649f](https://github.com/digitalrelab/Starlight/commit/adc649fc52497739fcee2f8592bf9dd60a555407))
+* **desktop:** step the interface size with the zoom shortcuts ([#43](https://github.com/digitalrelab/Starlight/issues/43)) ([738d289](https://github.com/digitalrelab/Starlight/commit/738d289ddf0fc59de08429376045cc9c379ee75e))
+* **files:** save edited files through a versioned write pipeline, starting with Markdown ([#50](https://github.com/digitalrelab/Starlight/issues/50)) ([0fea058](https://github.com/digitalrelab/Starlight/commit/0fea058a1b37157833801d80969b7da796563047))
+* **inspector:** show a file's details in a side panel in the browser and viewer ([#72](https://github.com/digitalrelab/Starlight/issues/72)) ([490b68b](https://github.com/digitalrelab/Starlight/commit/490b68b5669c40f752e659de8829a13ec8dbb6ee))
+* **media-player:** add a shared player and use it for video in the viewer ([#62](https://github.com/digitalrelab/Starlight/issues/62)) ([081968d](https://github.com/digitalrelab/Starlight/commit/081968d23dd721999c8cfe42ae5b818893758e6a))
+* **media-player:** play audio in the viewer with a frequency visualizer ([#71](https://github.com/digitalrelab/Starlight/issues/71)) ([1ae1e66](https://github.com/digitalrelab/Starlight/commit/1ae1e667f9a9c877fc64df882053e44e9daca3a3))
+* **projects:** chats belong to a project ([#64](https://github.com/digitalrelab/Starlight/issues/64)) ([91c5b1e](https://github.com/digitalrelab/Starlight/commit/91c5b1ebcee790059aec5f88a82191b63394228e))
+* **projects:** manage projects explicitly ([#59](https://github.com/digitalrelab/Starlight/issues/59)) ([851e581](https://github.com/digitalrelab/Starlight/commit/851e5816c63ec74ab54c392ecf6b70f03c83e34c))
+* **settings:** add chat font and text size to Appearance ([#58](https://github.com/digitalrelab/Starlight/issues/58)) ([1a075d2](https://github.com/digitalrelab/Starlight/commit/1a075d28f4254298bb5956e9e2e52dec0ab049e2))
+* **settings:** hide hidden files unless shown in Settings → Files ([#74](https://github.com/digitalrelab/Starlight/issues/74)) ([796963f](https://github.com/digitalrelab/Starlight/commit/796963fe490480b62bdccb1896ee81c4d8e88eef))
+* **settings:** list the default chat font first ([#82](https://github.com/digitalrelab/Starlight/issues/82)) ([9cd827e](https://github.com/digitalrelab/Starlight/commit/9cd827e8dde9a2d8efccd0857621d1b5fefd16d7))
+* **shell:** back and forward buttons in the sidebar titlebar ([#81](https://github.com/digitalrelab/Starlight/issues/81)) ([787aadf](https://github.com/digitalrelab/Starlight/commit/787aadf400ea16c10d880a6609f7556ee8e46381))
+* **ui:** breadcrumbs primitive, current crumb no longer bold ([#69](https://github.com/digitalrelab/Starlight/issues/69)) ([f655ebc](https://github.com/digitalrelab/Starlight/commit/f655ebcb29bf4b9d0aaa4f5733aa00f2bc40d34f))
+* **viewer:** mark unsaved changes with a dot beside the file name ([#52](https://github.com/digitalrelab/Starlight/issues/52)) ([484a3f8](https://github.com/digitalrelab/Starlight/commit/484a3f847aeb74661e538829c52f9c9dcfcc1728))
+
+
+### Bug Fixes
+
+* **desktop:** show the window once the page has rendered with its settings ([#63](https://github.com/digitalrelab/Starlight/issues/63)) ([157ba52](https://github.com/digitalrelab/Starlight/commit/157ba5215248d461214f6f19fc13cf4a88fdf749))
+* **viewer:** give opened files their own history entry ([#66](https://github.com/digitalrelab/Starlight/issues/66)) ([a59ec99](https://github.com/digitalrelab/Starlight/commit/a59ec995ad97a925943ab2f82e9271c32d821f0d))
+
+
+### Performance Improvements
+
+* **agent:** keep Claude Code warm between turns ([#57](https://github.com/digitalrelab/Starlight/issues/57)) ([5cb2d2b](https://github.com/digitalrelab/Starlight/commit/5cb2d2bdb309c093b1956f1d8fb17c142bb4396f))
+* **agent:** virtualize the chat transcript ([#76](https://github.com/digitalrelab/Starlight/issues/76)) ([94df414](https://github.com/digitalrelab/Starlight/commit/94df414a6fb3ca19d9ca40edcd8e43c21f96e1c1))
+* **markdown:** keep typing fast in large files ([#65](https://github.com/digitalrelab/Starlight/issues/65)) ([56bbaea](https://github.com/digitalrelab/Starlight/commit/56bbaea665399e0beb2dc2e74676363e13b9f433))
+* **previews:** key cached previews by file id so renames and moves keep them ([#83](https://github.com/digitalrelab/Starlight/issues/83)) ([ecefc8a](https://github.com/digitalrelab/Starlight/commit/ecefc8a3761f283f3d585976fbd27eee8f97046b))
+
 ## [0.4.0](https://github.com/digitalrelab/Starlight/compare/v0.3.0...v0.4.0) (2026-11-27)
 
 

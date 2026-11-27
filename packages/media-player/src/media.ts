@@ -1,6 +1,5 @@
 import { useEffect, useEffectEvent, useSyncExternalStore } from "react";
 import { clamp } from "./format.ts";
-import { settings } from "./settings.ts";
 
 export interface MediaSnapshot {
   readonly paused: boolean;
@@ -11,6 +10,7 @@ export interface MediaSnapshot {
   readonly failed: boolean;
   readonly muted: boolean;
   readonly level: number;
+  readonly playbackRate: number;
   readonly duration: number;
 }
 
@@ -30,6 +30,7 @@ const SNAPSHOT_EVENTS = [
   "emptied",
   "error",
   "volumechange",
+  "ratechange",
   "durationchange",
   "loadedmetadata",
   "loadeddata",
@@ -55,10 +56,11 @@ const DETACHED: MediaSnapshot = {
   failed: false,
   muted: false,
   level: 1,
+  playbackRate: 1,
   duration: 0,
 };
 
-const levelOf = (media: HTMLMediaElement) => (media.muted ? 0 : media.volume);
+export const levelOf = (media: HTMLMediaElement) => (media.muted ? 0 : media.volume);
 
 const durationOf = (media: HTMLMediaElement) => (Number.isFinite(media.duration) ? media.duration : 0);
 
@@ -74,8 +76,9 @@ const readSnapshot = (media: HTMLMediaElement): MediaSnapshot => ({
   hasFrame: media.readyState >= HAVE_CURRENT_DATA,
   buffering: !media.paused && media.readyState < HAVE_FUTURE_DATA,
   failed: media.error !== null || isPictureless(media),
-  muted: media.muted || media.volume === 0,
+  muted: media.muted,
   level: levelOf(media),
+  playbackRate: media.defaultPlaybackRate,
   duration: durationOf(media),
 });
 
@@ -92,7 +95,7 @@ const snapshotOf = (media: HTMLMediaElement) => {
   return next;
 };
 
-const listen = (media: HTMLMediaElement, events: ReadonlyArray<string>, listener: () => void) => {
+export const listen = (media: HTMLMediaElement, events: ReadonlyArray<string>, listener: () => void) => {
   for (const event of events) media.addEventListener(event, listener);
   return () => {
     for (const event of events) media.removeEventListener(event, listener);
@@ -145,13 +148,6 @@ export const bufferedEnd = (media: HTMLMediaElement) => {
 export const progressOf = (time: number, duration: number) =>
   duration > 0 ? clamp(time / duration, 0, 1) : 0;
 
-export const prepare = (media: HTMLMediaElement) => {
-  const { volume, playbackRate } = settings.get();
-  media.volume = volume;
-  media.defaultPlaybackRate = playbackRate;
-  media.playbackRate = playbackRate;
-};
-
 export const play = (media: HTMLMediaElement) => {
   media.play().catch(() => {});
 };
@@ -179,24 +175,17 @@ export const seekBy = (media: HTMLMediaElement, delta: number) => {
 
 export const setVolume = (media: HTMLMediaElement, volume: number) => {
   const next = clamp(volume, 0, 1);
-  media.volume = next;
   media.muted = next === 0;
-  if (next > 0) settings.update("volume", next);
+  if (next > 0) media.volume = next;
   return levelOf(media);
 };
 
 export const toggleMute = (media: HTMLMediaElement) => {
-  if (!media.muted && media.volume > 0) {
-    media.muted = true;
-  } else {
-    media.muted = false;
-    if (media.volume === 0) media.volume = settings.get().volume || 1;
-  }
+  media.muted = !media.muted;
   return levelOf(media);
 };
 
 export const setPlaybackRate = (media: HTMLMediaElement, rate: number) => {
   media.defaultPlaybackRate = rate;
   media.playbackRate = rate;
-  settings.update("playbackRate", rate);
 };

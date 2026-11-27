@@ -14,7 +14,7 @@ import {
 import { ChatPreview } from "#renderer/features/settings/chat-preview.tsx";
 import { SettingsPage } from "#renderer/features/settings/settings-page.tsx";
 import { SettingsSelect } from "#renderer/features/settings/settings-select.tsx";
-import { useStored } from "#renderer/lib/storage.ts";
+import { useStore } from "#renderer/lib/store.ts";
 
 const COLOR_SCHEME_LABELS: Record<ColorScheme, string> = {
   system: "System",
@@ -55,7 +55,7 @@ function Appearance() {
               values={COLOR_SCHEMES}
               labels={COLOR_SCHEME_LABELS}
               swatch={(scheme) => <ColorSchemeSwatch scheme={scheme} />}
-              value={useStored(colorScheme)}
+              value={useStore(colorScheme)}
               onValueChange={colorScheme.set}
             />
           </Item.Root>
@@ -68,7 +68,7 @@ function Appearance() {
               id="interface-size"
               values={SIZES}
               labels={SIZE_LABELS}
-              value={useStored(interfaceSize)}
+              value={useStore(interfaceSize)}
               onValueChange={interfaceSize.set}
             />
           </Item.Root>
@@ -79,7 +79,7 @@ function Appearance() {
             </Item.Content>
             <Switch
               id="pointer-cursors"
-              checked={useStored(cursor) === "pointer"}
+              checked={useStore(cursor) === "pointer"}
               onCheckedChange={(checked) => cursor.set(checked ? "pointer" : "default")}
             />
           </Item.Root>
@@ -96,7 +96,7 @@ function Appearance() {
               id="chat-font"
               values={CHAT_FONTS}
               labels={CHAT_FONT_LABELS}
-              value={useStored(chatFont)}
+              value={useStore(chatFont)}
               onValueChange={chatFont.set}
             />
           </Item.Root>
@@ -109,7 +109,7 @@ function Appearance() {
               id="chat-text-size"
               values={SIZES}
               labels={SIZE_LABELS}
-              value={useStored(chatTextSize)}
+              value={useStore(chatTextSize)}
               onValueChange={chatTextSize.set}
             />
           </Item.Root>

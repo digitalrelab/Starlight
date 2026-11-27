@@ -14,7 +14,9 @@ export const formatSize = (bytes: number) => {
 
 export const formatDate = (epochMs: number) => dateFormat.format(epochMs);
 
-const DAY_MS = 24 * 60 * 60 * 1000;
+const MINUTE_MS = 60 * 1000;
+const HOUR_MS = 60 * MINUTE_MS;
+const DAY_MS = 24 * HOUR_MS;
 
 const recencies = [
   [0, "Today"],
@@ -28,4 +30,24 @@ export const formatRecency = (epochMs: number) => {
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
   const days = Math.ceil((today - epochMs) / DAY_MS);
   return recencies.find(([within]) => days <= within)?.[1] ?? "Older";
+};
+
+const SPAN_UNITS = [
+  { suffix: "d", size: DAY_MS, within: Infinity },
+  { suffix: "h", size: HOUR_MS, within: 24 },
+  { suffix: "m", size: MINUTE_MS, within: 60 },
+] as const;
+
+export const formatSpan = (ms: number, precision = 2) => {
+  const counts = SPAN_UNITS.map(({ suffix, size, within }) => ({
+    suffix,
+    count: Math.floor(ms / size) % within,
+  }));
+  const first = counts.findIndex(({ count }) => count > 0);
+  if (first === -1) return "<1m";
+  return counts
+    .slice(first, first + precision)
+    .filter(({ count }) => count > 0)
+    .map(({ suffix, count }) => `${count}${suffix}`)
+    .join(" ");
 };

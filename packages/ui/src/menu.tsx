@@ -45,15 +45,17 @@ const Filter = ({ children }: { readonly children: (settle: Settle) => ReactNode
 };
 
 interface BodyProps {
+  readonly finalFocus?: ComponentProps<typeof BaseMenu.Popup>["finalFocus"];
   readonly className?: string | undefined;
   readonly children: ReactNode;
 }
 
-const Body = ({ className, children }: BodyProps) => {
+const Body = ({ finalFocus, className, children }: BodyProps) => {
   const filter = use(FilterContext);
   const list = useRef<HTMLDivElement>(null);
   return (
     <BaseMenu.Popup
+      finalFocus={finalFocus}
       className={cn(
         popupSurface,
         "flex max-h-(--available-height) min-w-48 flex-col overflow-hidden",
@@ -90,10 +92,12 @@ const Root = ({ onOpenChangeComplete, ...props }: ComponentProps<typeof BaseMenu
   </Filter>
 );
 
-const Popup = ({ className, children }: BodyProps) => (
+const Popup = ({ finalFocus, className, children }: BodyProps) => (
   <BaseMenu.Portal>
     <BaseMenu.Positioner {...POSITIONING} className="z-overlay outline-none">
-      <Body className={className}>{children}</Body>
+      <Body finalFocus={finalFocus} className={className}>
+        {children}
+      </Body>
     </BaseMenu.Positioner>
   </BaseMenu.Portal>
 );
@@ -135,10 +139,10 @@ const ContextTrigger = ({ onContextMenu, ...props }: ComponentProps<typeof BaseC
   />
 );
 
-const ContextPopup = ({ children }: { readonly children: ReactNode }) => (
+const ContextPopup = ({ finalFocus, children }: BodyProps) => (
   <BaseContextMenu.Portal>
     <BaseContextMenu.Positioner {...POSITIONING} className="z-overlay outline-none">
-      <Body>{children}</Body>
+      <Body finalFocus={finalFocus}>{children}</Body>
     </BaseContextMenu.Positioner>
   </BaseContextMenu.Portal>
 );

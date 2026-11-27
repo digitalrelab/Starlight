@@ -1,6 +1,7 @@
 import {
   type DirectoryError,
   DirectoryMissing,
+  type EntryLocation,
   type EntryRef,
   type FileError,
   type Mount,
@@ -12,6 +13,7 @@ import {
   type ProjectId,
   ProjectNotFound,
   type SourceId,
+  type SourceError,
   SourceUnavailable,
 } from "@starlight/contracts";
 import { Context, Effect, Layer, Option, PubSub, Stream } from "effect";
@@ -23,6 +25,17 @@ import {
   SourceDrivers,
   type SourceEntry,
 } from "./ports.ts";
+
+const mountOf = (project: Project, driver: SourceDriver, ref: EntryRef) =>
+  project.mounts.find((mount) => mount.root.source === ref.source && driver.contains(mount.root.id, ref.id));
+
+export const ownerOf = (projects: ReadonlyArray<Project>, driver: SourceDriver, ref: EntryRef) => {
+  for (const project of projects) {
+    const mount = mountOf(project, driver, ref);
+    if (mount) return { project, mount };
+  }
+  return undefined;
+};
 
 export interface LocatedDirectory {
   readonly mount: Mount;
@@ -53,12 +66,14 @@ export class Projects extends Context.Service<
     ) => Effect.Effect<Project, ProjectNotFound, CurrentActor>;
     readonly get: (id: ProjectId) => Effect.Effect<Project, ProjectNotFound>;
     readonly watch: (id: ProjectId) => Stream.Stream<Project, ProjectNotFound>;
+    readonly watchAll: Stream.Stream<ReadonlyArray<Project>>;
     readonly driverFor: (source: SourceId) => Effect.Effect<SourceDriver, SourceUnavailable>;
     readonly locateDirectory: (
       id: ProjectId,
       directory: EntryRef,
     ) => Effect.Effect<LocatedDirectory, DirectoryError>;
     readonly locateFile: (id: ProjectId, file: EntryRef) => Effect.Effect<LocatedFile, FileError>;
+    readonly locateEntry: (ref: EntryRef) => Effect.Effect<EntryLocation, SourceUnavailable | SourceError>;
   }
 >()("@starlight/core/Projects") {
   static readonly layer = Layer.effect(Projects)(
@@ -101,9 +116,17 @@ export class Projects extends Context.Service<
         yield* PubSub.publish(changes, projectId);
       });
 
-      const mountOf = (project: Project, driver: SourceDriver, directory: EntryRef) =>
-        project.mounts.find(
-          (mount) => mount.root.source === directory.source && driver.contains(mount.root.id, directory.id),
+      const observe = <A, E>(load: Effect.Effect<A, E>, concerns: (changed: ProjectId) => boolean) =>
+        Stream.unwrap(
+          Effect.map(PubSub.subscribe(changes), (subscription) =>
+            Stream.concat(
+              Stream.fromEffect(load),
+              Stream.fromSubscription(subscription).pipe(
+                Stream.filter(concerns),
+                Stream.mapEffect(() => load),
+              ),
+            ),
+          ),
         );
 
       const statIfExists = (driver: SourceDriver, ref: EntryRef) =>
@@ -169,20 +192,8 @@ export class Projects extends Context.Service<
           return yield* get(id);
         }),
         get,
-        watch: (id) =>
-          Stream.unwrap(
-            Effect.gen(function* () {
-              const subscription = yield* PubSub.subscribe(changes);
-              const project = yield* get(id);
-              return Stream.concat(
-                Stream.make(project),
-                Stream.fromSubscription(subscription).pipe(
-                  Stream.filter((changed) => changed === id),
-                  Stream.mapEffect(() => get(id)),
-                ),
-              );
-            }),
-          ),
+        watch: (id) => observe(get(id), (changed) => changed === id),
+        watchAll: observe(store.list, () => true),
         driverFor,
         locateDirectory: Effect.fn("Projects.locateDirectory")(function* (id, requested) {
           const project = yield* get(id);
@@ -206,6 +217,18 @@ export class Projects extends Context.Service<
           const entry = yield* driver.stat(file.id);
           if (entry.kind !== "file") return yield* new NotAFile({ entry: requested });
           return { driver, file, entry };
+        }),
+        locateEntry: Effect.fn("Projects.locateEntry")(function* (requested) {
+          const driver = yield* driverFor(requested.source);
+          const ref = { source: requested.source, id: yield* driver.canonicalize(requested.id) };
+          const entry = yield* driver.stat(ref.id);
+          const project = ownerOf(yield* store.list, driver, ref)?.project;
+          return {
+            name: entry.name,
+            kind: entry.kind,
+            project: project?.id ?? null,
+            directory: entry.kind === "directory" ? ref : { source: ref.source, id: driver.parent(ref.id) },
+          };
         }),
       });
     }),

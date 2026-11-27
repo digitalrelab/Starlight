@@ -1,10 +1,9 @@
 import { LocalSource } from "@starlight/contracts";
-import { verifyFileToken } from "@starlight/host/file-token";
+import { type FileClaim, verifyFileToken } from "@starlight/host/file-token";
 import { protocol } from "electron";
 
-interface LocalFile {
+interface LocalFile extends Omit<FileClaim, "ref"> {
   readonly path: string;
-  readonly version: number;
 }
 
 export const serveLocalFiles = (
@@ -16,7 +15,6 @@ export const serveLocalFiles = (
     const claim = verifyFileToken(key, new URL(request.url).pathname.slice(1));
     if (!claim) return new Response(null, { status: 403 });
     if (claim.ref.source !== LocalSource) return new Response(null, { status: 404 });
-    return serve({ path: claim.ref.id, version: claim.version }, request).catch(
-      () => new Response(null, { status: 404 }),
-    );
+    const { ref, ...file } = claim;
+    return serve({ ...file, path: ref.id }, request).catch(() => new Response(null, { status: 404 }));
   });

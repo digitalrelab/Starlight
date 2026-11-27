@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { join } from "node:path";
-import { app, BrowserWindow, ipcMain, MessageChannelMain, protocol } from "electron";
+import { app, BrowserWindow, ipcMain, MessageChannelMain, nativeTheme, protocol } from "electron";
 import { Channel } from "#shared/channels.ts";
 import { superviseHost } from "./host.ts";
 import { serveShell } from "./shell.ts";
@@ -13,6 +13,9 @@ import { createWindow } from "./window.ts";
 if (!app.isPackaged) app.setPath("userData", join(app.getAppPath(), ".data"));
 protocol.registerSchemesAsPrivileged([previewScheme, fileScheme]);
 
+const isThemeSource = (value: unknown): value is typeof nativeTheme.themeSource =>
+  value === "system" || value === "light" || value === "dark";
+
 const main = async () => {
   await app.whenReady();
   installMenu();
@@ -24,6 +27,10 @@ const main = async () => {
     for (const window of BrowserWindow.getAllWindows()) window.webContents.reload();
   });
   const updater = startUpdater();
+
+  ipcMain.on(Channel.colorScheme, (_event, scheme: unknown) => {
+    if (isThemeSource(scheme)) nativeTheme.themeSource = scheme;
+  });
 
   ipcMain.on(Channel.connect, (event) => {
     const window = BrowserWindow.fromWebContents(event.sender);
