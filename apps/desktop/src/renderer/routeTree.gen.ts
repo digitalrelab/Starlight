@@ -14,7 +14,7 @@ import { Route as AgentRouteImport } from './routes/agent'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as AgentIndexRouteImport } from './routes/agent.index'
-import { Route as AgentConversationIdRouteImport } from './routes/agent.$conversationId'
+import { Route as AgentChatIdRouteImport } from './routes/agent.$chatId'
 import { Route as SettingsIndexRouteImport } from './routes/settings.index'
 import { Route as SettingsAppearanceRouteImport } from './routes/settings.appearance'
 import { Route as SettingsDiskRouteImport } from './routes/settings.disk'
@@ -46,9 +46,9 @@ const AgentIndexRoute = AgentIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AgentRoute,
 } as any)
-const AgentConversationIdRoute = AgentConversationIdRouteImport.update({
-  id: '/$conversationId',
-  path: '/$conversationId',
+const AgentChatIdRoute = AgentChatIdRouteImport.update({
+  id: '/$chatId',
+  path: '/$chatId',
   getParentRoute: () => AgentRoute,
 } as any)
 const SettingsIndexRoute = SettingsIndexRouteImport.update({
@@ -86,7 +86,7 @@ export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/agent': typeof AgentRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
-  '/agent/$conversationId': typeof AgentConversationIdRoute
+  '/agent/$chatId': typeof AgentChatIdRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/disk': typeof SettingsDiskRoute
   '/settings/providers': typeof SettingsProvidersRoute
@@ -96,7 +96,7 @@ export interface FileRoutesByFullPath {
   '/w/$workspaceId': typeof AppWWorkspaceIdRoute
 }
 export interface FileRoutesByTo {
-  '/agent/$conversationId': typeof AgentConversationIdRoute
+  '/agent/$chatId': typeof AgentChatIdRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/disk': typeof SettingsDiskRoute
   '/settings/providers': typeof SettingsProvidersRoute
@@ -111,7 +111,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/agent': typeof AgentRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
-  '/agent/$conversationId': typeof AgentConversationIdRoute
+  '/agent/$chatId': typeof AgentChatIdRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/disk': typeof SettingsDiskRoute
   '/settings/providers': typeof SettingsProvidersRoute
@@ -127,7 +127,7 @@ export interface FileRouteTypes {
     | '/'
     | '/agent'
     | '/settings'
-    | '/agent/$conversationId'
+    | '/agent/$chatId'
     | '/settings/appearance'
     | '/settings/disk'
     | '/settings/providers'
@@ -137,7 +137,7 @@ export interface FileRouteTypes {
     | '/w/$workspaceId'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/agent/$conversationId'
+    | '/agent/$chatId'
     | '/settings/appearance'
     | '/settings/disk'
     | '/settings/providers'
@@ -151,7 +151,7 @@ export interface FileRouteTypes {
     | '/_app'
     | '/agent'
     | '/settings'
-    | '/agent/$conversationId'
+    | '/agent/$chatId'
     | '/settings/appearance'
     | '/settings/disk'
     | '/settings/providers'
@@ -205,11 +205,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AgentIndexRouteImport
       parentRoute: typeof AgentRoute
     }
-    '/agent/$conversationId': {
-      id: '/agent/$conversationId'
-      path: '/$conversationId'
-      fullPath: '/agent/$conversationId'
-      preLoaderRoute: typeof AgentConversationIdRouteImport
+    '/agent/$chatId': {
+      id: '/agent/$chatId'
+      path: '/$chatId'
+      fullPath: '/agent/$chatId'
+      preLoaderRoute: typeof AgentChatIdRouteImport
       parentRoute: typeof AgentRoute
     }
     '/settings/': {
@@ -270,12 +270,12 @@ const AppRouteChildren: AppRouteChildren = {
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 interface AgentRouteChildren {
-  AgentConversationIdRoute: typeof AgentConversationIdRoute
+  AgentChatIdRoute: typeof AgentChatIdRoute
   AgentIndexRoute: typeof AgentIndexRoute
 }
 
 const AgentRouteChildren: AgentRouteChildren = {
-  AgentConversationIdRoute: AgentConversationIdRoute,
+  AgentChatIdRoute: AgentChatIdRoute,
   AgentIndexRoute: AgentIndexRoute,
 }
 

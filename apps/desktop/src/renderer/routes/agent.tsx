@@ -5,7 +5,7 @@ import { AppShell } from "#renderer/features/shell/app-shell.tsx";
 export const Route = createFileRoute("/agent")({
   loader: ({ context: { queryClient, queries } }) =>
     Promise.all([
-      queryClient.ensureQueryData(queries.conversations()),
+      queryClient.ensureQueryData(queries.chats()),
       queryClient.ensureQueryData(queries.agentProviders()),
     ]),
   component: () => (

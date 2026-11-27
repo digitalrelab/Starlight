@@ -8,10 +8,10 @@ import { PageHeader } from "#renderer/features/shell/page-header.tsx";
 import { useStarlight } from "#renderer/lib/context.ts";
 
 export const Route = createFileRoute("/agent/")({
-  component: NewConversation,
+  component: NewChat,
 });
 
-function NewConversation() {
+function NewChat() {
   const navigate = useNavigate();
   const { mutations } = useStarlight();
   const send = useMutation(mutations.sendMessage());
@@ -20,7 +20,7 @@ function NewConversation() {
   return (
     <>
       <PageHeader>
-        <span className="font-medium">New conversation</span>
+        <span className="font-medium">New chat</span>
       </PageHeader>
       <div className="mx-auto w-full max-w-2xl px-6 py-16">
         {choice ? (
@@ -30,10 +30,8 @@ function NewConversation() {
             actions={<ModelPicker providers={providers} choice={choice} onChoose={choose} />}
             onSubmit={(text) =>
               send
-                .mutateAsync({ conversationId: null, text, model: choice })
-                .then((conversation) =>
-                  navigate({ to: "/agent/$conversationId", params: { conversationId: conversation.id } }),
-                )
+                .mutateAsync({ chatId: null, text, model: choice })
+                .then((chat) => navigate({ to: "/agent/$chatId", params: { chatId: chat.id } }))
             }
           />
         ) : (

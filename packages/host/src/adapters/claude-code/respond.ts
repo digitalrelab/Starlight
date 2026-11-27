@@ -32,7 +32,7 @@ export const respond =
         if (Option.isNone(executable)) {
           return yield* new AgentTurnFailed({ message: "Claude Code isn't installed." });
         }
-        const conversation = query({
+        const turn = query({
           prompt,
           options: {
             pathToClaudeCodeExecutable: executable.value,
@@ -47,8 +47,8 @@ export const respond =
           },
         });
         return Stream.fromAsyncIterable(
-          conversation,
+          turn,
           (cause) => new AgentTurnFailed({ message: cause instanceof Error ? cause.message : String(cause) }),
-        ).pipe(Stream.flatMap(toEvents), Stream.ensuring(Effect.sync(() => conversation.close())));
+        ).pipe(Stream.flatMap(toEvents), Stream.ensuring(Effect.sync(() => turn.close())));
       }),
     );

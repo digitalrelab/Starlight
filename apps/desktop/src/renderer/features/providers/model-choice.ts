@@ -1,4 +1,4 @@
-import type { AgentProvider, Conversation, ModelChoice } from "@starlight/client";
+import type { AgentProvider, Chat, ModelChoice } from "@starlight/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useStarlight } from "#renderer/lib/context.ts";
@@ -32,20 +32,20 @@ const resolve = (providers: ReadonlyArray<AgentProvider>, wanted: Wanted): Model
   return { provider: provider.id, model: model.id, effort };
 };
 
-export const useModelChoice = (conversation?: Conversation) => {
+export const useModelChoice = (chat?: Chat) => {
   const { queries } = useStarlight();
   const { data } = useSuspenseQuery(queries.agentProviders());
   const stored = lastChoice.useValue();
-  const scope = conversation?.id ?? "";
+  const scope = chat?.id ?? "";
   const [picked, setPicked] = useState<{ readonly scope: string; readonly choice: ModelChoice } | null>(null);
 
   const providers = data.filter(
     (provider) =>
       provider.status._tag === "Ready" &&
       provider.models.length > 0 &&
-      (conversation === undefined || provider.id === conversation.provider),
+      (chat === undefined || provider.id === chat.provider),
   );
-  const wanted = picked?.scope === scope ? picked.choice : (conversation ?? parse(stored));
+  const wanted = picked?.scope === scope ? picked.choice : (chat ?? parse(stored));
 
   return {
     providers,

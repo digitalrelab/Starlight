@@ -1,7 +1,7 @@
 import { SqliteClient, SqliteMigrator } from "@effect/sql-sqlite-node";
 import { Layer } from "effect";
 import { SqliteAuditLogLive } from "./audit-log.ts";
-import { SqliteConversationStoreLive } from "./conversation-store.ts";
+import { SqliteChatStoreLive } from "./chat-store.ts";
 import { SqliteFactStoreLive } from "./fact-store.ts";
 import { migrations } from "./migrations.ts";
 import { SqliteWorkspaceStoreLive } from "./workspace-store.ts";
@@ -11,7 +11,7 @@ export const SqliteLive = (filename: string) => {
   const migrator = SqliteMigrator.layer({ loader: migrations });
   return Layer.mergeAll(
     SqliteWorkspaceStoreLive,
-    SqliteConversationStoreLive,
+    SqliteChatStoreLive,
     SqliteFactStoreLive,
     SqliteAuditLogLive,
   ).pipe(Layer.provide(migrator), Layer.provide(client));

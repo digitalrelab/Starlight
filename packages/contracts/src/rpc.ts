@@ -1,15 +1,7 @@
 import { Schema } from "effect";
 import { Rpc, RpcGroup } from "effect/rpc";
 import { AgentProvider, ModelChoice } from "./agent.ts";
-import {
-  Conversation,
-  ConversationBusy,
-  ConversationDetail,
-  ConversationEvent,
-  ConversationId,
-  ConversationNotFound,
-  ModelUnavailable,
-} from "./conversation.ts";
+import { Chat, ChatBusy, ChatDetail, ChatEvent, ChatId, ChatNotFound, ModelUnavailable } from "./chat.ts";
 import { DiskUsage } from "./disk.ts";
 import { EntryChange, Listing } from "./entry.ts";
 import {
@@ -70,36 +62,36 @@ export class HostRpcs extends RpcGroup.make(
   Rpc.make("ListAgentProviders", {
     success: Schema.Array(AgentProvider),
   }),
-  Rpc.make("ListConversations", {
-    success: Schema.Array(Conversation),
+  Rpc.make("ListChats", {
+    success: Schema.Array(Chat),
   }),
-  Rpc.make("GetConversation", {
-    payload: { conversationId: ConversationId },
-    success: ConversationDetail,
-    error: ConversationNotFound,
+  Rpc.make("GetChat", {
+    payload: { chatId: ChatId },
+    success: ChatDetail,
+    error: ChatNotFound,
   }),
   Rpc.make("SendMessage", {
     payload: {
-      conversationId: Schema.NullOr(ConversationId),
+      chatId: Schema.NullOr(ChatId),
       text: Schema.NonEmptyString,
       model: ModelChoice,
     },
-    success: Conversation,
-    error: Schema.Union([ConversationNotFound, ConversationBusy, ModelUnavailable]),
+    success: Chat,
+    error: Schema.Union([ChatNotFound, ChatBusy, ModelUnavailable]),
   }),
-  Rpc.make("RenameConversation", {
-    payload: { conversationId: ConversationId, title: Schema.NonEmptyString },
-    success: Conversation,
-    error: ConversationNotFound,
+  Rpc.make("RenameChat", {
+    payload: { chatId: ChatId, title: Schema.NonEmptyString },
+    success: Chat,
+    error: ChatNotFound,
   }),
-  Rpc.make("DeleteConversation", {
-    payload: { conversationId: ConversationId },
-    error: ConversationNotFound,
+  Rpc.make("DeleteChat", {
+    payload: { chatId: ChatId },
+    error: ChatNotFound,
   }),
-  Rpc.make("WatchConversation", {
-    payload: { conversationId: ConversationId },
-    success: ConversationEvent,
-    error: ConversationNotFound,
+  Rpc.make("WatchChat", {
+    payload: { chatId: ChatId },
+    success: ChatEvent,
+    error: ChatNotFound,
     stream: true,
   }),
 ) {}

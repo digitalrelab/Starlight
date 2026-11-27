@@ -1,18 +1,17 @@
 import { ArrowLeft01Icon, MessageAdd01Icon } from "@hugeicons-pro/core-stroke-rounded";
-import type { Conversation } from "@starlight/client";
+import type { Chat } from "@starlight/client";
 import { IconButton, NavItem, NavSection } from "@starlight/ui";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useStarlight } from "#renderer/lib/context.ts";
 import { formatRecency } from "#renderer/lib/format.ts";
-import { ConversationItem } from "./conversation-item.tsx";
+import { ChatItem } from "./chat-item.tsx";
 
-const byRecency = (conversations: ReadonlyArray<Conversation>) =>
-  Map.groupBy(conversations, (conversation) => formatRecency(conversation.updatedAt));
+const byRecency = (chats: ReadonlyArray<Chat>) => Map.groupBy(chats, (chat) => formatRecency(chat.updatedAt));
 
 export const AgentSidebar = () => {
   const { queries } = useStarlight();
-  const { data: conversations } = useSuspenseQuery(queries.conversations());
+  const { data: chats } = useSuspenseQuery(queries.chats());
 
   return (
     <>
@@ -21,13 +20,13 @@ export const AgentSidebar = () => {
           Back to app
         </NavItem>
         <NavItem icon={MessageAdd01Icon} render={<Link to="/agent" activeOptions={{ exact: true }} />}>
-          New conversation
+          New chat
         </NavItem>
       </div>
-      {[...byRecency(conversations)].map(([recency, group]) => (
+      {[...byRecency(chats)].map(([recency, group]) => (
         <NavSection key={recency} title={recency}>
-          {group.map((conversation) => (
-            <ConversationItem key={conversation.id} conversation={conversation} />
+          {group.map((chat) => (
+            <ChatItem key={chat.id} chat={chat} />
           ))}
         </NavSection>
       ))}

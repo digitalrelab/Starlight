@@ -4,7 +4,7 @@ export type {
   AgentProvider,
   ModelChoice,
   ChatMessage,
-  Conversation,
+  Chat,
   Draft,
   Crumb,
   DiskUsage,
@@ -20,7 +20,7 @@ export type {
 } from "@starlight/contracts";
 export {
   ClaudeCodeProvider,
-  ConversationNotFound,
+  ChatNotFound,
   DirectoryMissing,
   fileKindOf,
   mediaTypeOf,

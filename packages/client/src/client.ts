@@ -1,6 +1,6 @@
 import {
-  type ConversationEvent,
-  type ConversationId,
+  type ChatEvent,
+  type ChatId,
   type EntryChange,
   type EntryRef,
   HostRpcs,
@@ -45,7 +45,7 @@ export const createClient = (ports: PortSources) => {
     return () => fiber.interruptUnsafe();
   };
   const id = (workspaceId: string) => workspaceId as WorkspaceId;
-  const conversation = (conversationId: string) => conversationId as ConversationId;
+  const chat = (chatId: string) => chatId as ChatId;
 
   return {
     workspaces: {
@@ -70,28 +70,21 @@ export const createClient = (ports: PortSources) => {
     agents: {
       providers: () => host((c) => c.ListAgentProviders()),
     },
-    conversations: {
-      list: () => host((c) => c.ListConversations()),
-      get: (conversationId: string) =>
-        host((c) => c.GetConversation({ conversationId: conversation(conversationId) })),
-      send: (conversationId: string | null, text: string, model: ModelChoice) =>
+    chats: {
+      list: () => host((c) => c.ListChats()),
+      get: (chatId: string) => host((c) => c.GetChat({ chatId: chat(chatId) })),
+      send: (chatId: string | null, text: string, model: ModelChoice) =>
         host((c) =>
           c.SendMessage({
-            conversationId: conversationId === null ? null : conversation(conversationId),
+            chatId: chatId === null ? null : chat(chatId),
             text,
             model,
           }),
         ),
-      rename: (conversationId: string, title: string) =>
-        host((c) => c.RenameConversation({ conversationId: conversation(conversationId), title })),
-      remove: (conversationId: string) =>
-        host((c) => c.DeleteConversation({ conversationId: conversation(conversationId) })),
-      watch: (conversationId: string, onEvent: (event: ConversationEvent) => void) =>
-        watch(
-          "Conversation",
-          (c) => c.WatchConversation({ conversationId: conversation(conversationId) }),
-          onEvent,
-        ),
+      rename: (chatId: string, title: string) => host((c) => c.RenameChat({ chatId: chat(chatId), title })),
+      remove: (chatId: string) => host((c) => c.DeleteChat({ chatId: chat(chatId) })),
+      watch: (chatId: string, onEvent: (event: ChatEvent) => void) =>
+        watch("Chat", (c) => c.WatchChat({ chatId: chat(chatId) }), onEvent),
     },
     shell: {
       pickDirectory: () => shell((c) => c.PickDirectory()),

@@ -1,12 +1,12 @@
 import {
   type ChatMessage,
   type Draft,
-  type Conversation,
-  ConversationBusy,
-  type ConversationDetail,
-  type ConversationEvent,
-  type ConversationId,
-  ConversationNotFound,
+  type Chat,
+  ChatBusy,
+  type ChatDetail,
+  type ChatEvent,
+  type ChatId,
+  ChatNotFound,
   type ModelChoice,
   ModelUnavailable,
 } from "@starlight/contracts";
@@ -15,10 +15,10 @@ import {
   type AgentProviderDriver,
   AgentProviderDrivers,
   AuditLog,
-  ConversationStore,
+  ChatStore,
   CurrentActor,
   IdGenerator,
-  type StoredConversation,
+  type StoredChat,
 } from "./ports.ts";
 
 const TITLE_LENGTH = 80;
@@ -29,51 +29,41 @@ const titleFrom = (text: string) => {
 };
 
 interface Published {
-  readonly conversationId: ConversationId;
-  readonly event: ConversationEvent;
+  readonly chatId: ChatId;
+  readonly event: ChatEvent;
 }
 
-export class Conversations extends Context.Service<
-  Conversations,
+export class Chats extends Context.Service<
+  Chats,
   {
-    readonly list: Effect.Effect<ReadonlyArray<Conversation>>;
-    readonly get: (id: ConversationId) => Effect.Effect<ConversationDetail, ConversationNotFound>;
+    readonly list: Effect.Effect<ReadonlyArray<Chat>>;
+    readonly get: (id: ChatId) => Effect.Effect<ChatDetail, ChatNotFound>;
     readonly send: (
-      id: ConversationId | null,
+      id: ChatId | null,
       text: string,
       model: ModelChoice,
-    ) => Effect.Effect<
-      Conversation,
-      ConversationNotFound | ConversationBusy | ModelUnavailable,
-      CurrentActor
-    >;
-    readonly rename: (
-      id: ConversationId,
-      title: string,
-    ) => Effect.Effect<Conversation, ConversationNotFound, CurrentActor>;
-    readonly remove: (id: ConversationId) => Effect.Effect<void, ConversationNotFound, CurrentActor>;
-    readonly watch: (id: ConversationId) => Stream.Stream<ConversationEvent, ConversationNotFound>;
+    ) => Effect.Effect<Chat, ChatNotFound | ChatBusy | ModelUnavailable, CurrentActor>;
+    readonly rename: (id: ChatId, title: string) => Effect.Effect<Chat, ChatNotFound, CurrentActor>;
+    readonly remove: (id: ChatId) => Effect.Effect<void, ChatNotFound, CurrentActor>;
+    readonly watch: (id: ChatId) => Stream.Stream<ChatEvent, ChatNotFound>;
   }
->()("@starlight/core/Conversations") {
-  static readonly layer = Layer.effect(Conversations)(
+>()("@starlight/core/Chats") {
+  static readonly layer = Layer.effect(Chats)(
     Effect.gen(function* () {
-      const store = yield* ConversationStore;
+      const store = yield* ChatStore;
       const drivers = yield* AgentProviderDrivers;
       const audit = yield* AuditLog;
       const ids = yield* IdGenerator;
       const events = yield* PubSub.unbounded<Published>();
-      const turns = yield* FiberMap.make<ConversationId>();
-      const drafts = new Map<ConversationId, Draft>();
-      const failures = new Map<ConversationId, string>();
+      const turns = yield* FiberMap.make<ChatId>();
+      const drafts = new Map<ChatId, Draft>();
+      const failures = new Map<ChatId, string>();
 
-      const publish = (conversationId: ConversationId, event: ConversationEvent) =>
-        PubSub.publish(events, { conversationId, event });
+      const publish = (chatId: ChatId, event: ChatEvent) => PubSub.publish(events, { chatId, event });
 
-      const find = (id: ConversationId) =>
+      const find = (id: ChatId) =>
         Effect.flatMap(store.find(id), (found) =>
-          Option.isSome(found)
-            ? Effect.succeed(found.value)
-            : Effect.fail(new ConversationNotFound({ conversationId: id })),
+          Option.isSome(found) ? Effect.succeed(found.value) : Effect.fail(new ChatNotFound({ chatId: id })),
         );
 
       const driverFor = ({ provider }: ModelChoice) =>
@@ -90,14 +80,14 @@ export class Conversations extends Context.Service<
       };
 
       const respond = (
-        stored: StoredConversation,
+        stored: StoredChat,
         driver: AgentProviderDriver,
         initial: Draft,
         prompt: string,
         model: ModelChoice,
       ) => {
-        const id = stored.conversation.id;
-        const settle = (event: ConversationEvent) =>
+        const id = stored.chat.id;
+        const settle = (event: ChatEvent) =>
           Effect.suspend(() => {
             drafts.delete(id);
             return publish(id, event);
@@ -130,77 +120,76 @@ export class Conversations extends Context.Service<
         );
       };
 
-      const begin = (id: ConversationId | null, text: string, model: ModelChoice) =>
+      const begin = (id: ChatId | null, text: string, model: ModelChoice) =>
         id === null
           ? Effect.gen(function* () {
               const driver = yield* driverFor(model);
-              const conversation = yield* store.create({ model, title: titleFrom(text) });
-              const stored: StoredConversation = { conversation, messages: [], session: Option.none() };
+              const chat = yield* store.create({ model, title: titleFrom(text) });
+              const stored: StoredChat = { chat, messages: [], session: Option.none() };
               return [stored, driver] as const;
             })
           : Effect.gen(function* () {
               const stored = yield* find(id);
-              if (stored.conversation.provider !== model.provider) {
+              if (stored.chat.provider !== model.provider) {
                 return yield* new ModelUnavailable({ provider: model.provider });
               }
               yield* store.saveModel(id, model);
               return [stored, yield* driverFor(model)] as const;
             });
 
-      const get = (id: ConversationId) =>
-        Effect.map(find(id), ({ conversation, messages }): ConversationDetail => ({
-          conversation,
+      const get = (id: ChatId) =>
+        Effect.map(find(id), ({ chat, messages }): ChatDetail => ({
+          chat,
           messages,
           draft: drafts.get(id) ?? null,
           failure: failures.get(id) ?? null,
         }));
 
-      return Conversations.of({
+      return Chats.of({
         list: store.list,
         get,
-        send: Effect.fn("Conversations.send")(function* (id, text, model) {
+        send: Effect.fn("Chats.send")(function* (id, text, model) {
           const draft: Draft = { id: yield* ids.next, text: "" };
           if (id !== null) {
-            if (drafts.has(id)) return yield* new ConversationBusy({ conversationId: id });
+            if (drafts.has(id)) return yield* new ChatBusy({ chatId: id });
             drafts.set(id, draft);
           }
-          const release = (conversationId: ConversationId) =>
-            Effect.sync(() => drafts.delete(conversationId));
+          const release = (chatId: ChatId) => Effect.sync(() => drafts.delete(chatId));
           const [stored, driver] = yield* begin(id, text, model).pipe(
             Effect.onError(() => (id === null ? Effect.void : release(id))),
           );
-          const conversationId = stored.conversation.id;
-          drafts.set(conversationId, draft);
-          failures.delete(conversationId);
+          const chatId = stored.chat.id;
+          drafts.set(chatId, draft);
+          failures.delete(chatId);
           yield* Effect.gen(function* () {
             const prompt = yield* message(yield* ids.next, "user", text);
-            yield* store.append(conversationId, prompt);
+            yield* store.append(chatId, prompt);
             yield* audit.record({
               actor: yield* CurrentActor,
               action: "SendMessage",
-              target: conversationId,
+              target: chatId,
             });
-            yield* publish(conversationId, { _tag: "MessageAdded", message: prompt });
-            yield* publish(conversationId, { _tag: "Draft", draft });
-          }).pipe(Effect.onError(() => release(conversationId)));
-          yield* FiberMap.run(turns, conversationId, respond(stored, driver, draft, text, model));
-          return { ...stored.conversation, model: model.model, effort: model.effort };
+            yield* publish(chatId, { _tag: "MessageAdded", message: prompt });
+            yield* publish(chatId, { _tag: "Draft", draft });
+          }).pipe(Effect.onError(() => release(chatId)));
+          yield* FiberMap.run(turns, chatId, respond(stored, driver, draft, text, model));
+          return { ...stored.chat, model: model.model, effort: model.effort };
         }),
-        rename: Effect.fn("Conversations.rename")(function* (id, title) {
-          const { conversation } = yield* find(id);
+        rename: Effect.fn("Chats.rename")(function* (id, title) {
+          const { chat } = yield* find(id);
           yield* store.rename(id, title);
-          yield* audit.record({ actor: yield* CurrentActor, action: "RenameConversation", target: id });
-          return { ...conversation, title };
+          yield* audit.record({ actor: yield* CurrentActor, action: "RenameChat", target: id });
+          return { ...chat, title };
         }),
-        remove: Effect.fn("Conversations.remove")(function* (id) {
-          const { conversation, session } = yield* find(id);
+        remove: Effect.fn("Chats.remove")(function* (id) {
+          const { chat, session } = yield* find(id);
           yield* FiberMap.remove(turns, id);
           drafts.delete(id);
           failures.delete(id);
           yield* store.remove(id);
-          const driver = drivers.get(conversation.provider);
+          const driver = drivers.get(chat.provider);
           if (driver && Option.isSome(session)) yield* driver.forget(session.value);
-          yield* audit.record({ actor: yield* CurrentActor, action: "DeleteConversation", target: id });
+          yield* audit.record({ actor: yield* CurrentActor, action: "DeleteChat", target: id });
         }),
         watch: (id) =>
           Stream.unwrap(
@@ -210,7 +199,7 @@ export class Conversations extends Context.Service<
               return Stream.concat(
                 Stream.make({ _tag: "Snapshot", detail } as const),
                 Stream.fromSubscription(subscription).pipe(
-                  Stream.filter((published) => published.conversationId === id),
+                  Stream.filter((published) => published.chatId === id),
                   Stream.map((published) => published.event),
                 ),
               );
