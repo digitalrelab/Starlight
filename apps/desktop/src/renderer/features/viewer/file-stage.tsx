@@ -1,21 +1,22 @@
 import type { Entry, EntryRef, FileSource } from "@starlight/client";
-import { cn, Icon, type IconProps } from "@starlight/ui";
+import { cn } from "@starlight/ui";
 import { useQuery } from "@tanstack/react-query";
 import { type ReactNode, useState } from "react";
 import { fileUrl } from "../../../shared/files.ts";
 import { thumbnailUrl } from "../../../shared/thumbnails.ts";
 import { useStarlight } from "../../lib/context.ts";
 import { reveal } from "../../lib/reveal.ts";
-import { pictureUrl, presentationIcons, presentationOf } from "./presentation.ts";
+import { type ItemKind, KindIcon, kindOf } from "../files/kind-icon.tsx";
+import { pictureUrl, presentationOf } from "./presentation.ts";
 
 const PLACEHOLDER_PIXELS = 512;
 const POSTER_PIXELS = 1024;
 
 const fill = "absolute inset-0 size-full object-contain";
 
-const Notice = ({ icon, children }: { readonly icon: IconProps["icon"]; readonly children: ReactNode }) => (
+const Notice = ({ kind, children }: { readonly kind: ItemKind; readonly children: ReactNode }) => (
   <div className="flex size-full flex-col items-center justify-center gap-3 text-subtle">
-    <Icon icon={icon} size={40} strokeWidth={1.25} />
+    <KindIcon kind={kind} size={40} />
     <p>{children}</p>
   </div>
 );
@@ -28,7 +29,7 @@ interface PictureProps {
 
 const Picture = ({ name, source, presentation }: PictureProps) => {
   const [failed, setFailed] = useState(false);
-  if (failed) return <Notice icon={presentationIcons.image}>Can’t open this image</Notice>;
+  if (failed) return <Notice kind="image">Can’t open this image</Notice>;
   return (
     <div
       className="group/fitted absolute inset-0 m-auto"
@@ -59,7 +60,7 @@ const Picture = ({ name, source, presentation }: PictureProps) => {
 
 const Video = ({ source }: { readonly source: FileSource }) => {
   const [failed, setFailed] = useState(false);
-  if (failed) return <Notice icon={presentationIcons.video}>Can’t play this video</Notice>;
+  if (failed) return <Notice kind="video">Can’t play this video</Notice>;
   return (
     <div className="flex size-full items-center justify-center">
       <video
@@ -87,8 +88,8 @@ export const FileStage = ({ workspaceId, directory, entry }: Props) => {
     ...queries.fileSource(workspaceId, directory, entry.ref),
     enabled: presentation !== "none",
   });
-  if (presentation === "none") return <Notice icon={presentationIcons.none}>No preview available</Notice>;
-  if (source.isError) return <Notice icon={presentationIcons[presentation]}>Can’t open this file</Notice>;
+  if (presentation === "none") return <Notice kind={kindOf(entry)}>No preview available</Notice>;
+  if (source.isError) return <Notice kind={kindOf(entry)}>Can’t open this file</Notice>;
   if (!source.data) return null;
   if (presentation === "video") return <Video source={source.data} />;
   return <Picture name={entry.name} source={source.data} presentation={presentation} />;

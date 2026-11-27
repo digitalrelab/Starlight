@@ -8,7 +8,7 @@ import { thumbnailUrl } from "../../../../shared/thumbnails.ts";
 import { useStarlight } from "../../../lib/context.ts";
 import { reveal } from "../../../lib/reveal.ts";
 import { useElementWidth } from "../../../lib/use-element-width.ts";
-import { EntryIcon } from "../entry-icon.tsx";
+import { KindIcon, kindOf } from "../../files/kind-icon.tsx";
 import { justify, nearestInRow } from "./justify.ts";
 import type { LayoutProps } from "./types.ts";
 import { useThumbnail } from "./use-thumbnail.ts";
@@ -170,7 +170,7 @@ const Tile = memo(
           />
         ) : (
           <div className="flex size-full flex-col items-center justify-center gap-2 p-3">
-            <EntryIcon entry={entry} size={40} strokeWidth={1.25} />
+            <KindIcon kind={kindOf(entry)} size={40} />
             <span className="w-full truncate text-center text-sm">{entry.name}</span>
           </div>
         )}
