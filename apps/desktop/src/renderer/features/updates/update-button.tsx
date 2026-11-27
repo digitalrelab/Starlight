@@ -33,19 +33,19 @@ const UpdateAction = ({ update }: { readonly update: Update }) => {
   switch (update.status) {
     case "available":
       return (
-        <Button className="ml-auto" onClick={() => download.mutate()} disabled={download.isPending}>
+        <Button onClick={() => download.mutate()} disabled={download.isPending}>
           {update.failure ? "Try again" : "Download update"}
         </Button>
       );
     case "downloading":
       return (
-        <p className="ml-auto flex h-control items-center px-2.5 text-subtle tabular-nums">
+        <p className="flex h-control items-center px-2.5 text-subtle tabular-nums">
           Downloading… {Math.round(update.progress * 100)}%
         </p>
       );
     case "downloaded":
       return (
-        <Button className="ml-auto" onClick={() => install.mutate()} disabled={install.isPending}>
+        <Button onClick={() => install.mutate()} disabled={install.isPending}>
           {update.failure ? "Try again" : "Restart to update"}
         </Button>
       );
@@ -88,8 +88,8 @@ export const UpdateButton = ({ className }: { readonly className?: string }) => 
         <ScrollArea className="-mx-3" contentClassName="px-3">
           <Prose html={update.releaseNotes} />
         </ScrollArea>
-        <div className="flex items-center gap-3">
-          {update.failure ? <p className="text-sm text-danger">{FAILURES[update.failure]}</p> : null}
+        <div className="flex items-center justify-end gap-3">
+          {update.failure ? <p className="mr-auto text-sm text-danger">{FAILURES[update.failure]}</p> : null}
           <UpdateAction update={update} />
         </div>
       </PopoverContent>
