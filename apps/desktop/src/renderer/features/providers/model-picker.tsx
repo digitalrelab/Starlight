@@ -91,7 +91,7 @@ const Star = ({
     aria-pressed={starred}
     onClick={onToggle}
     size="sm"
-    className="text-subtlest opacity-0 group-hover/row:opacity-100 highlighted:bg-neutral-hovered focus-visible:opacity-100 aria-pressed:text-accent-yellow aria-pressed:opacity-100 aria-pressed:highlighted:text-accent-yellow"
+    className="text-subtlest opacity-0 group-hover/row:opacity-100 highlighted:bg-neutral-hovered focus-visible:opacity-100 aria-pressed:text-favorite aria-pressed:opacity-100 aria-pressed:highlighted:text-favorite"
   />
 );
 
@@ -111,7 +111,7 @@ const RailButton = ({
     aria-label={label}
     aria-pressed={pressed}
     onClick={onClick}
-    className="inline-flex size-control items-center justify-center rounded-md focus-ring highlighted:bg-neutral-subtle-hovered aria-pressed:bg-selected"
+    className="inline-flex size-control items-center justify-center rounded-md focus-ring highlighted:bg-neutral-subtle-hovered aria-pressed:bg-selected aria-pressed:highlighted:bg-selected-hovered"
   >
     {children}
   </button>
@@ -211,7 +211,7 @@ export const ModelPicker = ({ providers, choice, onChoose }: Props) => {
             pressed={browsing === FAVORITES}
             onClick={() => setBrowsing(FAVORITES)}
           >
-            <Icon icon={StarFilledIcon} size={18} className="text-accent-yellow" />
+            <Icon icon={StarFilledIcon} size={18} className="text-favorite" />
           </RailButton>
           <div className="m-1 border-t border-default" />
           {providers.map(({ id, name }) => (
