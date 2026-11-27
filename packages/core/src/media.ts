@@ -16,12 +16,9 @@ import { hasTransparency } from "./processors/traits.ts";
 import { Projects } from "./projects.ts";
 
 const appearanceOf = (
-  placeholder: string | null | undefined,
-  traits: ReadonlyArray<Property> | undefined,
-): MediaAppearance => ({
-  placeholder: placeholder ?? null,
-  transparent: !!traits && hasTransparency(traits),
-});
+  placeholder: string | null = null,
+  traits: ReadonlyArray<Property> = [],
+): MediaAppearance => ({ placeholder, transparent: hasTransparency(traits) });
 
 const touches = (directory: EntryId) => (change: SourceChange) =>
   change._tag === "Resync" || change.directories.includes(directory);
