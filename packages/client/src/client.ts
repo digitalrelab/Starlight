@@ -3,6 +3,7 @@ import {
   type ChatId,
   type EntryChange,
   type EntryRef,
+  type FileVersion,
   HostRpcs,
   type ModelChoice,
   ShellRpcs,
@@ -64,8 +65,12 @@ export const createClient = (ports: PortSources) => {
     media: {
       list: (workspaceId: string, directory: EntryRef | null) =>
         host((c) => c.ListMedia({ workspaceId: id(workspaceId), directory })),
+    },
+    files: {
       source: (workspaceId: string, file: EntryRef) =>
         host((c) => c.GetFileSource({ workspaceId: id(workspaceId), file })),
+      write: (workspaceId: string, file: EntryRef, content: Uint8Array, base: FileVersion) =>
+        host((c) => c.WriteFile({ workspaceId: id(workspaceId), file, content, base })),
     },
     agents: {
       providers: () => host((c) => c.ListAgentProviders()),

@@ -6,6 +6,7 @@ import {
 } from "@tanstack/react-query";
 import type { ChatDetail, EntryRef, Listing, ModelChoice, UpdaterState } from "@starlight/contracts";
 import type { StarlightClient } from "./client.ts";
+import { createFileSession, type FileSessionOptions } from "./file-session.ts";
 import { entryKey } from "./refs.ts";
 
 const directoryKey = (workspaceId: string) => ["directory", workspaceId] as const;
@@ -35,7 +36,7 @@ const createQueries = (client: StarlightClient) => ({
   fileSource: (workspaceId: string, directory: EntryRef, file: EntryRef) =>
     queryOptions({
       queryKey: [...directoryKey(workspaceId), entryKey(directory), "source", entryKey(file)],
-      queryFn: () => client.media.source(workspaceId, file),
+      queryFn: () => client.files.source(workspaceId, file),
     }),
 
   agentProviders: () =>
@@ -194,15 +195,21 @@ const createSubscriptions = (client: StarlightClient, queryClient: QueryClient, 
     }),
 });
 
+const createSessions = (client: StarlightClient) => ({
+  file: <T>(options: FileSessionOptions<T>) => createFileSession(client, options),
+});
+
 export const createQueryOptions = (client: StarlightClient, queryClient: QueryClient) => {
   const queries = createQueries(client);
   return {
     queries,
     mutations: createMutations(client, queryClient, queries),
     subscriptions: createSubscriptions(client, queryClient, queries),
+    sessions: createSessions(client),
   };
 };
 
 export type Queries = ReturnType<typeof createQueries>;
 export type Mutations = ReturnType<typeof createMutations>;
 export type Subscriptions = ReturnType<typeof createSubscriptions>;
+export type Sessions = ReturnType<typeof createSessions>;

@@ -26,5 +26,7 @@ export {
   mediaTypeOf,
 } from "@starlight/contracts";
 export * from "./client.ts";
+export * from "./codecs.ts";
+export * from "./file-session.ts";
 export * from "./queries.ts";
 export * from "./refs.ts";

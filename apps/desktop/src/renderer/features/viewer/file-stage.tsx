@@ -1,13 +1,15 @@
-import type { Entry, EntryRef, FileSource } from "@starlight/client";
+import { type Entry, type EntryRef, type FileSource, textCodec } from "@starlight/client";
 import { cn, ScrollArea } from "@starlight/ui";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { type ReactNode, Suspense, useState } from "react";
 import { fileUrl } from "#shared/files.ts";
 import { previewUrl } from "#shared/previews.ts";
 import { useStarlight } from "#renderer/lib/context.ts";
 import { reveal } from "#renderer/lib/reveal.ts";
+import { FileSessionBanner } from "#renderer/features/files/file-session-banner.tsx";
 import { type ItemKind, KindIcon, itemKindOf } from "#renderer/features/files/kind-icon.tsx";
-import { MarkdownEditor, markdownText } from "./markdown-file.ts";
+import { useFileSession } from "#renderer/features/files/use-file-session.ts";
+import { MarkdownEditor } from "./markdown-file.ts";
 import { pictureUrl, presentationOf } from "./presentation.ts";
 
 const PLACEHOLDER_PIXELS = 512;
@@ -76,16 +78,31 @@ const Video = ({ source }: { readonly source: FileSource }) => {
   );
 };
 
-const MarkdownFile = ({ name, source }: { readonly name: string; readonly source: FileSource }) => {
-  const text = useQuery({ ...markdownText(source), placeholderData: keepPreviousData });
-  if (text.isError) return <Notice kind="markdown">Can’t open this file</Notice>;
-  if (text.data === undefined) return null;
+interface MarkdownFileProps {
+  readonly workspaceId: string;
+  readonly entry: Entry;
+  readonly source: FileSource;
+}
+
+const MarkdownFile = ({ workspaceId, entry, source }: MarkdownFileProps) => {
+  const { session, document, status } = useFileSession(workspaceId, entry.ref, source, textCodec);
+  if (!document) return status === "failed" ? <Notice kind="markdown">Can’t open this file</Notice> : null;
   return (
-    <ScrollArea className="h-full">
-      <Suspense fallback={null}>
-        <MarkdownEditor value={text.data} label={name} className="pt-[12vh] pb-[40vh]" />
-      </Suspense>
-    </ScrollArea>
+    <>
+      <FileSessionBanner status={status} session={session} />
+      <ScrollArea className="h-full">
+        <Suspense fallback={null}>
+          <MarkdownEditor
+            key={document.revision}
+            value={document.value}
+            label={entry.name}
+            editable={document.editable}
+            onChange={session.edit}
+            className="pt-[12vh] pb-[40vh]"
+          />
+        </Suspense>
+      </ScrollArea>
+    </>
   );
 };
 
@@ -106,6 +123,7 @@ export const FileStage = ({ workspaceId, directory, entry }: Props) => {
   if (source.isError) return <Notice kind={itemKindOf(entry)}>Can’t open this file</Notice>;
   if (!source.data) return null;
   if (presentation === "video") return <Video source={source.data} />;
-  if (presentation === "markdown") return <MarkdownFile name={entry.name} source={source.data} />;
+  if (presentation === "markdown")
+    return <MarkdownFile workspaceId={workspaceId} entry={entry} source={source.data} />;
   return <Picture name={entry.name} source={source.data} presentation={presentation} />;
 };

@@ -8,12 +8,13 @@ import {
   DirectoryError,
   FileError,
   MountError,
+  WriteError,
   SourceError,
   SourceUnavailable,
   WorkspaceNotFound,
 } from "./errors.ts";
 import { EntryRef, WorkspaceId } from "./ids.ts";
-import { FileSource, Media } from "./media.ts";
+import { FileSource, FileVersion, Media } from "./media.ts";
 import { UpdaterState } from "./update.ts";
 import { Workspace } from "./workspace.ts";
 
@@ -52,6 +53,11 @@ export class HostRpcs extends RpcGroup.make(
     payload: { workspaceId: WorkspaceId, file: EntryRef },
     success: FileSource,
     error: FileError,
+  }),
+  Rpc.make("WriteFile", {
+    payload: { workspaceId: WorkspaceId, file: EntryRef, content: Schema.Uint8Array, base: FileVersion },
+    success: FileVersion,
+    error: WriteError,
   }),
   Rpc.make("WatchEntries", {
     payload: { workspaceId: WorkspaceId },

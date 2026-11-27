@@ -68,6 +68,14 @@ export const DirectoryError = Schema.Union([
 ]);
 export type DirectoryError = typeof DirectoryError.Type;
 
+export class VersionConflict extends Schema.TaggedError<VersionConflict>()("VersionConflict", {
+  entry: EntryRef,
+}) {
+  override get message() {
+    return `Changed since it was read: ${this.entry.id}`;
+  }
+}
+
 export const FileError = Schema.Union([
   WorkspaceNotFound,
   SourceUnavailable,
@@ -76,3 +84,6 @@ export const FileError = Schema.Union([
   SourceError,
 ]);
 export type FileError = typeof FileError.Type;
+
+export const WriteError = Schema.Union([...FileError.members, VersionConflict]);
+export type WriteError = typeof WriteError.Type;

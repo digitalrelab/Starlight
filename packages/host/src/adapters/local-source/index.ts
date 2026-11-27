@@ -1,5 +1,5 @@
 import type { Stats } from "node:fs";
-import { lstat, readdir, realpath, stat } from "node:fs/promises";
+import { lstat, open, readdir, realpath, stat } from "node:fs/promises";
 import { basename, dirname, join, relative, resolve, sep } from "node:path";
 import { subscribe } from "@parcel/watcher";
 import { EntryId, type EntryKind, type SourceError } from "@starlight/contracts";
@@ -40,6 +40,18 @@ const trail = (root: string, id: string): ReadonlyArray<SourceCrumb> => {
       path = join(path, name);
       return { id: EntryId.make(path), name };
     });
+};
+
+const writeInPlace = async (path: string, content: Uint8Array) => {
+  const handle = await open(path, "r+");
+  try {
+    await handle.writeFile(content);
+    await handle.truncate(content.byteLength);
+    await handle.sync();
+    return await handle.stat();
+  } finally {
+    await handle.close();
+  }
 };
 
 const staleDirectories = (paths: ReadonlyArray<string>) =>
@@ -94,6 +106,10 @@ export const makeLocalSource = (): SourceDriver => {
         },
         catch: toSourceError(id),
       }),
+    write: (id, content) =>
+      Effect.tryPromise({ try: () => writeInPlace(id, content), catch: toSourceError(id) }).pipe(
+        Effect.map((s) => toEntry(id, s)),
+      ),
     watch,
     extractors: { dimensions: dimensionsExtractor },
   };
