@@ -29,7 +29,7 @@ const Palette = ({ palette }: Pick<FileDetails, "palette">) => (
 
 const PropertyCards = ({ properties }: Pick<FileDetails, "properties">) =>
   [...Map.groupBy(properties, (property) => property.namespace)].map(([namespace, group]) => (
-    <Card key={namespace} surface="panel" className="flex shrink-0 flex-col gap-2 p-3">
+    <Card key={namespace} className="flex shrink-0 flex-col gap-2 p-3">
       <span className="text-subtle">{NAMESPACE_LABELS[namespace]}</span>
       <div className="flex flex-wrap gap-1">
         {group.map((property) => (
@@ -43,7 +43,7 @@ const PropertyCards = ({ properties }: Pick<FileDetails, "properties">) =>
   ));
 
 const DetailsCard = ({ details }: { readonly details: FileDetails }) => (
-  <Details.Root surface="panel">
+  <Details.Root>
     <Details.Row label="Kind">{details.mediaType ?? "File"}</Details.Row>
     <Details.Row label="Size">{formatSize(details.size)}</Details.Row>
     {details.dimensions ? (
