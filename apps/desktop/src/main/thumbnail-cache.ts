@@ -30,7 +30,7 @@ export const createThumbnailCache = (directory: string, limitBytes: number) => {
 
   const read = async (path: string): Promise<Bytes | null> => {
     try {
-      const bytes = new Uint8Array(await readFile(path));
+      const bytes = await readFile(path);
       const now = new Date();
       void utimes(path, now, now).catch(() => undefined);
       return bytes;
@@ -68,7 +68,7 @@ export const createThumbnailCache = (directory: string, limitBytes: number) => {
         .filter((file) => file !== null)
         .sort((a, b) => b.mtimeMs - a.mtimeMs)
         .filter((file) => (total += file.size) > limitBytes);
-      await Promise.all(evicted.map((file) => rm(file.path, { force: true })));
+      await Promise.allSettled(evicted.map((file) => rm(file.path, { force: true })));
     },
   };
 };

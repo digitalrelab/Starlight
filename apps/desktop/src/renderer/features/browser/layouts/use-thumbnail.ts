@@ -15,7 +15,7 @@ interface Request {
 
 const requests = new Map<string, Request>();
 let active = 0;
-let order = 0;
+let sequence = 0;
 
 const isVisible = (request: Request) => {
   for (const listener of request.listeners) if (listener.visible) return true;
@@ -54,7 +54,7 @@ const pump = () => {
 };
 
 const subscribe = (url: string, listener: Listener) => {
-  const request = requests.get(url) ?? { listeners: new Set(), order: order++, loading: false };
+  const request = requests.get(url) ?? { listeners: new Set(), order: sequence++, loading: false };
   requests.set(url, request);
   request.listeners.add(listener);
   pump();
@@ -66,6 +66,9 @@ const subscribe = (url: string, listener: Listener) => {
 
 export const useThumbnail = (url: string, visible: boolean) => {
   const [loaded, setLoaded] = useState<string>();
-  useEffect(() => subscribe(url, { visible, onLoad: () => setLoaded(url) }), [url, visible]);
-  return loaded === url ? url : undefined;
+  const ready = loaded === url;
+  useEffect(() => {
+    if (!ready) return subscribe(url, { visible, onLoad: () => setLoaded(url) });
+  }, [url, visible, ready]);
+  return ready ? url : undefined;
 };
