@@ -25,15 +25,31 @@ const SAMPLE_CONCURRENCY = 3;
 const BATCH_SIZE = 24;
 const BATCH_WINDOW: Duration.Input = "300 millis";
 
+type ProcessedName = keyof ProcessedFacts;
+
 const probedCodecs: { readonly [F in keyof ProbedFacts]: Schema.Codec<ProbedFacts[F], string> } = {
   dimensions: Schema.fromJsonString(Dimensions),
 };
 
-const processedCodecs: { readonly [F in keyof ProcessedFacts]: Schema.Codec<ProcessedFacts[F], string> } = {
+const processedCodecs: { readonly [F in ProcessedName]: Schema.Codec<ProcessedFacts[F], string> } = {
   placeholder: Schema.fromJsonString(Schema.String),
   palette: Schema.fromJsonString(Palette),
   traits: Schema.fromJsonString(Schema.Array(Property)),
 };
+
+const probedCodec = <F extends keyof ProbedFacts>(fact: F): Schema.Codec<ProbedFacts[F], string> =>
+  probedCodecs[fact];
+
+const processedCodec = <F extends ProcessedName>(fact: F): Schema.Codec<ProcessedFacts[F], string> =>
+  processedCodecs[fact];
+
+export interface Processed {
+  readonly entry: IdentifiedEntry;
+  readonly facts: ProcessedFacts | null;
+}
+
+const isFresh = (stored: StoredFact, entry: IdentifiedEntry, version: number) =>
+  stored.size === entry.size && stored.modifiedAt === entry.modifiedAt && stored.version === version;
 
 const freshValue = <F extends ProcessedName>(
   fact: F,
@@ -43,22 +59,6 @@ const freshValue = <F extends ProcessedName>(
   !found || found.value === null || !isFresh(found, entry, processors[fact].version)
     ? Option.none()
     : Schema.decodeOption(processedCodec(fact))(found.value);
-
-const probedCodec = <F extends keyof ProbedFacts>(fact: F): Schema.Codec<ProbedFacts[F], string> =>
-  probedCodecs[fact];
-
-const processedCodec = <F extends keyof ProcessedFacts>(fact: F): Schema.Codec<ProcessedFacts[F], string> =>
-  processedCodecs[fact];
-
-type ProcessedName = keyof ProcessedFacts;
-
-export interface Processed {
-  readonly entry: IdentifiedEntry;
-  readonly facts: ProcessedFacts | null;
-}
-
-const isFresh = (stored: StoredFact, entry: IdentifiedEntry, version: number) =>
-  stored.size === entry.size && stored.modifiedAt === entry.modifiedAt && stored.version === version;
 
 const byFileId = (stored: ReadonlyArray<StoredFact>) =>
   new Map<FileId, StoredFact>(stored.map((fact) => [fact.fileId, fact]));
