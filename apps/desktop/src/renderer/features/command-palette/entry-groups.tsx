@@ -2,6 +2,7 @@ import type { EntryMatch } from "@starlight/client";
 import type { CommandGroup, CommandItem } from "@starlight/ui";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import { previewUrl } from "#shared/previews.ts";
 import { entryLink } from "#renderer/features/files/entry-link.ts";
 import { type ItemKind, itemKindOf, KindIcon } from "#renderer/features/files/kind-icon.tsx";
@@ -15,11 +16,13 @@ const PREVIEWED = new Set<ItemKind>(["image", "video"]);
 
 const Leading = ({ match }: { readonly match: EntryMatch }) => {
   const kind = itemKindOf(match.location);
-  return match.token && PREVIEWED.has(kind) ? (
+  const [failed, setFailed] = useState(false);
+  return match.token && PREVIEWED.has(kind) && !failed ? (
     <img
       src={previewUrl(match.token, LEADING_SIZE * window.devicePixelRatio)}
       alt=""
       decoding="async"
+      onError={() => setFailed(true)}
       className="size-5 rounded-sm object-cover"
     />
   ) : (
