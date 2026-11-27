@@ -5,7 +5,7 @@ export type UsageTone = "neutral" | "warning" | "danger";
 export interface Pace {
   readonly used: number;
   readonly tone: UsageTone;
-  readonly elapsed: number | null;
+  readonly even: number | null;
   readonly resetsIn: number | null;
   readonly runsOutIn: number | null;
 }
@@ -27,7 +27,7 @@ export const paceOf = ({ usedPercent, resetsAt, durationMs }: UsageWindow, now: 
   return {
     used: clamp(usedPercent, FULL_PERCENT),
     tone: usedPercent >= DANGER_PERCENT ? "danger" : runsOutIn !== null ? "warning" : "neutral",
-    elapsed: elapsedMs === null || !durationMs ? null : elapsedMs / durationMs,
+    even: elapsedMs === null || !durationMs ? null : (elapsedMs / durationMs) * FULL_PERCENT,
     resetsIn,
     runsOutIn,
   };

@@ -46,19 +46,19 @@ const Meter = ({ label, pace }: { readonly label: string; readonly pace: Pace })
           )}
           style={{ width: `${pace.used}%` }}
         />
-        {pace.elapsed === null ? null : (
+        {pace.even === null ? null : (
           <div
             className="absolute top-1/2 h-3.5 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-(--text-color-default) ring-2 ring-(--background-color-surface-raised)"
-            style={{ left: `${pace.elapsed * FULL_PERCENT}%` }}
+            style={{ left: `${pace.even}%` }}
           />
         )}
       </div>
     </div>
   );
-  return pace.elapsed === null ? (
+  return pace.even === null ? (
     meter
   ) : (
-    <Tooltip label={`Even pace would be ${Math.round(pace.elapsed * FULL_PERCENT)}% by now`}>{meter}</Tooltip>
+    <Tooltip label={`Even pace would be ${Math.round(pace.even)}% by now`}>{meter}</Tooltip>
   );
 };
 

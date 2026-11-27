@@ -1,4 +1,5 @@
 import { RefreshCwIcon } from "@hugeicons-pro/core-stroke-rounded";
+import type { AgentUsage } from "@starlight/client";
 import { cn, IconButton } from "@starlight/ui";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
@@ -9,6 +10,8 @@ import { useNow } from "#renderer/lib/use-now.ts";
 
 const TICK_MS = 60 * 1000;
 
+const FAILED: AgentUsage = { _tag: "Unavailable", message: "Couldn't check usage." };
+
 export const Route = createFileRoute("/settings/usage")({
   loader: ({ context: { queryClient, queries } }) => queryClient.ensureQueryData(queries.agentProviders()),
   component: Usage,
@@ -17,7 +20,7 @@ export const Route = createFileRoute("/settings/usage")({
 function Usage() {
   const { queries } = useStarlight();
   const { data: providers } = useSuspenseQuery(queries.agentProviders());
-  const { data: usage, refetch, isFetching } = useQuery(queries.agentUsage());
+  const { data: usage, refetch, isFetching, isError } = useQuery(queries.agentUsage());
   const now = useNow(TICK_MS);
 
   return (
@@ -37,7 +40,9 @@ function Usage() {
         <ProviderUsage
           key={provider.id}
           provider={provider}
-          usage={usage?.find((entry) => entry.provider === provider.id)?.usage}
+          usage={
+            usage?.find((entry) => entry.provider === provider.id)?.usage ?? (isError ? FAILED : undefined)
+          }
           now={now}
         />
       ))}
