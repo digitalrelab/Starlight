@@ -8,6 +8,8 @@ import {
   type FileIdentity,
 } from "./ports.ts";
 
+const STAT_CONCURRENCY = 32;
+
 export class FileIdentities extends Context.Service<
   FileIdentities,
   {
@@ -47,6 +49,20 @@ export class FileIdentities extends Context.Service<
                   unknown.map((entry) => entry.key),
                 )).map((identity) => [identity.key, identity]),
           );
+          const candidates = unknown.flatMap((entry) => {
+            const moved = elsewhere.get(entry.key);
+            elsewhere.delete(entry.key);
+            return moved ? [{ entry: entry.id, moved }] : [];
+          });
+          const relinks = new Map(
+            (yield* Effect.filter(
+              candidates,
+              ({ moved }) => Effect.map(isStillAt(driver, moved), (stays) => !stays),
+              {
+                concurrency: STAT_CONCURRENCY,
+              },
+            )).map(({ entry, moved }) => [entry, moved.id]),
+          );
           const changed: Array<FileIdentity> = [];
           for (const entry of entries) {
             const found = known.get(entry.id);
@@ -54,10 +70,7 @@ export class FileIdentities extends Context.Service<
               if (found.key !== entry.key) changed.push({ ...found, key: entry.key });
               continue;
             }
-            const moved = elsewhere.get(entry.key);
-            elsewhere.delete(entry.key);
-            const id = moved && !(yield* isStillAt(driver, moved)) ? moved.id : FileId.generate();
-            changed.push({ id, entry: entry.id, key: entry.key });
+            changed.push({ id: relinks.get(entry.id) ?? FileId.generate(), entry: entry.id, key: entry.key });
           }
           if (changed.length > 0) yield* store.save(directory.source, directory.id, changed);
           const settled = changed.length === 0 ? known : yield* recorded(directory);
