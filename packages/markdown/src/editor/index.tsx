@@ -1,22 +1,29 @@
-import { Compartment, EditorState, Transaction } from "@codemirror/state";
-import { EditorView } from "@codemirror/view";
+import { insertNewlineContinueMarkup } from "@codemirror/lang-markdown";
+import { Compartment, EditorState, Prec, Transaction } from "@codemirror/state";
+import { EditorView, keymap, placeholder as placeholderText } from "@codemirror/view";
 import { cn } from "cn";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { changeBetween } from "#change.ts";
+import { hangingIndents } from "./hanging.ts";
 import { writing } from "./writing.ts";
 
 export interface MarkdownEditorProps {
   readonly value: string;
   readonly label: string;
+  readonly variant?: "document" | "message";
   readonly editable?: boolean;
+  readonly placeholder?: string;
+  readonly autoFocus?: boolean;
   readonly className?: string;
   readonly onChange?: (read: () => string) => void;
+  readonly onSubmit?: () => void;
 }
 
-const settingsOf = (label: string, editable: boolean) => [
+const settingsOf = (label: string, editable: boolean, placeholder: string | undefined) => [
   EditorView.contentAttributes.of({ "aria-label": label }),
   EditorView.editable.of(editable),
   EditorState.readOnly.of(!editable),
+  placeholder ? placeholderText(placeholder) : [],
 ];
 
 const isLocal = (transaction: Transaction) =>
@@ -25,16 +32,29 @@ const isLocal = (transaction: Transaction) =>
 export const MarkdownEditor = ({
   value,
   label,
-  editable = false,
+  variant = "document",
+  editable = true,
+  placeholder,
+  autoFocus = false,
   className,
   onChange,
+  onSubmit,
 }: MarkdownEditorProps) => {
   const host = useRef<HTMLDivElement>(null);
   const view = useRef<EditorView>(null);
   const synced = useRef(value);
-  const [initial] = useState({ value, label, editable });
+  const [initial] = useState({
+    value,
+    label,
+    variant,
+    editable,
+    placeholder,
+    autoFocus,
+    submits: onSubmit !== undefined,
+  });
   const [settings] = useState(() => new Compartment());
   const changed = useEffectEvent((read: () => string) => onChange?.(read));
+  const submitted = useEffectEvent(() => onSubmit?.());
 
   useEffect(() => {
     if (!host.current) return;
@@ -44,7 +64,23 @@ export const MarkdownEditor = ({
         doc: initial.value,
         extensions: [
           writing,
-          settings.of(settingsOf(initial.label, initial.editable)),
+          initial.variant === "document" ? hangingIndents : [],
+          initial.submits
+            ? Prec.highest(
+                keymap.of([
+                  {
+                    key: "Enter",
+                    run: (target) => {
+                      if (target.composing) return false;
+                      submitted();
+                      return true;
+                    },
+                    shift: insertNewlineContinueMarkup,
+                  },
+                ]),
+              )
+            : [],
+          settings.of(settingsOf(initial.label, initial.editable, initial.placeholder)),
           EditorView.updateListener.of((update) => {
             if (update.transactions.some(isLocal)) changed(() => update.state.sliceDoc());
           }),
@@ -52,6 +88,7 @@ export const MarkdownEditor = ({
       }),
     });
     view.current = editor;
+    if (initial.autoFocus) editor.focus();
     return () => {
       view.current = null;
       editor.destroy();
@@ -59,8 +96,8 @@ export const MarkdownEditor = ({
   }, [initial, settings]);
 
   useEffect(() => {
-    view.current?.dispatch({ effects: settings.reconfigure(settingsOf(label, editable)) });
-  }, [settings, label, editable]);
+    view.current?.dispatch({ effects: settings.reconfigure(settingsOf(label, editable, placeholder)) });
+  }, [settings, label, editable, placeholder]);
 
   useEffect(() => {
     const editor = view.current;
@@ -74,5 +111,5 @@ export const MarkdownEditor = ({
     });
   }, [value]);
 
-  return <div ref={host} className={cn("markdown-editor", className)} />;
+  return <div ref={host} data-variant={initial.variant} className={cn("markdown-editor", className)} />;
 };

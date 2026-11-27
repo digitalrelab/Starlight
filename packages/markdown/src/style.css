@@ -239,18 +239,15 @@
   outline: none;
 }
 
-.markdown-editor .cm-editor .cm-scroller {
-  @apply font-mono;
-  font-size: 1rem;
-  line-height: 1.75;
+.markdown-editor .cm-editor,
+.markdown-editor .cm-editor .cm-scroller,
+.markdown-editor .cm-editor .cm-content {
+  min-height: inherit;
 }
 
 .markdown-editor .cm-editor .cm-content {
   @apply caret-(--text-color-brand) select-text;
-  box-sizing: content-box;
-  max-width: 64ch;
-  margin-inline: auto;
-  padding-inline: 8ch;
+  padding: 0;
   cursor: text;
 }
 
@@ -260,4 +257,25 @@
 
 .markdown-editor .cm-editor .cm-content ::selection {
   @apply bg-selection;
+}
+
+.markdown-editor .cm-editor .cm-placeholder {
+  @apply text-subtlest;
+}
+
+.markdown-editor[data-variant="document"] .cm-editor .cm-scroller {
+  @apply font-mono;
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.markdown-editor[data-variant="document"] .cm-editor .cm-content {
+  box-sizing: content-box;
+  max-width: 64ch;
+  margin-inline: auto;
+  padding-inline: 8ch;
+}
+
+.markdown-editor[data-variant="message"] .cm-editor .cm-scroller {
+  font: inherit;
 }
