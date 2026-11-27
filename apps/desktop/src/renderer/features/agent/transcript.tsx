@@ -14,19 +14,21 @@ interface Props {
 const Reply = ({ text, pending }: { readonly text: string; readonly pending: boolean }) => {
   const shown = useRevealedText(text);
   return pending && shown === "" ? (
-    <p className="w-fit shimmer-text">Thinking…</p>
+    <p className="w-fit font-chat text-chat shimmer-text">Thinking…</p>
   ) : (
-    <Markdown value={shown} className="whitespace-pre-line" />
+    <Markdown value={shown} className="font-chat text-chat whitespace-pre-line" />
   );
 };
 
-const Message = ({
+export const Message = ({
   role,
   text,
   pending,
 }: Pick<ChatMessage, "role" | "text"> & { readonly pending: boolean }) =>
   role === "user" ? (
-    <p className="max-w-[80%] self-end rounded-lg bg-neutral px-3 py-2 whitespace-pre-wrap">{text}</p>
+    <p className="max-w-[80%] self-end rounded-lg bg-neutral px-3 py-2 font-chat text-chat whitespace-pre-wrap">
+      {text}
+    </p>
   ) : (
     <Reply text={text} pending={pending} />
   );
@@ -42,7 +44,7 @@ export const Transcript = ({ messages, draft, failure, className }: Props) => {
       className="flex-1"
       ref={viewport}
       contentRef={content}
-      contentClassName={cn("flex flex-col gap-6 font-chat text-chat", className)}
+      contentClassName={cn("flex flex-col gap-6", className)}
     >
       {items.map((message) => (
         <Message
@@ -52,7 +54,7 @@ export const Transcript = ({ messages, draft, failure, className }: Props) => {
           pending={message.id === draft?.id}
         />
       ))}
-      {failure ? <p className="font-sans text-sm text-danger">{failure}</p> : null}
+      {failure ? <p className="text-sm text-danger">{failure}</p> : null}
     </ScrollArea>
   );
 };

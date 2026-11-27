@@ -11,6 +11,7 @@ import {
   SIZES,
   type Size,
 } from "#renderer/features/settings/appearance.ts";
+import { ChatPreview } from "#renderer/features/settings/chat-preview.tsx";
 import { SettingsPage } from "#renderer/features/settings/settings-page.tsx";
 import { SettingsSelect } from "#renderer/features/settings/settings-select.tsx";
 import { useStored } from "#renderer/lib/storage.ts";
@@ -34,16 +35,6 @@ const CHAT_FONT_LABELS: Record<ChatFont, string> = {
   serif: "Serif",
   mono: "Mono",
 };
-
-const ChatSwatch = ({ font, textSize }: { readonly font?: ChatFont; readonly textSize?: Size }) => (
-  <span
-    data-chat-font={font}
-    data-chat-text-size={textSize}
-    className="mr-2 w-6 text-center font-chat text-chat leading-none"
-  >
-    Aa
-  </span>
-);
 
 export const Route = createFileRoute("/settings/appearance")({
   component: Appearance,
@@ -105,7 +96,6 @@ function Appearance() {
               id="chat-font"
               values={CHAT_FONTS}
               labels={CHAT_FONT_LABELS}
-              swatch={(font) => <ChatSwatch font={font} />}
               value={useStored(chatFont)}
               onValueChange={chatFont.set}
             />
@@ -119,11 +109,11 @@ function Appearance() {
               id="chat-text-size"
               values={SIZES}
               labels={SIZE_LABELS}
-              swatch={(textSize) => <ChatSwatch textSize={textSize} />}
               value={useStored(chatTextSize)}
               onValueChange={chatTextSize.set}
             />
           </Item.Root>
+          <ChatPreview />
         </Item.List>
       </Item.Group>
     </SettingsPage>
