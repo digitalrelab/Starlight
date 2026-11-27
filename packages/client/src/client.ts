@@ -4,6 +4,7 @@ import {
   type EntryChange,
   type EntryRef,
   type FileVersion,
+  type MediaUpdate,
   HostRpcs,
   type ModelChoice,
   ShellRpcs,
@@ -65,6 +66,11 @@ export const createClient = (ports: PortSources) => {
     media: {
       list: (workspaceId: string, directory: EntryRef | null) =>
         host((c) => c.ListMedia({ workspaceId: id(workspaceId), directory })),
+      process: (
+        workspaceId: string,
+        directory: EntryRef,
+        onUpdates: (updates: ReadonlyArray<MediaUpdate>) => void,
+      ) => watch("Media", (c) => c.ProcessMedia({ workspaceId: id(workspaceId), directory }), onUpdates),
     },
     files: {
       source: (workspaceId: string, file: EntryRef) =>

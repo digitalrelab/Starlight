@@ -22,7 +22,7 @@ import {
   WorkspaceNotFound,
 } from "./errors.ts";
 import { EntryRef, WorkspaceId } from "./ids.ts";
-import { FileSource, FileVersion, Media } from "./media.ts";
+import { FileSource, FileVersion, Media, MediaUpdate } from "./media.ts";
 import { UpdaterState } from "./update.ts";
 import { Workspace } from "./workspace.ts";
 
@@ -56,6 +56,12 @@ export class HostRpcs extends RpcGroup.make(
     payload: DirectoryRequest,
     success: Schema.Array(Media),
     error: DirectoryError,
+  }),
+  Rpc.make("ProcessMedia", {
+    payload: DirectoryRequest,
+    success: Schema.Array(MediaUpdate),
+    error: DirectoryError,
+    stream: true,
   }),
   Rpc.make("GetFileSource", {
     payload: { workspaceId: WorkspaceId, file: EntryRef },

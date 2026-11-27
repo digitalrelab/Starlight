@@ -9,6 +9,7 @@
     ],
     "catalog": {
       "effect": "4.1.7",
+      "thumbhash": "0.1.1",
       "@effect/platform-node": "4.1.7",
       "@effect/sql-sqlite-node": "4.1.7",
       "@parcel/watcher": "2.6.0",

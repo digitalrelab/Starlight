@@ -43,6 +43,7 @@
     "react": "catalog:",
     "react-dom": "catalog:",
     "tailwindcss": "catalog:",
+    "thumbhash": "catalog:",
     "vite": "catalog:"
   },
   "productName": "Starlight"

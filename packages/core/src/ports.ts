@@ -15,6 +15,7 @@ import type {
   SourceError,
   SourceId,
   FileToken,
+  PixelSample,
   Workspace,
   WorkspaceId,
 } from "@starlight/contracts";
@@ -38,9 +39,15 @@ export type SourceChange =
   | { readonly _tag: "Changed"; readonly directories: ReadonlyArray<EntryId> }
   | { readonly _tag: "Resync" };
 
-export interface Facts {
+export interface ProbedFacts {
   readonly dimensions: Dimensions;
 }
+
+export interface ProcessedFacts {
+  readonly placeholder: string;
+}
+
+export type Facts = ProbedFacts & ProcessedFacts;
 
 export type FactName = keyof Facts;
 
@@ -50,7 +57,12 @@ export interface Extractor<A> {
   readonly extract: (entry: SourceEntry) => Effect.Effect<Option.Option<A>>;
 }
 
-export type Extractors = { readonly [F in FactName]: Extractor<Facts[F]> };
+export type Extractors = { readonly [F in keyof ProbedFacts]: Extractor<ProbedFacts[F]> };
+
+export interface Processor<A> {
+  readonly version: number;
+  readonly process: (sample: PixelSample) => A;
+}
 
 export interface SourceDriver {
   readonly canonicalize: (id: EntryId) => Effect.Effect<EntryId, SourceError>;
@@ -62,6 +74,7 @@ export interface SourceDriver {
   readonly write: (id: EntryId, content: Uint8Array) => Effect.Effect<SourceEntry, SourceError>;
   readonly watch: (root: EntryId) => Stream.Stream<SourceChange, SourceError>;
   readonly extractors: Extractors;
+  readonly sample: (entry: SourceEntry) => Effect.Effect<Option.Option<PixelSample>>;
 }
 
 export class SourceDrivers extends Context.Service<SourceDrivers, ReadonlyMap<SourceId, SourceDriver>>()(
