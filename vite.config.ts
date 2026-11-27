@@ -5,29 +5,28 @@ const baseUiSubpaths = { group: ["@base-ui/react/*"], message: "Import from @bas
 const parentPaths = { regex: "^\\.\\./", message: "Import through the package's # alias." };
 const restrictedEverywhere = [baseUiSubpaths, parentPaths];
 
-const reactCompiler: OxlintOverride["rules"] = Object.fromEntries(
-  [
-    "capitalized-calls",
-    "error-boundaries",
-    "globals",
-    "hooks",
-    "immutability",
-    "invariant",
-    "memo-dependencies",
-    "preserve-manual-memoization",
-    "purity",
-    "refs",
-    "rule-suppression",
-    "set-state-in-effect",
-    "set-state-in-render",
-    "static-components",
-    "syntax",
-    "todo",
-    "unsupported-syntax",
-    "use-memo",
-    "void-use-memo",
-  ].map((rule) => [`react/${rule}`, "error"]),
-);
+const reactRules: OxlintOverride["rules"] = {
+  "react/capitalized-calls": "error",
+  "react/error-boundaries": "error",
+  "react/globals": "error",
+  "react/hooks": "error",
+  "react/immutability": "error",
+  "react/invariant": "error",
+  "react/memo-dependencies": "error",
+  "react/preserve-manual-memoization": "error",
+  "react/purity": "error",
+  "react/refs": "error",
+  "react/rule-suppression": "error",
+  "react/set-state-in-effect": "error",
+  "react/set-state-in-render": "error",
+  "react/static-components": "error",
+  "react/syntax": "error",
+  "react/todo": "error",
+  "react/unsupported-syntax": "error",
+  "react/use-memo": "error",
+  "react/void-use-memo": "error",
+  "react/incompatible-library": "off",
+};
 
 const forbid = (...groups: string[]): OxlintOverride["rules"] => ({
   "no-restricted-imports": [
@@ -85,11 +84,7 @@ export default defineConfig({
         ),
       },
       {
-        files: ["packages/ui/**"],
-        rules: forbid("@starlight/*", "effect", "effect/*", "@effect/*", "@tanstack/*", "node:*", "electron"),
-      },
-      {
-        files: ["packages/markdown/**"],
+        files: ["packages/ui/**", "packages/markdown/**"],
         rules: forbid("@starlight/*", "effect", "effect/*", "@effect/*", "@tanstack/*", "node:*", "electron"),
       },
       {
@@ -120,7 +115,7 @@ export default defineConfig({
       {
         files: ["apps/desktop/src/renderer/**", "packages/ui/**", "packages/markdown/**"],
         plugins: ["react"],
-        rules: { ...reactCompiler, "react/incompatible-library": "off" },
+        rules: reactRules,
       },
     ],
   },
