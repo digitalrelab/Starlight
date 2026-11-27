@@ -74,6 +74,7 @@ export const SqliteProjectStoreLive = Layer.effect(ProjectStore)(
         sql
           .withTransaction(
             Effect.gen(function* () {
+              yield* sql`UPDATE chats SET project_id = NULL WHERE project_id = ${id}`;
               yield* sql`DELETE FROM mounts WHERE project_id = ${id}`;
               yield* sql`DELETE FROM projects WHERE id = ${id}`;
             }),

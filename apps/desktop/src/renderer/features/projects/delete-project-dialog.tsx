@@ -23,7 +23,7 @@ export const DeleteProjectDialog = ({ project, open, onOpenChange }: Props) => {
       onOpenChange={onOpenChange}
       action="Delete project"
       subject={project.name}
-      message="Its folders and files stay where they are."
+      message="Its folders and files stay where they are, and its chats move to Agent."
       icon={Delete02Icon}
       onConfirm={async () => {
         if (projectId === project.id) await navigate({ to: "/" });

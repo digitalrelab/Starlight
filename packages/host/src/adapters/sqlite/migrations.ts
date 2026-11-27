@@ -148,4 +148,9 @@ export const migrations = Migrator.fromRecord({
     yield* sql`ALTER TABLE projects RENAME COLUMN opened_at TO created_at`;
     yield* sql`ALTER TABLE mounts RENAME COLUMN workspace_id TO project_id`;
   }),
+  "0011_project_chats": Effect.gen(function* () {
+    const sql = yield* SqlClient.SqlClient;
+    yield* sql`ALTER TABLE chats ADD COLUMN project_id TEXT REFERENCES projects (id) ON DELETE SET NULL`;
+    yield* sql`CREATE INDEX chats_by_project ON chats (project_id, updated_at)`;
+  }),
 });

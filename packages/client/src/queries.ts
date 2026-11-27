@@ -14,6 +14,8 @@ const directoryKey = (projectId: string) => ["directory", projectId] as const;
 const listingKey = (projectId: string, directory: string | null, facet: "entries" | "media") =>
   [...directoryKey(projectId), directory, facet] as const;
 
+const chatsKey = ["chats"] as const;
+
 const createQueries = (client: StarlightClient) => ({
   projects: () => queryOptions({ queryKey: ["projects"], queryFn: () => client.projects.list() }),
 
@@ -47,7 +49,8 @@ const createQueries = (client: StarlightClient) => ({
       refetchOnWindowFocus: "always",
     }),
 
-  chats: () => queryOptions({ queryKey: ["chats"], queryFn: () => client.chats.list() }),
+  chats: (projectId: string | null) =>
+    queryOptions({ queryKey: [...chatsKey, projectId], queryFn: () => client.chats.list(projectId) }),
 
   chat: (id: string) =>
     queryOptions({
@@ -94,6 +97,20 @@ const createMutations = (client: StarlightClient, queryClient: QueryClient, quer
 
   installUpdate: () => mutationOptions({ mutationFn: () => client.updates.install() }),
 
+  startChat: () =>
+    mutationOptions({
+      mutationFn: ({
+        projectId,
+        text,
+        model,
+      }: {
+        readonly projectId: string | null;
+        readonly text: string;
+        readonly model: ModelChoice;
+      }) => client.chats.start(projectId, text, model),
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: chatsKey }),
+    }),
+
   sendMessage: () =>
     mutationOptions({
       mutationFn: ({
@@ -101,11 +118,11 @@ const createMutations = (client: StarlightClient, queryClient: QueryClient, quer
         text,
         model,
       }: {
-        readonly chatId: string | null;
+        readonly chatId: string;
         readonly text: string;
         readonly model: ModelChoice;
       }) => client.chats.send(chatId, text, model),
-      onSuccess: () => queryClient.invalidateQueries(queries.chats()),
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: chatsKey }),
     }),
 
   clearPreviews: () =>
@@ -122,7 +139,7 @@ const createMutations = (client: StarlightClient, queryClient: QueryClient, quer
         client.chats.rename(chatId, title),
       onSuccess: (chat) => {
         queryClient.setQueryData(queries.chat(chat.id).queryKey, (detail) => detail && { ...detail, chat });
-        return queryClient.invalidateQueries(queries.chats());
+        return queryClient.invalidateQueries({ queryKey: chatsKey });
       },
     }),
 
@@ -131,7 +148,7 @@ const createMutations = (client: StarlightClient, queryClient: QueryClient, quer
       mutationFn: (chatId: string) => client.chats.remove(chatId),
       onSuccess: (_, chatId) => {
         queryClient.removeQueries(queries.chat(chatId));
-        return queryClient.invalidateQueries(queries.chats());
+        return queryClient.invalidateQueries({ queryKey: chatsKey });
       },
     }),
 
@@ -157,6 +174,7 @@ const createMutations = (client: StarlightClient, queryClient: QueryClient, quer
         );
         queryClient.removeQueries(queries.project(projectId));
         queryClient.removeQueries({ queryKey: directoryKey(projectId) });
+        return queryClient.invalidateQueries({ queryKey: chatsKey });
       },
     }),
 
@@ -196,7 +214,7 @@ const createSubscriptions = (client: StarlightClient, queryClient: QueryClient, 
             has(detail, event.draft.id) ? detail : { ...detail, draft: event.draft, failure: null },
           );
         case "MessageAdded":
-          void queryClient.invalidateQueries(queries.chats());
+          void queryClient.invalidateQueries({ queryKey: chatsKey });
           return update((detail) => ({
             ...detail,
             messages: has(detail, event.message.id) ? detail.messages : [...detail.messages, event.message],

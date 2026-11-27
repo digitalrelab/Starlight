@@ -5,8 +5,10 @@ import { useMutation } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useState } from "react";
 import { useStarlight } from "#renderer/lib/context.ts";
+import { chatLink, chatsLink } from "./chat-links.ts";
 
-export const ChatItem = ({ chat: { id, title } }: { readonly chat: Chat }) => {
+export const ChatItem = ({ chat }: { readonly chat: Chat }) => {
+  const { id, title } = chat;
   const [renaming, setRenaming] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const { mutations } = useStarlight();
@@ -41,10 +43,7 @@ export const ChatItem = ({ chat: { id, title } }: { readonly chat: Chat }) => {
 
   return (
     <>
-      <NavItem
-        render={<Link to="/agent/$chatId" params={{ chatId: id }} />}
-        menu={{ label: "Chat actions", items }}
-      >
+      <NavItem render={<Link {...chatLink(chat)} />} menu={{ label: "Chat actions", items }}>
         {title}
       </NavItem>
       <ConfirmDialog
@@ -55,7 +54,7 @@ export const ChatItem = ({ chat: { id, title } }: { readonly chat: Chat }) => {
         message="The chat and its replies are deleted for good."
         icon={Delete02Icon}
         onConfirm={async () => {
-          if (chatId === id) await navigate({ to: "/agent" });
+          if (chatId === id) await navigate(chatsLink(chat.projectId));
           remove.mutate(id);
         }}
       />
