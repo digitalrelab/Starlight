@@ -36,6 +36,12 @@ export const installMenu = () =>
           zoomItem("Zoom In", "CommandOrControl+=", "in"),
           zoomItem("Zoom Out", "CommandOrControl+-", "out"),
           { type: "separator" },
+          {
+            label: "Toggle Hidden Files",
+            accelerator: "CommandOrControl+Shift+.",
+            click: () => BrowserWindow.getFocusedWindow()?.webContents.send(Channel.toggleHiddenFiles),
+          },
+          { type: "separator" },
           { role: "togglefullscreen" },
         ],
       },
