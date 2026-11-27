@@ -15,7 +15,7 @@ function Files() {
         <Item.Root>
           <Item.Content>
             <Item.Title htmlFor="hidden-files">Show hidden files</Item.Title>
-            <Item.Description>Show files and folders whose names start with a dot</Item.Description>
+            <Item.Description>Include files and folders your system normally hides</Item.Description>
           </Item.Content>
           <Switch
             id="hidden-files"
