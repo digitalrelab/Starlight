@@ -1,13 +1,19 @@
 import { Interface } from "@starlight/ui";
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
 import { useMouseHistory } from "#renderer/features/history/use-mouse-history.ts";
-import { colorScheme, cursor, useInterfaceZoom } from "#renderer/features/settings/appearance.ts";
+import {
+  colorScheme,
+  cursor,
+  useChatAppearance,
+  useInterfaceZoom,
+} from "#renderer/features/settings/appearance.ts";
 import type { RouterContext } from "#renderer/lib/context.ts";
 import { useStored } from "#renderer/lib/storage.ts";
 import { useWindowReady } from "#renderer/lib/use-window-ready.ts";
 
 const Root = () => {
   useInterfaceZoom();
+  useChatAppearance();
   useWindowReady();
   useMouseHistory();
   return (

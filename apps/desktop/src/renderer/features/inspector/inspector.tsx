@@ -1,5 +1,6 @@
 import type { Entry, EntryRef, FileDetails, Property } from "@starlight/client";
 import { Badge, Card, Details, ScrollArea, Swatch, Tooltip } from "@starlight/ui";
+import { formatDuration } from "@starlight/media-player";
 import { useQuery } from "@tanstack/react-query";
 import { useStarlight } from "#renderer/lib/context.ts";
 import { formatDate, formatSize } from "#renderer/lib/format.ts";
@@ -50,6 +51,9 @@ const DetailsCard = ({ details }: { readonly details: FileDetails }) => (
         {numberFormat.format(details.dimensions.width)} × {numberFormat.format(details.dimensions.height)}
       </Details.Row>
     ) : null}
+    {details.duration === null ? null : (
+      <Details.Row label="Duration">{formatDuration(details.duration)}</Details.Row>
+    )}
     <Details.Row label="Folder">{details.folderName}</Details.Row>
     <Details.Row label="Created">{formatDate(details.createdAt)}</Details.Row>
     <Details.Row label="Modified">{formatDate(details.modifiedAt)}</Details.Row>

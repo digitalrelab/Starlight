@@ -1,5 +1,6 @@
 import { Image01Icon, Tick02Icon } from "@hugeicons-pro/core-stroke-rounded";
 import type { Entry, Media } from "@starlight/client";
+import { formatDuration } from "@starlight/media-player";
 import { cn, Icon } from "@starlight/ui";
 import { memo } from "react";
 import { previewUrl } from "#shared/previews.ts";
@@ -70,11 +71,18 @@ export const Tile = memo(
           )}
         >
           {media ? (
-            <Preview
-              url={tilePreviewUrl(media, width, height)}
-              placeholder={media.placeholder}
-              visible={visible}
-            />
+            <>
+              <Preview
+                url={tilePreviewUrl(media, width, height)}
+                placeholder={media.placeholder}
+                visible={visible}
+              />
+              {media.duration === null ? null : (
+                <span className="absolute right-1.5 bottom-1.5 rounded-sm bg-black/60 px-1.5 text-xs text-white tabular-nums">
+                  {formatDuration(media.duration)}
+                </span>
+              )}
+            </>
           ) : (
             <span className="absolute inset-0 flex items-center justify-center [container-type:size]">
               <KindIcon kind={kind} className="size-[clamp(1.25rem,20cqmin,2.5rem)]" />

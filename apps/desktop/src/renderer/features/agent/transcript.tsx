@@ -25,11 +25,25 @@ interface Props {
 const Reply = ({ text, pending }: { readonly text: string; readonly pending: boolean }) => {
   const shown = useRevealedText(text);
   return pending && shown === "" ? (
-    <p className="w-fit shimmer-text">Thinking…</p>
+    <p className="w-fit chat-text shimmer-text">Thinking…</p>
   ) : (
-    <Markdown value={shown} className="whitespace-pre-line" />
+    <Markdown value={shown} className="chat-text whitespace-pre-line" />
   );
 };
+
+export const Message = ({
+  role,
+  text,
+  pending = false,
+}: Pick<ChatMessage, "role" | "text"> & { readonly pending?: boolean }) =>
+  role === "user" ? (
+    <Markdown
+      value={text}
+      className="max-w-[80%] self-end rounded-lg bg-neutral px-3 py-2 chat-text whitespace-pre-line"
+    />
+  ) : (
+    <Reply text={text} pending={pending} />
+  );
 
 interface Row {
   readonly id: string;
@@ -39,21 +53,12 @@ interface Row {
 
 const FAILURE_ROW = "failure";
 
-const RowContent = ({ role, text, pending }: Omit<Row, "id"> & { readonly pending: boolean }) => {
-  switch (role) {
-    case "user":
-      return (
-        <Markdown
-          value={text}
-          className="max-w-[80%] self-end rounded-lg bg-neutral px-3 py-2 whitespace-pre-line"
-        />
-      );
-    case "assistant":
-      return <Reply text={text} pending={pending} />;
-    case "failure":
-      return <p className="text-sm text-danger">{text}</p>;
-  }
-};
+const RowContent = ({ role, text, pending }: Omit<Row, "id"> & { readonly pending: boolean }) =>
+  role === "failure" ? (
+    <p className="text-sm text-danger">{text}</p>
+  ) : (
+    <Message role={role} text={text} pending={pending} />
+  );
 
 export const Transcript = ({ messages, draft, failure, className, ref }: Props) => {
   const viewport = useRef<HTMLDivElement>(null);

@@ -43,15 +43,5 @@ export const ChatView = ({ chatId }: { readonly chatId: string }) => {
   );
 };
 
-export const ChatError = ({
-  error,
-  projectId,
-}: {
-  readonly error: unknown;
-  readonly projectId: string | null;
-}) =>
-  error instanceof ChatNotFound ? (
-    <Navigate {...newChatLink(projectId)} replace />
-  ) : (
-    <PageError error={error} />
-  );
+export const ChatError = ({ error }: { readonly error: unknown }) =>
+  error instanceof ChatNotFound ? <Navigate {...newChatLink(null)} replace /> : <PageError error={error} />;

@@ -9,6 +9,44 @@
   --spacing-traffic-lights: calc(5rem / var(--interface-zoom, 1));
 }
 
+@utility chat-text {
+  font-family: var(--chat-font);
+  font-size: var(--chat-text-size);
+  line-height: 1.6;
+}
+
+:root[data-chat-font="sans"] {
+  --chat-font: var(--font-sans);
+}
+
+:root[data-chat-font="serif"] {
+  --chat-font: var(--font-serif);
+}
+
+:root[data-chat-font="mono"] {
+  --chat-font: var(--font-mono);
+}
+
+:root[data-chat-text-size="smaller"] {
+  --chat-text-size: 0.8125rem;
+}
+
+:root[data-chat-text-size="small"] {
+  --chat-text-size: 0.875rem;
+}
+
+:root[data-chat-text-size="default"] {
+  --chat-text-size: 0.9375rem;
+}
+
+:root[data-chat-text-size="large"] {
+  --chat-text-size: 1rem;
+}
+
+:root[data-chat-text-size="larger"] {
+  --chat-text-size: 1.0625rem;
+}
+
 @layer base {
   html,
   body,

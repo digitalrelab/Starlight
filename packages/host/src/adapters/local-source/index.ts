@@ -6,7 +6,7 @@ import { EntryId, type EntryKind, type SourceError } from "@starlight/contracts"
 import type { SourceChange, SourceCrumb, SourceDriver, SourceEntry } from "@starlight/core";
 import { Effect, Queue, Stream } from "effect";
 import type { Imaging } from "#adapters/imaging.ts";
-import { dimensionsExtractor } from "./dimensions/index.ts";
+import { dimensionsExtractor, durationExtractor } from "./extractors.ts";
 import { toSourceError } from "./source-error.ts";
 
 const resync: SourceChange = { _tag: "Resync" };
@@ -114,7 +114,7 @@ export const makeLocalSource = (imaging: Imaging["Service"]): SourceDriver => {
         Effect.map((s) => toEntry(id, s)),
       ),
     watch,
-    extractors: { dimensions: dimensionsExtractor },
+    extractors: { dimensions: dimensionsExtractor, duration: durationExtractor },
     sample: (entry) => imaging.sample(entry.id),
   };
 };

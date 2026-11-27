@@ -1,6 +1,6 @@
 import { createClient, createQueryOptions } from "@starlight/client";
 import { QueryClient } from "@tanstack/react-query";
-import { createHashHistory, createRouter } from "@tanstack/react-router";
+import { createHashHistory, createRouter, Navigate } from "@tanstack/react-router";
 import { portSources } from "./lib/ports.ts";
 import { anyString, defineStored } from "./lib/storage.ts";
 import { routeTree } from "./routeTree.gen.ts";
@@ -23,6 +23,7 @@ export const router = createRouter({
   context,
   defaultPreload: "intent",
   defaultPreloadStaleTime: 0,
+  defaultNotFoundComponent: () => <Navigate to="/" replace />,
 });
 
 router.subscribe("onResolved", ({ toLocation }) => lastLocation.set(toLocation.href));

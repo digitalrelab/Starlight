@@ -14,13 +14,15 @@ import {
   PopoverTrigger,
   Select,
   Slider,
+  Switch,
 } from "@starlight/ui";
 import { type ReactNode, type Ref, useLayoutEffect, useRef } from "react";
 import { usePlayer } from "./engine.tsx";
 import { formatDuration } from "./format.ts";
 import { setPlaybackRate, setVolume, toggleMute, useMediaClock } from "./media.ts";
-import { PLAYBACK_RATES, useSetting } from "./settings.ts";
+import { PLAYBACK_RATES, settings, useSetting } from "./settings.ts";
 import { Timeline } from "./timeline.tsx";
+import { Visualizer } from "./visualizer.tsx";
 import { volumeIcon } from "./volume.ts";
 
 const timeReadout = "min-w-11 px-1 text-base tabular-nums";
@@ -98,16 +100,33 @@ interface SettingsProps {
   readonly onOpenChange: (open: boolean) => void;
 }
 
-const Settings = ({ media, onOpenChange }: SettingsProps) => (
-  <Popover onOpenChange={onOpenChange}>
-    <PopoverTrigger render={<IconButton label="Playback settings" icon={Settings02Icon} />} />
-    <PopoverContent side="top" align="end" className="w-64 gap-1 p-1.5">
-      <Setting label="Speed">
-        <Speed media={media} />
-      </Setting>
-    </PopoverContent>
-  </Popover>
+const VisualizerSwitch = () => (
+  <Switch
+    aria-label="Visualizer"
+    checked={useSetting("visualizer")}
+    onCheckedChange={(checked) => settings.update("visualizer", checked)}
+    className="mr-1.5"
+  />
 );
+
+const Settings = ({ media, onOpenChange }: SettingsProps) => {
+  const { isVideo } = usePlayer();
+  return (
+    <Popover onOpenChange={onOpenChange}>
+      <PopoverTrigger render={<IconButton label="Playback settings" icon={Settings02Icon} />} />
+      <PopoverContent side="top" align="end" className="w-64 gap-1 p-1.5">
+        <Setting label="Speed">
+          <Speed media={media} />
+        </Setting>
+        {isVideo ? (
+          <Setting label="Visualizer">
+            <VisualizerSwitch />
+          </Setting>
+        ) : null}
+      </PopoverContent>
+    </Popover>
+  );
+};
 
 const Fullscreen = () => {
   const { isFullscreen, toggleFullscreen } = usePlayer();
@@ -130,7 +149,8 @@ interface Props {
 }
 
 export const Controls = ({ media, isVisible, onScrubChange, onMenuOpenChange, ref }: Props) => {
-  const { state } = usePlayer();
+  const { state, isVideo } = usePlayer();
+  const showsVisualizer = useSetting("visualizer");
   return (
     <div
       ref={ref}
@@ -152,9 +172,17 @@ export const Controls = ({ media, isVisible, onScrubChange, onMenuOpenChange, re
       <span className={cn(timeReadout, "hidden text-subtle @sm/player:block")}>
         {formatDuration(state.duration)}
       </span>
+      {isVideo && showsVisualizer ? (
+        <Visualizer
+          media={media}
+          active={isVisible && !state.paused}
+          bars={5}
+          className="mx-2 hidden h-4 w-6 gap-0.5 text-subtle @2xl/player:flex"
+        />
+      ) : null}
       <Volume media={media} />
       <Settings media={media} onOpenChange={onMenuOpenChange} />
-      <Fullscreen />
+      {isVideo ? <Fullscreen /> : null}
     </div>
   );
 };

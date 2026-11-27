@@ -51,6 +51,7 @@ export type SourceChange =
 
 export interface ProbedFacts {
   readonly dimensions: Dimensions;
+  readonly duration: number;
 }
 
 export interface ProcessedFacts {
