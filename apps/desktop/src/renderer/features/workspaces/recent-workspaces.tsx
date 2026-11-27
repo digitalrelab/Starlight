@@ -14,12 +14,11 @@ export const RecentWorkspaces = () => {
       {workspaces.map((workspace) => (
         <NavItem
           key={workspace.id}
-          title={workspace.rootPath}
           render={
             <Link
               to="/w/$workspaceId"
               params={{ workspaceId: workspace.id }}
-              search={{ path: "" }}
+              search={{}}
               activeOptions={{ includeSearch: false }}
             />
           }

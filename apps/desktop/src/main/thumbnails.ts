@@ -1,4 +1,5 @@
 import { extname } from "node:path";
+import { LocalSource } from "@starlight/contracts";
 import { verifyThumbnailToken } from "@starlight/host/thumbnail-token";
 import { nativeImage, protocol, screen } from "electron";
 import { fitThumbnailSize, THUMBNAIL_SCHEME } from "../shared/thumbnails.ts";
@@ -54,9 +55,10 @@ export const serveThumbnails = (key: Buffer) => {
   const enqueue = createLifoQueue(CONCURRENCY);
   protocol.handle(THUMBNAIL_SCHEME, (request) => {
     const url = new URL(request.url);
-    const absolute = verifyThumbnailToken(key, url.pathname.slice(1));
-    if (!absolute) return new Response(null, { status: 403 });
+    const ref = verifyThumbnailToken(key, url.pathname.slice(1));
+    if (!ref) return new Response(null, { status: 403 });
+    if (ref.source !== LocalSource) return new Response(null, { status: 404 });
     const size = fitThumbnailSize(Number(url.searchParams.get("size")));
-    return enqueue(() => render(absolute, size)).catch(() => new Response(null, { status: 404 }));
+    return enqueue(() => render(ref.id, size)).catch(() => new Response(null, { status: 404 }));
   });
 };

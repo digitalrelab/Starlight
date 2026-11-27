@@ -1,22 +1,12 @@
 import { mutationOptions, queryOptions, type QueryClient } from "@tanstack/react-query";
-import type { SettingsPatch } from "@starlight/contracts";
+import type { EntryRef, Listing, SettingsPatch } from "@starlight/contracts";
 import type { StarlightClient } from "./client.ts";
+import { entryKey } from "./refs.ts";
 
 const directoryKey = (workspaceId: string) => ["directory", workspaceId] as const;
 
-const parentOf = (path: string) => path.slice(0, Math.max(0, path.lastIndexOf("/")));
-
-const listingsAffectedBy = (paths: ReadonlyArray<string>) => {
-  const changed = new Set(paths);
-  const parents = new Set(paths.map(parentOf));
-  return (directory: string) => {
-    if (parents.has(directory)) return true;
-    for (let path = directory; ; path = parentOf(path)) {
-      if (changed.has(path)) return true;
-      if (path === "") return false;
-    }
-  };
-};
+const listingKey = (workspaceId: string, directory: string | null, facet: "entries" | "media") =>
+  [...directoryKey(workspaceId), directory, facet] as const;
 
 const createQueries = (client: StarlightClient) => ({
   recentWorkspaces: () =>
@@ -25,16 +15,16 @@ const createQueries = (client: StarlightClient) => ({
   workspace: (id: string) =>
     queryOptions({ queryKey: ["workspace", id], queryFn: () => client.workspaces.get(id) }),
 
-  entries: (workspaceId: string, path: string) =>
+  entries: (workspaceId: string, directory: EntryRef | null) =>
     queryOptions({
-      queryKey: [...directoryKey(workspaceId), path, "entries"],
-      queryFn: () => client.entries.list(workspaceId, path),
+      queryKey: listingKey(workspaceId, directory && entryKey(directory), "entries"),
+      queryFn: () => client.entries.list(workspaceId, directory),
     }),
 
-  media: (workspaceId: string, path: string) =>
+  media: (workspaceId: string, directory: EntryRef | null) =>
     queryOptions({
-      queryKey: [...directoryKey(workspaceId), path, "media"],
-      queryFn: () => client.media.list(workspaceId, path),
+      queryKey: listingKey(workspaceId, directory && entryKey(directory), "media"),
+      queryFn: () => client.media.list(workspaceId, directory),
     }),
 
   settings: () => queryOptions({ queryKey: ["settings"], queryFn: () => client.settings.get() }),
@@ -45,10 +35,22 @@ const createMutations = (client: StarlightClient, queryClient: QueryClient, quer
 
   openWorkspace: () =>
     mutationOptions({
-      mutationFn: (path: string) => client.workspaces.open(path),
+      mutationFn: (root: EntryRef) => client.workspaces.open(root),
       onSuccess: (workspace) => {
         queryClient.setQueryData(queries.workspace(workspace.id).queryKey, workspace);
         return queryClient.invalidateQueries(queries.recentWorkspaces());
+      },
+    }),
+
+  addMount: (workspaceId: string) =>
+    mutationOptions({
+      mutationFn: (root: EntryRef) => client.workspaces.addMount(workspaceId, root),
+      onSuccess: (workspace) => {
+        queryClient.setQueryData(queries.workspace(workspace.id).queryKey, workspace);
+        return Promise.all([
+          queryClient.invalidateQueries(queries.entries(workspace.id, null)),
+          queryClient.invalidateQueries(queries.recentWorkspaces()),
+        ]);
       },
     }),
 
@@ -74,10 +76,20 @@ const createMutations = (client: StarlightClient, queryClient: QueryClient, quer
 const createSubscriptions = (client: StarlightClient, queryClient: QueryClient) => ({
   entries: (workspaceId: string) =>
     client.entries.watch(workspaceId, (change) => {
-      const affected = change._tag === "Changed" ? listingsAffectedBy(change.paths) : () => true;
+      if (change._tag === "Resync") {
+        void queryClient.invalidateQueries({ queryKey: directoryKey(workspaceId) });
+        return;
+      }
+      const stale = new Set(change.directories.map(entryKey));
+      const isStale = (directory: string) =>
+        stale.has(directory) ||
+        (queryClient
+          .getQueryData<Listing>(listingKey(workspaceId, directory, "entries"))
+          ?.trail.some((crumb) => stale.has(entryKey(crumb.ref))) ??
+          false);
       void queryClient.invalidateQueries({
         queryKey: directoryKey(workspaceId),
-        predicate: ({ queryKey: [, , directory] }) => typeof directory === "string" && affected(directory),
+        predicate: ({ queryKey: [, , directory] }) => typeof directory === "string" && isStale(directory),
       });
     }),
 });

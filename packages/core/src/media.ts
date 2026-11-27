@@ -1,7 +1,6 @@
-import type { DirectoryError, Media, WorkspaceId } from "@starlight/contracts";
-import { Array as Arr, Context, Effect, Layer, Option, Path } from "effect";
-import { FileSystemPort, MediaProbe, ThumbnailTokens } from "./ports.ts";
-import { joinRelative } from "./relative-path.ts";
+import type { DirectoryError, EntryRef, Media, WorkspaceId } from "@starlight/contracts";
+import { Array as Arr, Context, Effect, Layer, Option } from "effect";
+import { ThumbnailTokens } from "./ports.ts";
 import { Workspaces } from "./workspaces.ts";
 
 const PROBE_CONCURRENCY = 32;
@@ -11,38 +10,33 @@ export class MediaLibrary extends Context.Service<
   {
     readonly list: (
       workspaceId: WorkspaceId,
-      path: string,
+      directory: EntryRef | null,
     ) => Effect.Effect<ReadonlyArray<Media>, DirectoryError>;
   }
 >()("@starlight/core/MediaLibrary") {
   static readonly layer = Layer.effect(MediaLibrary)(
     Effect.gen(function* () {
-      const fs = yield* FileSystemPort;
       const workspaces = yield* Workspaces;
-      const probe = yield* MediaProbe;
       const tokens = yield* ThumbnailTokens;
-      const path = yield* Path.Path;
 
       return MediaLibrary.of({
-        list: Effect.fn("MediaLibrary.list")(function* (workspaceId, directory) {
-          const { absolute, relative } = yield* workspaces.resolveDirectory(workspaceId, directory);
-          const files = (yield* fs.readDirectory(absolute)).filter((entry) => entry.kind === "file");
+        list: Effect.fn("MediaLibrary.list")(function* (workspaceId, requested) {
+          if (!requested) return [];
+          const { driver, directory } = yield* workspaces.locateDirectory(workspaceId, requested);
+          const files = (yield* driver.list(directory.id)).filter((entry) => entry.kind === "file");
           const media = yield* Effect.forEach(
             files,
             (entry) => {
-              const file = path.join(absolute, entry.name);
-              return probe
-                .dimensions({ absolute: file, size: entry.size, modifiedAt: entry.modifiedAt })
-                .pipe(
-                  Effect.map(
-                    Option.map((dimensions): Media => ({
-                      path: joinRelative(relative, entry.name),
-                      width: dimensions.width,
-                      height: dimensions.height,
-                      thumbnail: tokens.issue(file, entry.modifiedAt),
-                    })),
-                  ),
-                );
+              const ref = { source: directory.source, id: entry.id };
+              return driver.dimensions(entry).pipe(
+                Effect.map(
+                  Option.map((dimensions): Media => ({
+                    ref,
+                    ...dimensions,
+                    thumbnail: tokens.issue(ref, entry.modifiedAt),
+                  })),
+                ),
+              );
             },
             { concurrency: PROBE_CONCURRENCY },
           );

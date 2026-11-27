@@ -1,5 +1,6 @@
 import {
   type EntryChange,
+  type EntryRef,
   HostRpcs,
   type SettingsPatch,
   ShellRpcs,
@@ -33,13 +34,15 @@ export const createClient = (ports: PortSources) => {
 
   return {
     workspaces: {
-      open: (path: string) => host((c) => c.OpenWorkspace({ path })),
+      open: (root: EntryRef) => host((c) => c.OpenWorkspace({ root })),
+      addMount: (workspaceId: string, root: EntryRef) =>
+        host((c) => c.AddMount({ workspaceId: id(workspaceId), root })),
       recent: () => host((c) => c.ListRecentWorkspaces()),
       get: (workspaceId: string) => host((c) => c.GetWorkspace({ workspaceId: id(workspaceId) })),
     },
     entries: {
-      list: (workspaceId: string, path: string) =>
-        host((c) => c.ListEntries({ workspaceId: id(workspaceId), path })),
+      list: (workspaceId: string, directory: EntryRef | null) =>
+        host((c) => c.ListEntries({ workspaceId: id(workspaceId), directory })),
       watch: (workspaceId: string, onChange: (change: EntryChange) => void) => {
         const fiber = runtime.runFork(
           Host.use((c) =>
@@ -52,8 +55,8 @@ export const createClient = (ports: PortSources) => {
       },
     },
     media: {
-      list: (workspaceId: string, path: string) =>
-        host((c) => c.ListMedia({ workspaceId: id(workspaceId), path })),
+      list: (workspaceId: string, directory: EntryRef | null) =>
+        host((c) => c.ListMedia({ workspaceId: id(workspaceId), directory })),
     },
     settings: {
       get: () => host((c) => c.GetSettings()),

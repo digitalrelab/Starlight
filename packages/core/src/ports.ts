@@ -1,73 +1,71 @@
 import type {
   Actor,
+  EntryId,
   EntryKind,
-  FileSystemError,
+  EntryRef,
+  Mount,
   SettingsPatch,
+  SourceError,
+  SourceId,
   ThumbnailToken,
   Workspace,
   WorkspaceId,
 } from "@starlight/contracts";
 import { Context, type Effect, type Option, type Stream } from "effect";
 
-export interface FileStat {
+export interface SourceEntry {
+  readonly id: EntryId;
+  readonly name: string;
   readonly kind: EntryKind;
   readonly size: number;
   readonly modifiedAt: number;
+  readonly hidden: boolean;
 }
 
-export interface DirectoryEntry extends FileStat {
+export interface SourceCrumb {
+  readonly id: EntryId;
   readonly name: string;
 }
-
-export class FileSystemPort extends Context.Service<
-  FileSystemPort,
-  {
-    readonly realPath: (path: string) => Effect.Effect<string, FileSystemError>;
-    readonly stat: (path: string) => Effect.Effect<FileStat, FileSystemError>;
-    readonly readDirectory: (path: string) => Effect.Effect<ReadonlyArray<DirectoryEntry>, FileSystemError>;
-  }
->()("@starlight/core/FileSystemPort") {}
-
-export type FileWatchEvent =
-  | { readonly _tag: "Changed"; readonly paths: ReadonlyArray<string> }
-  | { readonly _tag: "Resync" };
-
-export class FileWatcherPort extends Context.Service<
-  FileWatcherPort,
-  {
-    readonly watch: (path: string) => Stream.Stream<FileWatchEvent, FileSystemError>;
-  }
->()("@starlight/core/FileWatcherPort") {}
 
 export interface Dimensions {
   readonly width: number;
   readonly height: number;
 }
 
-export interface ProbeTarget {
-  readonly absolute: string;
-  readonly size: number;
-  readonly modifiedAt: number;
+export type SourceChange =
+  | { readonly _tag: "Changed"; readonly directories: ReadonlyArray<EntryId> }
+  | { readonly _tag: "Resync" };
+
+export interface SourceDriver {
+  readonly canonicalize: (id: EntryId) => Effect.Effect<EntryId, SourceError>;
+  readonly contains: (root: EntryId, id: EntryId) => boolean;
+  readonly trail: (root: EntryId, id: EntryId) => ReadonlyArray<SourceCrumb>;
+  readonly stat: (id: EntryId) => Effect.Effect<SourceEntry, SourceError>;
+  readonly list: (id: EntryId) => Effect.Effect<ReadonlyArray<SourceEntry>, SourceError>;
+  readonly watch: (root: EntryId) => Stream.Stream<SourceChange, SourceError>;
+  readonly dimensions: (entry: SourceEntry) => Effect.Effect<Option.Option<Dimensions>>;
 }
 
-export class MediaProbe extends Context.Service<
-  MediaProbe,
-  { readonly dimensions: (target: ProbeTarget) => Effect.Effect<Option.Option<Dimensions>> }
->()("@starlight/core/MediaProbe") {}
+export class SourceDrivers extends Context.Service<SourceDrivers, ReadonlyMap<SourceId, SourceDriver>>()(
+  "@starlight/core/SourceDrivers",
+) {}
 
 export class ThumbnailTokens extends Context.Service<
   ThumbnailTokens,
-  { readonly issue: (absolute: string, version: number) => ThumbnailToken }
+  { readonly issue: (ref: EntryRef, version: number) => ThumbnailToken }
 >()("@starlight/core/ThumbnailTokens") {}
 
 export class WorkspaceStore extends Context.Service<
   WorkspaceStore,
   {
-    readonly upsert: (input: {
-      readonly rootPath: string;
+    readonly create: (input: {
       readonly name: string;
+      readonly mounts: ReadonlyArray<Mount>;
     }) => Effect.Effect<Workspace>;
+    readonly addMount: (id: WorkspaceId, mount: Mount) => Effect.Effect<void>;
+    readonly touch: (id: WorkspaceId) => Effect.Effect<Workspace>;
     readonly findById: (id: WorkspaceId) => Effect.Effect<Option.Option<Workspace>>;
+    readonly findBySoleMount: (root: EntryRef) => Effect.Effect<Option.Option<Workspace>>;
     readonly recent: (limit: number) => Effect.Effect<ReadonlyArray<Workspace>>;
   }
 >()("@starlight/core/WorkspaceStore") {}

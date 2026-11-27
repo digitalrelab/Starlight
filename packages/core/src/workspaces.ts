@@ -1,44 +1,48 @@
 import {
   type DirectoryError,
-  type FileSystemError,
+  type EntryRef,
+  type Mount,
+  type MountError,
   NotADirectory,
-  PathOutsideWorkspace,
+  OutsideWorkspace,
+  SourceUnavailable,
   type Workspace,
   type WorkspaceId,
   WorkspaceNotFound,
 } from "@starlight/contracts";
-import { Context, Effect, Layer, Option, Path } from "effect";
-import { AuditLog, CurrentActor, FileSystemPort, WorkspaceStore } from "./ports.ts";
+import { Context, Effect, Layer, Option } from "effect";
+import { AuditLog, CurrentActor, type SourceDriver, SourceDrivers, WorkspaceStore } from "./ports.ts";
 
 const RECENT_LIMIT = 20;
+
+export interface LocatedDirectory {
+  readonly mount: Mount;
+  readonly driver: SourceDriver;
+  readonly directory: EntryRef;
+}
 
 export class Workspaces extends Context.Service<
   Workspaces,
   {
-    readonly open: (path: string) => Effect.Effect<Workspace, NotADirectory | FileSystemError, CurrentActor>;
+    readonly open: (root: EntryRef) => Effect.Effect<Workspace, MountError, CurrentActor>;
+    readonly addMount: (
+      id: WorkspaceId,
+      root: EntryRef,
+    ) => Effect.Effect<Workspace, WorkspaceNotFound | MountError, CurrentActor>;
     readonly recent: Effect.Effect<ReadonlyArray<Workspace>>;
     readonly get: (id: WorkspaceId) => Effect.Effect<Workspace, WorkspaceNotFound>;
-    readonly relativize: (workspace: Workspace, absolute: string) => Option.Option<string>;
-    readonly resolveDirectory: (
+    readonly driverFor: (source: EntryRef["source"]) => Effect.Effect<SourceDriver, SourceUnavailable>;
+    readonly locateDirectory: (
       id: WorkspaceId,
-      relative: string,
-    ) => Effect.Effect<{ readonly absolute: string; readonly relative: string }, DirectoryError>;
+      directory: EntryRef,
+    ) => Effect.Effect<LocatedDirectory, DirectoryError>;
   }
 >()("@starlight/core/Workspaces") {
   static readonly layer = Layer.effect(Workspaces)(
     Effect.gen(function* () {
-      const fs = yield* FileSystemPort;
+      const drivers = yield* SourceDrivers;
       const store = yield* WorkspaceStore;
       const audit = yield* AuditLog;
-      const path = yield* Path.Path;
-
-      const isWithin = (root: string, candidate: string) =>
-        candidate === root || candidate.startsWith(root.endsWith(path.sep) ? root : root + path.sep);
-
-      const relativize = (workspace: Workspace, absolute: string) =>
-        isWithin(workspace.rootPath, absolute)
-          ? Option.some(path.relative(workspace.rootPath, absolute).split(path.sep).join("/"))
-          : Option.none();
 
       const get = (id: WorkspaceId) =>
         store.findById(id).pipe(
@@ -50,29 +54,60 @@ export class Workspaces extends Context.Service<
           ),
         );
 
+      const driverFor = (source: EntryRef["source"]) => {
+        const found = drivers.get(source);
+        return found ? Effect.succeed(found) : Effect.fail(new SourceUnavailable({ source }));
+      };
+
+      const prepareMount = Effect.fn("Workspaces.prepareMount")(function* (root: EntryRef) {
+        const driver = yield* driverFor(root.source);
+        const id = yield* driver.canonicalize(root.id);
+        const entry = yield* driver.stat(id);
+        if (entry.kind !== "directory") return yield* new NotADirectory({ entry: root });
+        return { root: { source: root.source, id }, name: entry.name } satisfies Mount;
+      });
+
+      const record = Effect.fn("Workspaces.record")(function* (action: string, root: EntryRef) {
+        yield* audit.record({ actor: yield* CurrentActor, action, target: JSON.stringify(root) });
+      });
+
+      const mountOf = (workspace: Workspace, driver: SourceDriver, directory: EntryRef) =>
+        workspace.mounts.find(
+          (mount) => mount.root.source === directory.source && driver.contains(mount.root.id, directory.id),
+        );
+
       return Workspaces.of({
-        open: Effect.fn("Workspaces.open")(function* (input) {
-          const rootPath = yield* fs.realPath(input);
-          const info = yield* fs.stat(rootPath);
-          if (info.kind !== "directory") return yield* new NotADirectory({ path: rootPath });
-          const workspace = yield* store.upsert({ rootPath, name: path.basename(rootPath) || rootPath });
-          yield* audit.record({ actor: yield* CurrentActor, action: "OpenWorkspace", target: rootPath });
+        open: Effect.fn("Workspaces.open")(function* (root) {
+          const mount = yield* prepareMount(root);
+          const existing = yield* store.findBySoleMount(mount.root);
+          const workspace = yield* Option.match(existing, {
+            onNone: () => store.create({ name: mount.name, mounts: [mount] }),
+            onSome: (found) => store.touch(found.id),
+          });
+          yield* record("OpenWorkspace", mount.root);
           return workspace;
+        }),
+        addMount: Effect.fn("Workspaces.addMount")(function* (id, root) {
+          const workspace = yield* get(id);
+          const mount = yield* prepareMount(root);
+          yield* store.addMount(workspace.id, mount);
+          yield* record("AddMount", mount.root);
+          return yield* get(id);
         }),
         recent: store.recent(RECENT_LIMIT),
         get,
-        relativize,
-        resolveDirectory: Effect.fn("Workspaces.resolveDirectory")(function* (id, relative) {
+        driverFor,
+        locateDirectory: Effect.fn("Workspaces.locateDirectory")(function* (id, requested) {
           const workspace = yield* get(id);
-          const lexical = path.resolve(workspace.rootPath, relative);
-          if (!isWithin(workspace.rootPath, lexical))
-            return yield* new PathOutsideWorkspace({ path: relative });
-          const absolute = yield* fs.realPath(lexical);
-          const inside = relativize(workspace, absolute);
-          if (Option.isNone(inside)) return yield* new PathOutsideWorkspace({ path: relative });
-          const info = yield* fs.stat(absolute);
-          if (info.kind !== "directory") return yield* new NotADirectory({ path: inside.value });
-          return { absolute, relative: inside.value };
+          const driver = yield* driverFor(requested.source);
+          if (!mountOf(workspace, driver, requested))
+            return yield* new OutsideWorkspace({ entry: requested });
+          const directory = { source: requested.source, id: yield* driver.canonicalize(requested.id) };
+          const mount = mountOf(workspace, driver, directory);
+          if (!mount) return yield* new OutsideWorkspace({ entry: requested });
+          const entry = yield* driver.stat(directory.id);
+          if (entry.kind !== "directory") return yield* new NotADirectory({ entry: directory });
+          return { mount, driver, directory };
         }),
       });
     }),

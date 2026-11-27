@@ -1,17 +1,24 @@
 import { Schema } from "effect";
 import { Rpc, RpcGroup } from "effect/rpc";
-import { Entry, EntryChange } from "./entry.ts";
-import { DirectoryError, FileSystemError, NotADirectory, WorkspaceNotFound } from "./errors.ts";
-import { RelativePath, WorkspaceId } from "./ids.ts";
+import { EntryChange, Listing } from "./entry.ts";
+import { DirectoryError, MountError, SourceError, SourceUnavailable, WorkspaceNotFound } from "./errors.ts";
+import { EntryRef, WorkspaceId } from "./ids.ts";
 import { Media } from "./media.ts";
 import { Settings, SettingsPatch } from "./settings.ts";
 import { Workspace } from "./workspace.ts";
 
+const DirectoryRequest = { workspaceId: WorkspaceId, directory: Schema.NullOr(EntryRef) };
+
 export class HostRpcs extends RpcGroup.make(
   Rpc.make("OpenWorkspace", {
-    payload: { path: Schema.String },
+    payload: { root: EntryRef },
     success: Workspace,
-    error: Schema.Union([NotADirectory, FileSystemError]),
+    error: MountError,
+  }),
+  Rpc.make("AddMount", {
+    payload: { workspaceId: WorkspaceId, root: EntryRef },
+    success: Workspace,
+    error: Schema.Union([WorkspaceNotFound, MountError]),
   }),
   Rpc.make("ListRecentWorkspaces", {
     success: Schema.Array(Workspace),
@@ -22,19 +29,19 @@ export class HostRpcs extends RpcGroup.make(
     error: WorkspaceNotFound,
   }),
   Rpc.make("ListEntries", {
-    payload: { workspaceId: WorkspaceId, path: RelativePath },
-    success: Schema.Array(Entry),
+    payload: DirectoryRequest,
+    success: Listing,
     error: DirectoryError,
   }),
   Rpc.make("ListMedia", {
-    payload: { workspaceId: WorkspaceId, path: RelativePath },
+    payload: DirectoryRequest,
     success: Schema.Array(Media),
     error: DirectoryError,
   }),
   Rpc.make("WatchEntries", {
     payload: { workspaceId: WorkspaceId },
     success: EntryChange,
-    error: Schema.Union([WorkspaceNotFound, FileSystemError]),
+    error: Schema.Union([WorkspaceNotFound, SourceUnavailable, SourceError]),
     stream: true,
   }),
   Rpc.make("GetSettings", {
@@ -48,6 +55,6 @@ export class HostRpcs extends RpcGroup.make(
 
 export class ShellRpcs extends RpcGroup.make(
   Rpc.make("PickDirectory", {
-    success: Schema.NullOr(Schema.String),
+    success: Schema.NullOr(EntryRef),
   }),
 ) {}
