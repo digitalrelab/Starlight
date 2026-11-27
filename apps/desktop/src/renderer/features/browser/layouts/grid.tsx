@@ -11,7 +11,7 @@ import { useElementWidth } from "#renderer/lib/use-element-width.ts";
 import { KindIcon, itemKindOf } from "#renderer/features/files/kind-icon.tsx";
 import { justify, nearestInRow } from "./justify.ts";
 import type { LayoutProps } from "./types.ts";
-import { usePreview } from "./use-preview.ts";
+import { usePreview, usePreviewsAhead } from "./use-preview.ts";
 
 const TARGET_ROW_HEIGHT = 200;
 const MAX_ROW_HEIGHT = 320;
@@ -22,6 +22,9 @@ const MAX_ASPECT = 3;
 const ICON_TILE_ASPECT = 1;
 
 const indexByKey = (media: ReadonlyArray<Media>) => new Map(media.map((item) => [entryKey(item.ref), item]));
+
+const tilePreviewUrl = (media: Media, width: number, height: number) =>
+  previewUrl(media.token, Math.max(width, height) * window.devicePixelRatio);
 
 const aspectOf = (media: Media | undefined) =>
   media ? Math.min(MAX_ASPECT, Math.max(MIN_ASPECT, media.width / media.height)) : ICON_TILE_ASPECT;
@@ -55,6 +58,18 @@ export const GridLayout = ({
       }),
     [aspects, width],
   );
+
+  const ahead = useMemo(
+    () =>
+      layout.rows.flatMap((row) =>
+        entries.slice(row.start, row.end).flatMap((entry, offset) => {
+          const found = media.get(entryKey(entry.ref));
+          return found ? [tilePreviewUrl(found, layout.width[row.start + offset] ?? 0, row.height)] : [];
+        }),
+      ),
+    [layout, entries, media],
+  );
+  usePreviewsAhead(ahead);
 
   const virtualizer = useVirtualizer({
     count: layout.rows.length,
@@ -171,10 +186,7 @@ const Tile = memo(
         style={{ left, width, height }}
       >
         {media ? (
-          <Preview
-            url={previewUrl(media.token, Math.max(width, height) * window.devicePixelRatio)}
-            visible={visible}
-          />
+          <Preview url={tilePreviewUrl(media, width, height)} visible={visible} />
         ) : (
           <div className="flex size-full flex-col items-center justify-center gap-2 p-3">
             <KindIcon kind={itemKindOf(entry)} size={40} />
