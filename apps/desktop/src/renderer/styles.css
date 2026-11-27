@@ -3,8 +3,8 @@
 @source "./";
 
 @theme {
-  --spacing-titlebar: 2.75rem;
-  --spacing-traffic-lights: 5rem;
+  --spacing-titlebar: calc(2.75rem / var(--interface-zoom, 1));
+  --spacing-traffic-lights: calc(5rem / var(--interface-zoom, 1));
 }
 
 @layer base {

@@ -1,6 +1,12 @@
 import { COLOR_SCHEMES, type ColorScheme, ColorSchemeSwatch, Item, Switch } from "@starlight/ui";
 import { createFileRoute } from "@tanstack/react-router";
-import { colorScheme, cursor } from "../features/settings/appearance.ts";
+import {
+  colorScheme,
+  cursor,
+  INTERFACE_SIZES,
+  type InterfaceSize,
+  interfaceSize,
+} from "../features/settings/appearance.ts";
 import { SettingsPage } from "../features/settings/settings-page.tsx";
 import { SettingsSelect } from "../features/settings/settings-select.tsx";
 
@@ -8,6 +14,14 @@ const COLOR_SCHEME_LABELS: Record<ColorScheme, string> = {
   system: "System",
   light: "Daylight",
   dark: "Starlight",
+};
+
+const INTERFACE_SIZE_LABELS: Record<InterfaceSize, string> = {
+  smaller: "Smaller",
+  small: "Small",
+  default: "Default",
+  large: "Large",
+  larger: "Larger",
 };
 
 export const Route = createFileRoute("/settings/appearance")({
@@ -30,6 +44,19 @@ function Appearance() {
             swatch={(scheme) => <ColorSchemeSwatch scheme={scheme} />}
             value={colorScheme.useValue()}
             onValueChange={colorScheme.set}
+          />
+        </Item.Root>
+        <Item.Root>
+          <Item.Content>
+            <Item.Title htmlFor="interface-size">Interface size</Item.Title>
+            <Item.Description>Adjust the size of everything in the app</Item.Description>
+          </Item.Content>
+          <SettingsSelect
+            id="interface-size"
+            values={INTERFACE_SIZES}
+            labels={INTERFACE_SIZE_LABELS}
+            value={interfaceSize.useValue()}
+            onValueChange={interfaceSize.set}
           />
         </Item.Root>
         <Item.Root>
