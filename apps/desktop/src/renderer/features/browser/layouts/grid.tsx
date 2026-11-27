@@ -4,14 +4,14 @@ import { cn, Icon } from "@starlight/ui";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { type KeyboardEvent, memo, useEffect, useEffectEvent, useLayoutEffect, useMemo, useRef } from "react";
-import { thumbnailUrl } from "../../../../shared/thumbnails.ts";
+import { previewUrl } from "../../../../shared/previews.ts";
 import { useStarlight } from "../../../lib/context.ts";
 import { reveal } from "../../../lib/reveal.ts";
 import { useElementWidth } from "../../../lib/use-element-width.ts";
 import { KindIcon, itemKindOf } from "../../files/kind-icon.tsx";
 import { justify, nearestInRow } from "./justify.ts";
 import type { LayoutProps } from "./types.ts";
-import { useThumbnail } from "./use-thumbnail.ts";
+import { usePreview } from "./use-preview.ts";
 
 const TARGET_ROW_HEIGHT = 200;
 const MAX_ROW_HEIGHT = 320;
@@ -164,8 +164,8 @@ const Tile = memo(
         style={{ left, width, height }}
       >
         {media ? (
-          <Thumbnail
-            url={thumbnailUrl(media.token, Math.max(width, height) * window.devicePixelRatio)}
+          <Preview
+            url={previewUrl(media.token, Math.max(width, height) * window.devicePixelRatio)}
             visible={visible}
           />
         ) : (
@@ -179,8 +179,8 @@ const Tile = memo(
   },
 );
 
-const Thumbnail = ({ url, visible }: { readonly url: string; readonly visible: boolean }) => {
-  const src = useThumbnail(url, visible);
+const Preview = ({ url, visible }: { readonly url: string; readonly visible: boolean }) => {
+  const src = usePreview(url, visible);
   return (
     <>
       <Icon icon={Image01Icon} size={24} className="absolute top-1/2 left-1/2 -translate-1/2 text-subtlest" />
