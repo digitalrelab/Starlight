@@ -22,7 +22,7 @@ const Message = ({ children }: { readonly children: string }) => (
 const Windows = ({ provider: { status }, usage, now }: Props) => {
   if (status._tag === "NotReady") return <Message>{status.message}</Message>;
   if (usage === undefined) return <Message>Usage isn't available.</Message>;
-  if (usage._tag === "Unmetered") return <Message>{usage.message}</Message>;
+  if (usage._tag === "Unavailable") return <Message>{usage.message}</Message>;
   if (usage.windows.length === 0) return <Message>No usage limits reported.</Message>;
   return usage.windows.map((window) => <UsageWindowRow key={window.label} window={window} now={now} />);
 };

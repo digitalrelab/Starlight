@@ -1,7 +1,6 @@
 import type { AgentUsage, UsageWindow } from "@starlight/contracts";
-import { Effect } from "effect";
-import { asError, unmetered } from "#adapters/agent.ts";
-import { COMMAND_TIMEOUT_MS } from "#adapters/cli.ts";
+import type { Effect } from "effect";
+import { readUsage } from "#adapters/agent.ts";
 import type { Connection } from "./connection.ts";
 
 const MINUTE_MS = 60 * 1000;
@@ -54,23 +53,20 @@ const windowsOf = ({ limitId, limitName, primary, secondary }: Snapshot) => {
 };
 
 const toUsage = ({ rateLimits, rateLimitsByLimitId, rateLimitResetCredits }: RateLimits): AgentUsage => {
-  const snapshots = Object.values(rateLimitsByLimitId ?? {}).filter((snapshot) => snapshot !== undefined);
+  const snapshots = Object.values(rateLimitsByLimitId ?? {});
   const windows = (snapshots.length > 0 ? snapshots : [rateLimits])
     .flatMap(windowsOf)
     .toSorted((a, b) => (a.durationMs ?? Infinity) - (b.durationMs ?? Infinity));
   return {
     _tag: "Metered",
     windows,
-    ...(rateLimitResetCredits ? { resetCredits: Number(rateLimitResetCredits.availableCount) } : {}),
+    ...(rateLimitResetCredits ? { resetCredits: rateLimitResetCredits.availableCount } : {}),
   };
 };
 
-export const readUsage = (connect: () => Promise<Connection>): Effect.Effect<AgentUsage> =>
-  Effect.tryPromise({
-    try: () => connect().then(({ server }) => server.request<RateLimits>("account/rateLimits/read", {})),
-    catch: asError,
-  }).pipe(
-    Effect.timeout(COMMAND_TIMEOUT_MS),
-    Effect.map(toUsage),
-    Effect.catch((error) => Effect.succeed(unmetered(error.message))),
+export const makeUsage = (connect: () => Promise<Connection>): Effect.Effect<AgentUsage> =>
+  readUsage(
+    "Codex",
+    () => connect().then(({ server }) => server.request<RateLimits>("account/rateLimits/read", {})),
+    toUsage,
   );

@@ -30,8 +30,8 @@ const useNow = () => {
 function Usage() {
   const { queries } = useStarlight();
   const { data: providers } = useSuspenseQuery(queries.agentProviders());
-  const { data: usage, refetch, isFetching, dataUpdatedAt } = useSuspenseQuery(queries.agentUsage());
-  const now = Math.max(useNow(), dataUpdatedAt);
+  const { data: usage, refetch, isFetching } = useSuspenseQuery(queries.agentUsage());
+  const now = useNow();
 
   return (
     <SettingsPage

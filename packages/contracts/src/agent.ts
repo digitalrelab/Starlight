@@ -58,7 +58,7 @@ export const AgentUsage = Schema.Union([
     windows: Schema.Array(UsageWindow),
     resetCredits: Schema.optionalKey(Schema.Number),
   }),
-  Schema.TaggedStruct("Unmetered", { message: Schema.String }),
+  Schema.TaggedStruct("Unavailable", { message: Schema.String }),
 ]);
 export type AgentUsage = typeof AgentUsage.Type;
 

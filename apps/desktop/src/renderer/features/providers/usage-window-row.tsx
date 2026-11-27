@@ -1,7 +1,7 @@
 import type { UsageWindow } from "@starlight/client";
 import { cn, Item } from "@starlight/ui";
 import { formatSpan } from "#renderer/lib/format.ts";
-import { type Pace, paceOf, type UsageTone } from "./usage-pace.ts";
+import { FULL_PERCENT, type Pace, paceOf, type UsageTone } from "./usage-pace.ts";
 
 const FILL: Record<UsageTone, string> = {
   neutral: "bg-neutral-bold",
@@ -11,26 +11,26 @@ const FILL: Record<UsageTone, string> = {
 
 const INK: Record<UsageTone, string> = { neutral: "", warning: "text-warning", danger: "text-danger" };
 
-const Note = ({ used, pace }: { readonly used: number; readonly pace: Pace }) => {
-  const resets = pace.resetsIn === null ? null : `resets in ${formatSpan(pace.resetsIn)}`;
-  const lead =
-    used >= 100
+const Note = ({ pace }: { readonly pace: Pace }) => {
+  const resets = pace.resetsIn === null ? null : formatSpan(pace.resetsIn);
+  const alert =
+    pace.used === FULL_PERCENT
       ? "Limit reached"
       : pace.runsOutIn === null
         ? null
         : `Runs out in ~${formatSpan(pace.runsOutIn, 1)}`;
-  if (lead === null) return resets === null ? null : <>{resets.charAt(0).toUpperCase() + resets.slice(1)}</>;
+  if (alert === null) return resets === null ? null : `Resets in ${resets}`;
   return (
     <>
-      <span className={INK[pace.tone]}>{lead}</span>
-      {resets === null ? null : ` · ${resets}`}
+      <span className={INK[pace.tone]}>{alert}</span>
+      {resets === null ? null : ` · resets in ${resets}`}
     </>
   );
 };
 
 export const UsageWindowRow = ({ window, now }: { readonly window: UsageWindow; readonly now: number }) => {
   const pace = paceOf(window, now);
-  const used = Math.min(Math.max(window.usedPercent, 0), 100);
+  const { used } = pace;
   const idle = used === 0;
 
   return (
@@ -38,7 +38,7 @@ export const UsageWindowRow = ({ window, now }: { readonly window: UsageWindow; 
       <Item.Content>
         <Item.Title className={cn(idle && "text-subtlest")}>{window.label}</Item.Title>
         <Item.Description className="truncate">
-          <Note used={used} pace={pace} />
+          <Note pace={pace} />
         </Item.Description>
       </Item.Content>
       <div className="flex shrink-0 items-center gap-4">
@@ -46,7 +46,7 @@ export const UsageWindowRow = ({ window, now }: { readonly window: UsageWindow; 
           role="meter"
           aria-label={window.label}
           aria-valuemin={0}
-          aria-valuemax={100}
+          aria-valuemax={FULL_PERCENT}
           aria-valuenow={used}
           className="relative h-1 w-36 rounded-full bg-neutral"
         >

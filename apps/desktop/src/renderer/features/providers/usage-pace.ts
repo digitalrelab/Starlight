@@ -3,13 +3,14 @@ import type { UsageWindow } from "@starlight/client";
 export type UsageTone = "neutral" | "warning" | "danger";
 
 export interface Pace {
+  readonly used: number;
   readonly tone: UsageTone;
   readonly elapsed: number | null;
   readonly resetsIn: number | null;
   readonly runsOutIn: number | null;
 }
 
-const FULL_PERCENT = 100;
+export const FULL_PERCENT = 100;
 const DANGER_PERCENT = 90;
 
 const clamp = (value: number, max: number) => Math.min(Math.max(value, 0), max);
@@ -24,6 +25,7 @@ export const paceOf = ({ usedPercent, resetsAt, durationMs }: UsageWindow, now: 
       : null;
   const runsOutIn = projected !== null && resetsIn !== null && projected < resetsIn ? projected : null;
   return {
+    used: clamp(usedPercent, FULL_PERCENT),
     tone: usedPercent >= DANGER_PERCENT ? "danger" : runsOutIn !== null ? "warning" : "neutral",
     elapsed: elapsedMs === null || !durationMs ? null : elapsedMs / durationMs,
     resetsIn,

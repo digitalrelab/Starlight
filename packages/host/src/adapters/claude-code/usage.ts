@@ -1,8 +1,7 @@
 import type { SDKControlGetUsageResponse } from "@anthropic-ai/claude-agent-sdk";
 import type { AgentUsage, UsageWindow } from "@starlight/contracts";
-import { Effect } from "effect";
-import { asError, unmetered } from "#adapters/agent.ts";
-import { COMMAND_TIMEOUT_MS } from "#adapters/cli.ts";
+import type { Effect } from "effect";
+import { readUsage, unavailable } from "#adapters/agent.ts";
 import type { Pool } from "./pool.ts";
 
 const HOUR_MS = 60 * 60 * 1000;
@@ -27,7 +26,7 @@ const windowOf = (label: string, durationMs: number, window: Window | null | und
 
 const toUsage = ({ subscription_type, rate_limits }: SDKControlGetUsageResponse): AgentUsage => {
   if (!rate_limits) {
-    return unmetered(
+    return unavailable(
       subscription_type
         ? "Claude didn't report usage limits."
         : "Usage limits apply only to Claude subscriptions.",
@@ -51,8 +50,4 @@ const toUsage = ({ subscription_type, rate_limits }: SDKControlGetUsageResponse)
 };
 
 export const makeUsage = (pool: Pool): Effect.Effect<AgentUsage> =>
-  Effect.tryPromise({ try: () => pool.prepare().then((session) => session.usage()), catch: asError }).pipe(
-    Effect.timeout(COMMAND_TIMEOUT_MS),
-    Effect.map(toUsage),
-    Effect.catch((error) => Effect.succeed(unmetered(error.message))),
-  );
+  readUsage("Claude Code", () => pool.prepare().then((session) => session.usage()), toUsage);
