@@ -33,9 +33,9 @@ const UpdateAction = ({ update }: { readonly update: Update }) => {
       );
     case "downloading":
       return (
-        <Button className="self-end tabular-nums" disabled>
+        <p className="flex h-control items-center self-end px-2.5 text-subtle tabular-nums">
           Downloading… {Math.round(update.progress * 100)}%
-        </Button>
+        </p>
       );
     case "downloaded":
       return (
