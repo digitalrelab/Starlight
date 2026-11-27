@@ -6,9 +6,11 @@ import { useState } from "react";
 import { MarkdownIcon } from "#renderer/features/files/markdown-icon.ts";
 import { useStarlight } from "#renderer/lib/context.ts";
 
+const STEM = "Untitled";
+
 const BLUEPRINTS = [
-  { action: "New Folder", icon: FolderIcon, kind: "directory", stem: "Untitled", extension: "" },
-  { action: "New Markdown File", icon: MarkdownIcon, kind: "file", stem: "Untitled", extension: ".md" },
+  { action: "New Folder", icon: FolderIcon, kind: "directory", extension: "" },
+  { action: "New Markdown File", icon: MarkdownIcon, kind: "file", extension: ".md" },
 ] as const;
 
 type Blueprint = (typeof BLUEPRINTS)[number];
@@ -18,10 +20,10 @@ interface Draft {
   readonly name: string;
 }
 
-const freeName = ({ stem, extension }: Blueprint, entries: ReadonlyArray<Entry>) => {
+const freeName = ({ extension }: Blueprint, entries: ReadonlyArray<Entry>) => {
   const taken = new Set(entries.map(({ name }) => name.toLowerCase()));
   for (let n = 1; ; n++) {
-    const name = `${n === 1 ? stem : `${stem} ${n}`}${extension}`;
+    const name = `${n === 1 ? STEM : `${STEM} ${n}`}${extension}`;
     if (!taken.has(name.toLowerCase())) return name;
   }
 };

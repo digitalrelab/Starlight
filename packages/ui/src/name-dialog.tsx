@@ -4,6 +4,7 @@ import { Dialog } from "@base-ui/react";
 import { cn } from "cn";
 import { useRef } from "react";
 import { dialogBackdrop, dialogPopup, dialogRow, dialogRows, dialogViewport } from "./dialog.ts";
+import { DialogSubject } from "./dialog-subject.tsx";
 import { Icon } from "./icon.tsx";
 
 export interface NameDialogProps {
@@ -45,11 +46,7 @@ export const NameDialog = ({
         <Dialog.Viewport className={dialogViewport}>
           <Dialog.Popup initialFocus={input} className={cn(dialogPopup, "w-120")}>
             <Dialog.Title className="sr-only">{action}</Dialog.Title>
-            <div className="flex px-dialog pt-4">
-              <span className="inline-flex h-6 max-w-full items-center truncate rounded-full bg-neutral px-2 text-sm text-default">
-                {subject}
-              </span>
-            </div>
+            <DialogSubject>{subject}</DialogSubject>
             <form
               onSubmit={(event) => {
                 event.preventDefault();

@@ -129,10 +129,8 @@ export class Entries extends Context.Service<
           const created = yield* driver
             .create(directory.id, name, kind)
             .pipe(
-              Effect.catchTag("SourceError", (error) =>
-                Effect.fail(
-                  error.reason === "AlreadyExists" ? new EntryExists({ entry: error.entry }) : error,
-                ),
+              Effect.mapError((error) =>
+                error.reason === "AlreadyExists" ? new EntryExists({ entry: error.entry }) : error,
               ),
             );
           const ref = { source: directory.source, id: created.id };
