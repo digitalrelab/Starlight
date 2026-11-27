@@ -3,7 +3,7 @@ import type { PixelSample } from "@starlight/contracts";
 const CHANNELS = 4;
 
 export const OPAQUE_ALPHA = 128;
-export const FULL_ALPHA = 255;
+const FULL_ALPHA = 255;
 
 export const forEachPixel = (
   { rgba }: PixelSample,

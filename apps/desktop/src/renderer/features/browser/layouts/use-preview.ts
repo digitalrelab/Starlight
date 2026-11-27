@@ -33,9 +33,9 @@ export const usePreview = (url: string, visible: boolean) => {
   const ready = shown === url || loaded.has(url);
   useEffect(() => {
     if (ready) return;
-    return previews.request(load(url), visible ? Priority.visible : Priority.nearby, (succeeded) => {
-      if (succeeded) setShown(url);
-    });
+    return previews.request(load(url), visible ? Priority.visible : Priority.nearby, (succeeded) =>
+      setShown(succeeded ? url : undefined),
+    );
   }, [url, visible, ready]);
   return { src: ready ? url : shown, instant };
 };
