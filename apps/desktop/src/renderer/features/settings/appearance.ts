@@ -1,6 +1,7 @@
 import { COLOR_SCHEMES } from "@starlight/ui";
-import { useLayoutEffect } from "react";
+import { useEffect, useLayoutEffect } from "react";
 import { Channel } from "../../../shared/channels.ts";
+import type { ZoomStep } from "../../../shared/zoom.ts";
 import { defineStored, oneOf } from "../../lib/storage.ts";
 
 export const colorScheme = defineStored("color-scheme", oneOf(COLOR_SCHEMES), "system");
@@ -20,10 +21,24 @@ const ZOOM_FACTORS: Record<InterfaceSize, number> = {
 
 export const interfaceSize = defineStored("interface-size", oneOf(INTERFACE_SIZES), "default");
 
+const stepped = (size: InterfaceSize, step: ZoomStep) => {
+  if (step === "reset") return "default";
+  return INTERFACE_SIZES[INTERFACE_SIZES.indexOf(size) + (step === "in" ? 1 : -1)] ?? size;
+};
+
 export const useInterfaceZoom = () => {
   const factor = ZOOM_FACTORS[interfaceSize.useValue()];
   useLayoutEffect(() => {
     document.documentElement.style.setProperty("--interface-zoom", String(factor));
     window.postMessage({ type: Channel.zoom, factor }, "*");
   }, [factor]);
+
+  useEffect(() => {
+    const onMessage = (event: MessageEvent) => {
+      if (event.source !== window || event.data?.type !== Channel.zoomStep) return;
+      interfaceSize.set(stepped(interfaceSize.get(), event.data.step));
+    };
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, []);
 };
