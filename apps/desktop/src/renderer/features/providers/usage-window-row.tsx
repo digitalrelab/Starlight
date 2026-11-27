@@ -1,5 +1,5 @@
 import type { UsageWindow } from "@starlight/client";
-import { cn, Item } from "@starlight/ui";
+import { cn, Item, Tooltip } from "@starlight/ui";
 import { formatSpan } from "#renderer/lib/format.ts";
 import { FULL_PERCENT, type Pace, paceOf, type UsageTone } from "./usage-pace.ts";
 
@@ -28,6 +28,40 @@ const Note = ({ pace }: { readonly pace: Pace }) => {
   );
 };
 
+const Meter = ({ label, pace }: { readonly label: string; readonly pace: Pace }) => {
+  const meter = (
+    <div className="py-2">
+      <div
+        role="meter"
+        aria-label={label}
+        aria-valuemin={0}
+        aria-valuemax={FULL_PERCENT}
+        aria-valuenow={pace.used}
+        className="relative h-1.5 w-36 rounded-full bg-neutral"
+      >
+        <div
+          className={cn(
+            "absolute inset-y-0 left-0 rounded-full transition-[width] duration-300",
+            FILL[pace.tone],
+          )}
+          style={{ width: `${pace.used}%` }}
+        />
+        {pace.elapsed === null ? null : (
+          <div
+            className="absolute top-1/2 h-3.5 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-(--text-color-default) ring-2 ring-(--background-color-surface-raised)"
+            style={{ left: `${pace.elapsed * FULL_PERCENT}%` }}
+          />
+        )}
+      </div>
+    </div>
+  );
+  return pace.elapsed === null ? (
+    meter
+  ) : (
+    <Tooltip label={`Even pace would be ${Math.round(pace.elapsed * FULL_PERCENT)}% by now`}>{meter}</Tooltip>
+  );
+};
+
 export const UsageWindowRow = ({ window, now }: { readonly window: UsageWindow; readonly now: number }) => {
   const pace = paceOf(window, now);
   const { used } = pace;
@@ -42,25 +76,7 @@ export const UsageWindowRow = ({ window, now }: { readonly window: UsageWindow; 
         </Item.Description>
       </Item.Content>
       <div className="flex shrink-0 items-center gap-4">
-        <div
-          role="meter"
-          aria-label={window.label}
-          aria-valuemin={0}
-          aria-valuemax={FULL_PERCENT}
-          aria-valuenow={used}
-          className="relative h-1 w-36 rounded-full bg-neutral"
-        >
-          <div
-            className={cn("absolute inset-y-0 left-0 rounded-full", FILL[pace.tone])}
-            style={{ width: `${used}%` }}
-          />
-          {pace.elapsed === null ? null : (
-            <div
-              className="absolute -inset-y-1 w-0.5 -translate-x-1/2 rounded-full bg-(--text-color-default) opacity-50"
-              style={{ left: `${pace.elapsed * 100}%` }}
-            />
-          )}
-        </div>
+        <Meter label={window.label} pace={pace} />
         <span
           className={cn(
             "w-10 text-right font-medium tabular-nums",

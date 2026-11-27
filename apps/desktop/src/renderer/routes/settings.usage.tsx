@@ -1,6 +1,6 @@
-import { RefreshIcon } from "@hugeicons-pro/core-stroke-rounded";
+import { RefreshCwIcon } from "@hugeicons-pro/core-stroke-rounded";
 import { cn, IconButton } from "@starlight/ui";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { ProviderUsage } from "#renderer/features/providers/provider-usage.tsx";
 import { SettingsPage } from "#renderer/features/settings/settings-page.tsx";
@@ -10,18 +10,14 @@ import { useNow } from "#renderer/lib/use-now.ts";
 const TICK_MS = 60 * 1000;
 
 export const Route = createFileRoute("/settings/usage")({
-  loader: ({ context: { queryClient, queries } }) =>
-    Promise.all([
-      queryClient.ensureQueryData(queries.agentProviders()),
-      queryClient.ensureQueryData(queries.agentUsage()),
-    ]),
+  loader: ({ context: { queryClient, queries } }) => queryClient.ensureQueryData(queries.agentProviders()),
   component: Usage,
 });
 
 function Usage() {
   const { queries } = useStarlight();
   const { data: providers } = useSuspenseQuery(queries.agentProviders());
-  const { data: usage, refetch, isFetching } = useSuspenseQuery(queries.agentUsage());
+  const { data: usage, refetch, isFetching } = useQuery(queries.agentUsage());
   const now = useNow(TICK_MS);
 
   return (
@@ -29,7 +25,7 @@ function Usage() {
       title="Usage"
       actions={
         <IconButton
-          icon={RefreshIcon}
+          icon={RefreshCwIcon}
           label="Refresh"
           disabled={isFetching}
           className={cn(isFetching && "*:animate-spin")}
@@ -41,13 +37,10 @@ function Usage() {
         <ProviderUsage
           key={provider.id}
           provider={provider}
-          usage={usage.find((entry) => entry.provider === provider.id)?.usage}
+          usage={usage?.find((entry) => entry.provider === provider.id)?.usage}
           now={now}
         />
       ))}
-      <p className="px-4 text-sm text-subtlest">
-        The tick marks an even pace: where usage would be if it were spread evenly across the window.
-      </p>
     </SettingsPage>
   );
 }

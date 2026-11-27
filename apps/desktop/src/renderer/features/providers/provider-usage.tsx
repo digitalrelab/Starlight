@@ -1,6 +1,6 @@
 import { InformationCircleIcon } from "@hugeicons-pro/core-stroke-rounded";
 import type { AgentProvider, AgentUsage } from "@starlight/client";
-import { Badge, Icon, Item } from "@starlight/ui";
+import { Badge, Icon, Item, Spinner } from "@starlight/ui";
 import { providerAppearance } from "./provider-appearance.ts";
 import { UsageWindowRow } from "./usage-window-row.tsx";
 
@@ -10,10 +10,16 @@ interface Props {
   readonly now: number;
 }
 
-const Message = ({ children }: { readonly children: string }) => (
+const Message = ({
+  children,
+  pending = false,
+}: {
+  readonly children: string;
+  readonly pending?: boolean;
+}) => (
   <Item.Root>
     <Item.Description className="flex items-center gap-1.5">
-      <Icon icon={InformationCircleIcon} size={14} />
+      {pending ? <Spinner size={14} /> : <Icon icon={InformationCircleIcon} size={14} />}
       {children}
     </Item.Description>
   </Item.Root>
@@ -21,7 +27,7 @@ const Message = ({ children }: { readonly children: string }) => (
 
 const Windows = ({ provider: { status }, usage, now }: Props) => {
   if (status._tag === "NotReady") return <Message>{status.message}</Message>;
-  if (usage === undefined) return <Message>Usage isn't available.</Message>;
+  if (usage === undefined) return <Message pending>Checking usage…</Message>;
   if (usage._tag === "Unavailable") return <Message>{usage.message}</Message>;
   if (usage.windows.length === 0) return <Message>No usage limits reported.</Message>;
   return usage.windows.map((window) => <UsageWindowRow key={window.label} window={window} now={now} />);
