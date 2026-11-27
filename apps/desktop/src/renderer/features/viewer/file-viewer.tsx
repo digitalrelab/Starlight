@@ -156,12 +156,7 @@ export const FileViewer = ({
           ) : null}
         </Theater.Stage>
         {inspector ? (
-          <Inspector
-            projectId={projectId}
-            directory={directory}
-            entry={current}
-            className="mr-2 mb-2 rounded-lg bg-surface shadow-lifted"
-          />
+          <Inspector projectId={projectId} directory={directory} entry={current} className="mr-2 mb-2" />
         ) : null}
       </div>
     </Theater.Root>

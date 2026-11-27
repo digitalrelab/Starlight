@@ -1,9 +1,11 @@
 export * from "./badge.tsx";
 export * from "./breadcrumbs.tsx";
 export * from "./button.tsx";
+export * from "./card.tsx";
 export { cn } from "cn";
 export * from "./color-scheme-swatch.tsx";
 export * from "./confirm-dialog.tsx";
+export * from "./details.tsx";
 export * from "./hold-button.tsx";
 export * from "./icon.tsx";
 export * from "./icon-button.tsx";

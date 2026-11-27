@@ -17,6 +17,7 @@ import { layouts } from "#renderer/features/browser/layouts/registry.ts";
 import { useFoldersAhead } from "#renderer/features/browser/use-folders-ahead.ts";
 import { PageError } from "#renderer/features/shell/page-error.tsx";
 import { PageHeader } from "#renderer/features/shell/page-header.tsx";
+import { ShellAside } from "#renderer/features/shell/shell-aside.tsx";
 import { FileViewer } from "#renderer/features/viewer/file-viewer.tsx";
 import { Inspector } from "#renderer/features/inspector/inspector.tsx";
 import { inspectorPreference } from "#renderer/features/inspector/inspector-preference.ts";
@@ -104,27 +105,27 @@ function Browser() {
       >
         <DirectoryBreadcrumbs project={project} trail={listing.trail} />
       </PageHeader>
-      <div className="flex min-h-0 flex-1">
-        <DirectoryView
-          key={directoryKey}
-          projectId={projectId}
-          directory={directory}
-          entries={listing.entries}
-          layout={layout}
-          selectedKey={selectedKey}
-          onSelectKey={select}
-          onOpen={onOpen}
-          onIntent={prefetch}
-        />
-        {inspector ? (
+      <DirectoryView
+        key={directoryKey}
+        projectId={projectId}
+        directory={directory}
+        entries={listing.entries}
+        layout={layout}
+        selectedKey={selectedKey}
+        onSelectKey={select}
+        onOpen={onOpen}
+        onIntent={prefetch}
+      />
+      {inspector ? (
+        <ShellAside>
           <Inspector
             projectId={projectId}
             directory={directory}
             entry={listing.entries.find((entry) => entryKey(entry.ref) === selectedKey)}
-            className="border-l border-default"
+            className="my-2 mr-2"
           />
-        ) : null}
-      </div>
+        </ShellAside>
+      ) : null}
       {directory && file ? (
         <FileViewer
           projectId={projectId}
