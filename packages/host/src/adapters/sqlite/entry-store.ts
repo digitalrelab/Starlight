@@ -3,7 +3,7 @@ import { EntryStore, type StoredEntry } from "@starlight/core";
 import { Array as Arr, Effect, Layer, Schema } from "effect";
 import { SqlClient, SqlSchema } from "effect/sql";
 import { BATCH_SIZE, batched } from "./batched.ts";
-import { containing, startingWith } from "./like.ts";
+import { containing, LIKE_ESCAPE, startingWith } from "./like.ts";
 
 const Row = Schema.Struct({
   id: EntryId,
@@ -66,9 +66,9 @@ export const SqliteEntryStoreLive = Layer.effect(EntryStore)(
         SELECT entries.source, entries.id, entries.name, entries.kind, parents.name AS parent_name
         FROM entries
         LEFT JOIN entries AS parents ON parents.source = entries.source AND parents.id = entries.parent
-        WHERE entries.name LIKE ${containing(query)} ESCAPE '\\'
+        WHERE entries.name LIKE ${containing(query)} ESCAPE ${LIKE_ESCAPE}
         AND (entries.source, entries.id) NOT IN (SELECT source, id FROM concealed)
-        ORDER BY entries.name NOT LIKE ${startingWith(query)} ESCAPE '\\', length(entries.name)
+        ORDER BY entries.name NOT LIKE ${startingWith(query)} ESCAPE ${LIKE_ESCAPE}, length(entries.name)
         LIMIT ${limit}
       `,
     });

@@ -38,6 +38,9 @@ export interface LocatedFile {
   readonly entry: SourceEntry;
 }
 
+export const mountOf = (project: Project, driver: SourceDriver, ref: EntryRef) =>
+  project.mounts.find((mount) => mount.root.source === ref.source && driver.contains(mount.root.id, ref.id));
+
 export class Projects extends Context.Service<
   Projects,
   {
@@ -116,11 +119,6 @@ export class Projects extends Context.Service<
               ),
             ),
           ),
-        );
-
-      const mountOf = (project: Project, driver: SourceDriver, directory: EntryRef) =>
-        project.mounts.find(
-          (mount) => mount.root.source === directory.source && driver.contains(mount.root.id, directory.id),
         );
 
       const statIfExists = (driver: SourceDriver, ref: EntryRef) =>

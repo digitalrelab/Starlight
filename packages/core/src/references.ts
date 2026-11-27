@@ -1,15 +1,13 @@
-import type { Mount, Project, ProjectId, ReferenceMatch } from "@starlight/contracts";
-import { Context, Effect, Layer } from "effect";
+import type { Project, ReferenceMatch } from "@starlight/contracts";
+import { Array as Arr, Context, Effect, Layer } from "effect";
 import { ChatStore, type EntryMatch, EntryStore } from "./ports.ts";
-import { Projects } from "./projects.ts";
+import { mountOf, Projects } from "./projects.ts";
 
 const ENTRY_LIMIT = 12;
 const CHAT_LIMIT = 6;
 
-interface Owner {
-  readonly mount: Mount;
-  readonly project: ProjectId;
-}
+const sameEntry = (a: ReferenceMatch, b: ReferenceMatch) =>
+  a._tag === "Entry" && b._tag === "Entry" && a.ref.source === b.ref.source && a.ref.id === b.ref.id;
 
 const rootsOf = ({ id, name, mounts }: Project) =>
   mounts.map((mount): ReferenceMatch => ({
@@ -31,37 +29,33 @@ export class References extends Context.Service<
       const chats = yield* ChatStore;
       const entries = yield* EntryStore;
 
-      const owned = (owners: ReadonlyArray<Owner>, match: EntryMatch) =>
-        projects.driverFor(match.ref.source).pipe(
+      const owned = (all: ReadonlyArray<Project>, { ref, name, kind, parentName }: EntryMatch) =>
+        projects.driverFor(ref.source).pipe(
           Effect.map((driver): ReadonlyArray<ReferenceMatch> => {
-            const owner = owners.find(
-              ({ mount }) =>
-                mount.root.source === match.ref.source && driver.contains(mount.root.id, match.ref.id),
-            );
-            if (!owner) return [];
-            const { ref, name, kind, parentName } = match;
-            return [
-              {
-                _tag: "Entry",
-                ref,
-                name,
-                kind,
-                project: owner.project,
-                parentName: parentName ?? owner.mount.name,
-              },
-            ];
+            for (const project of all) {
+              const mount = mountOf(project, driver, ref);
+              if (mount)
+                return [
+                  {
+                    _tag: "Entry",
+                    ref,
+                    name,
+                    kind,
+                    project: project.id,
+                    parentName: parentName ?? mount.name,
+                  },
+                ];
+            }
+            return [];
           }),
           Effect.orElseSucceed((): ReadonlyArray<ReferenceMatch> => []),
         );
 
       const searchEntries = Effect.fn("References.searchEntries")(function* (query: string) {
         const all = yield* projects.list;
-        if (query === "") return all.flatMap(rootsOf);
-        const owners = all.flatMap(({ id, mounts }) =>
-          mounts.map((mount): Owner => ({ mount, project: id })),
-        );
+        if (query === "") return Arr.dedupeWith(all.flatMap(rootsOf), sameEntry);
         const found = yield* Effect.forEach(yield* entries.search(query, ENTRY_LIMIT), (match) =>
-          owned(owners, match),
+          owned(all, match),
         );
         return found.flat();
       });
