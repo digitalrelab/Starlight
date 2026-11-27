@@ -100,7 +100,13 @@ export const DirectoryView = ({ projectId, directory, entries, layout, shown, on
     );
 
   return directory ? (
-    <ListingMenu directory={directory} entries={entries} selection={selection}>
+    <ListingMenu
+      projectId={projectId}
+      directory={directory}
+      entries={entries}
+      selection={selection}
+      onOpen={onOpen}
+    >
       {listing}
     </ListingMenu>
   ) : (

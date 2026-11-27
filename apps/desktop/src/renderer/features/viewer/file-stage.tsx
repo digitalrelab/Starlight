@@ -117,6 +117,7 @@ const MarkdownFile = ({ projectId, entry, source }: MarkdownFileProps) => {
             value={document.value}
             label={entry.name}
             editable={document.editable}
+            autoFocus={document.editable && document.value === ""}
             onChange={session.edit}
             className="pt-[12vh] pb-[40vh]"
           />

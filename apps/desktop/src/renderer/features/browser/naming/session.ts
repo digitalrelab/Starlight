@@ -7,6 +7,7 @@ interface Session {
   readonly key: number;
   readonly directory: string;
   readonly name: string;
+  readonly problem: string | null;
 }
 
 export type Naming = Session &
@@ -19,13 +20,19 @@ const store = defineStore<Naming | null>(null);
 
 let started = 0;
 
-export const startCreating = (directory: EntryRef, blueprint: Blueprint, entries: ReadonlyArray<Entry>) =>
+export const startCreating = (
+  directory: EntryRef,
+  blueprint: Blueprint,
+  entries: ReadonlyArray<Entry>,
+  problem: string | null = null,
+) =>
   store.set({
     key: ++started,
     directory: entryKey(directory),
     target: null,
     kind: blueprint.kind,
     name: freeName(blueprint, entries),
+    problem,
   });
 
 export const startRenaming = (directory: EntryRef, entry: Entry) =>
@@ -35,6 +42,7 @@ export const startRenaming = (directory: EntryRef, entry: Entry) =>
     target: entry.ref,
     kind: entry.kind,
     name: entry.name,
+    problem: null,
   });
 
 export const endNaming = (naming: Naming) => {

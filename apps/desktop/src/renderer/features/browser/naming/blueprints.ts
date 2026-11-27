@@ -11,12 +11,20 @@ export interface Blueprint {
   readonly icon: IconProps["icon"];
   readonly kind: CreatableKind;
   readonly extension: string;
+  readonly instant?: boolean;
   readonly prepare?: () => unknown;
 }
 
 export const BLUEPRINTS: ReadonlyArray<Blueprint> = [
   { label: "Folder", icon: FolderIcon, kind: "directory", extension: "" },
-  { label: "Markdown", icon: MarkdownIcon, kind: "file", extension: ".md", prepare: loadEditor },
+  {
+    label: "Markdown",
+    icon: MarkdownIcon,
+    kind: "file",
+    extension: ".md",
+    instant: true,
+    prepare: loadEditor,
+  },
 ];
 
 export const freeName = ({ extension }: Blueprint, entries: ReadonlyArray<Entry>) => {

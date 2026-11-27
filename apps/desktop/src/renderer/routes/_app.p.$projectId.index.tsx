@@ -85,7 +85,14 @@ function Browser() {
       <PageHeader
         actions={
           <>
-            {directory ? <NewEntryMenu directory={directory} entries={listing.entries} /> : null}
+            {directory ? (
+              <NewEntryMenu
+                projectId={projectId}
+                directory={directory}
+                entries={listing.entries}
+                onOpen={onOpen}
+              />
+            ) : null}
             <AddMountButton projectId={projectId} />
             <LayoutSwitcher value={layout} onChange={preference.set} />
           </>

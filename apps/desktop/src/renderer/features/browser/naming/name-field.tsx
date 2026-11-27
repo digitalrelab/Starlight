@@ -1,6 +1,6 @@
 import type { EntryRef } from "@starlight/client";
 import { Tooltip } from "@starlight/ui";
-import { type UseMutationOptions, useMutation } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { type SyntheticEvent, useRef, useState } from "react";
 import { useStarlight } from "#renderer/lib/context.ts";
 import { listOf } from "#renderer/features/browser/layouts/events.ts";
@@ -22,15 +22,16 @@ interface Props {
 
 export const NameField = ({ projectId, directory, naming, onNamed }: Props) => {
   const { mutations } = useStarlight();
-  const options: UseMutationOptions<EntryRef, Error, string> =
-    naming.target === null
-      ? mutations.createEntry(projectId, directory, naming.kind)
-      : mutations.renameEntry(projectId, directory, naming.target);
-  const save = useMutation(options);
+  const save = useMutation(mutations.nameEntry(projectId, directory));
   const [name, setName] = useState(naming.name);
   const ref = useRef<HTMLInputElement>(null);
   const ended = useRef(false);
-  const problem = save.isError && save.variables === name.trim() ? save.error.message : null;
+  const failure = save.isError
+    ? { name: save.variables.name, message: save.error.message }
+    : naming.problem === null
+      ? null
+      : { name: naming.name, message: naming.problem };
+  const problem = failure?.name === name.trim() ? failure.message : null;
 
   const end = () => {
     ended.current = true;
@@ -43,7 +44,9 @@ export const NameField = ({ projectId, directory, naming, onNamed }: Props) => {
     const trimmed = name.trim();
     if (trimmed === "" || (naming.target !== null && trimmed === naming.name)) return end();
     if (save.isPending || problem) return;
-    save.mutate(trimmed, {
+    const request =
+      naming.target === null ? { name: trimmed, kind: naming.kind } : { name: trimmed, entry: naming.target };
+    save.mutate(request, {
       onSuccess: (named) => {
         end();
         onNamed(named);

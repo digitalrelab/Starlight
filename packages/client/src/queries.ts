@@ -18,6 +18,11 @@ import type { StarlightClient } from "./client.ts";
 import { createFileSession, type FileSessionOptions } from "./file-session.ts";
 import { entryKey } from "./refs.ts";
 
+export type NameRequest = { readonly name: string } & (
+  | { readonly kind: CreatableKind }
+  | { readonly entry: EntryRef }
+);
+
 const directoryKey = (projectId: string) => ["directory", projectId] as const;
 
 const listingKey = (projectId: string, directory: string | null, facet: "entries" | "media") =>
@@ -234,15 +239,12 @@ const createMutations = (client: StarlightClient, queryClient: QueryClient, quer
       },
     }),
 
-  createEntry: (projectId: string, directory: EntryRef, kind: CreatableKind) =>
+  nameEntry: (projectId: string, directory: EntryRef) =>
     mutationOptions({
-      mutationFn: (name: string) => client.entries.create(projectId, directory, name, kind),
-      onSuccess: () => queryClient.invalidateQueries(queries.entries(projectId, directory)),
-    }),
-
-  renameEntry: (projectId: string, directory: EntryRef, entry: EntryRef) =>
-    mutationOptions({
-      mutationFn: (name: string) => client.entries.rename(projectId, entry, name),
+      mutationFn: (request: NameRequest) =>
+        "entry" in request
+          ? client.entries.rename(projectId, request.entry, request.name)
+          : client.entries.create(projectId, directory, request.name, request.kind),
       onSuccess: () => queryClient.invalidateQueries(queries.entries(projectId, directory)),
     }),
 
