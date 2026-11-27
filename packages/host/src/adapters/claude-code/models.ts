@@ -1,4 +1,4 @@
-import type { EffortLevel } from "@anthropic-ai/claude-agent-sdk";
+import type { EffortLevel, ModelInfo } from "@anthropic-ai/claude-agent-sdk";
 import { type AgentModel, ModelId } from "@starlight/contracts";
 import { Effect } from "effect";
 import { effortLabel } from "#adapters/agent.ts";
@@ -14,8 +14,11 @@ export const isEffort = (effort: string): effort is EffortLevel => EFFORTS.has(e
 const load = (pool: Pool) =>
   Effect.tryPromise(() => pool.prepare().then((session) => session.models())).pipe(
     Effect.timeout(COMMAND_TIMEOUT_MS),
-    Effect.map((models) =>
-      models
+    Effect.map((models) => {
+      const isAlias = (model: ModelInfo) =>
+        model.resolvedModel !== undefined && model.resolvedModel !== model.value;
+      const curated = models.some(isAlias);
+      return models
         .filter((model) => model.value !== DEFAULT_ALIAS)
         .map((model): AgentModel => ({
           id: ModelId.make(model.value),
@@ -24,8 +27,9 @@ const load = (pool: Pool) =>
             id: effort,
             label: effortLabel(effort),
           })),
-        })),
-    ),
+          legacy: curated && !isAlias(model),
+        }));
+    }),
   );
 
 export const makeModels = (pool: Pool) => {

@@ -1,5 +1,6 @@
 import { Card, ScrollArea } from "@starlight/ui";
 import type { ReactNode } from "react";
+import { HistoryControls } from "#renderer/features/history/history-controls.tsx";
 
 interface Props {
   readonly sidebar: ReactNode;
@@ -10,7 +11,11 @@ interface Props {
 export const AppShell = ({ sidebar, footer, children }: Props) => (
   <div className="flex h-full">
     <aside className="flex w-60 shrink-0 flex-col">
-      <div className="h-titlebar shrink-0 app-drag" />
+      <div className="flex h-titlebar shrink-0 items-center justify-end px-2 app-drag">
+        <div className="flex items-center app-no-drag">
+          <HistoryControls />
+        </div>
+      </div>
       <ScrollArea className="flex-1">
         <nav className="flex flex-col gap-4 px-2 pb-2">{sidebar}</nav>
       </ScrollArea>

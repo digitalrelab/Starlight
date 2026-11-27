@@ -5,13 +5,26 @@ import { Icon } from "./icon.tsx";
 import type { Shortcut } from "./kbd.tsx";
 import { Tooltip } from "./tooltip.tsx";
 
+const sizes = { sm: "size-6", md: "size-control" } as const;
+
 export interface IconButtonProps extends useRender.ComponentProps<"button"> {
   readonly icon: IconSvgElement;
+  readonly pressedIcon?: IconSvgElement | undefined;
   readonly label: string;
   readonly shortcut?: Shortcut | undefined;
+  readonly size?: keyof typeof sizes;
 }
 
-export const IconButton = ({ icon, label, shortcut, render, className, ...props }: IconButtonProps) => {
+export const IconButton = ({
+  icon,
+  pressedIcon,
+  label,
+  shortcut,
+  size = "md",
+  render,
+  className,
+  ...props
+}: IconButtonProps) => {
   const element = useRender({
     render,
     defaultTagName: "button",
@@ -19,12 +32,13 @@ export const IconButton = ({ icon, label, shortcut, render, className, ...props 
       {
         "aria-label": label,
         className: cn(
-          "inline-flex size-control items-center justify-center rounded-full text-subtle focus-ring",
+          "inline-flex items-center justify-center rounded-full text-subtle focus-ring",
+          sizes[size],
           "highlighted:bg-neutral-subtle-hovered highlighted:text-default aria-[current=page]:text-default",
-          "aria-pressed:bg-neutral aria-pressed:text-default",
+          pressedIcon ? "aria-pressed:text-default" : "aria-pressed:bg-neutral aria-pressed:text-default",
           className,
         ),
-        children: <Icon icon={icon} />,
+        children: <Icon icon={pressedIcon && props["aria-pressed"] === true ? pressedIcon : icon} />,
       },
       props,
     ),
