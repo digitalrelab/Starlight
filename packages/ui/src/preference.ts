@@ -47,3 +47,18 @@ export const definePreference = <Value extends string>(
     useValue: () => useSyncExternalStore(subscribe, get),
   };
 };
+
+export const definePreferenceFamily = <Value extends string>(
+  keyOf: (id: string) => string,
+  values: readonly Value[],
+  fallback: Value,
+) => {
+  const preferences = new Map<string, ReturnType<typeof definePreference<Value>>>();
+  return (id: string) => {
+    const existing = preferences.get(id);
+    if (existing) return existing;
+    const preference = definePreference(keyOf(id), values, fallback);
+    preferences.set(id, preference);
+    return preference;
+  };
+};
