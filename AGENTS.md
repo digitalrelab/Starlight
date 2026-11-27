@@ -8,6 +8,7 @@
 
 - Docs hold only rules the code can't show, and licenses. No descriptions, tours, procedures or examples that restate code.
 - State the general rule, not the case that prompted it.
+- No code comments.
 
 ## Git
 
