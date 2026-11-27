@@ -74,6 +74,9 @@ export const UpdateButton = ({ className }: { readonly className?: string }) => 
             className="pointer-events-none absolute inset-0 size-full text-brand"
           />
         ) : null}
+        {update.status === "downloaded" && !update.failure ? (
+          <span className="pointer-events-none absolute top-0.5 right-0.5 size-2 rounded-full bg-brand-bold ring-2 ring-(--background-color-surface-sunken)" />
+        ) : null}
       </span>
       <PopoverContent
         side="top"
