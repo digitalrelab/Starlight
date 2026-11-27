@@ -10,6 +10,7 @@ export interface MediaSnapshot {
   readonly failed: boolean;
   readonly muted: boolean;
   readonly level: number;
+  readonly playbackRate: number;
   readonly duration: number;
 }
 
@@ -29,6 +30,7 @@ const SNAPSHOT_EVENTS = [
   "emptied",
   "error",
   "volumechange",
+  "ratechange",
   "durationchange",
   "loadedmetadata",
   "loadeddata",
@@ -54,6 +56,7 @@ const DETACHED: MediaSnapshot = {
   failed: false,
   muted: false,
   level: 1,
+  playbackRate: 1,
   duration: 0,
 };
 
@@ -75,6 +78,7 @@ const readSnapshot = (media: HTMLMediaElement): MediaSnapshot => ({
   failed: media.error !== null || isPictureless(media),
   muted: media.muted,
   level: levelOf(media),
+  playbackRate: media.defaultPlaybackRate,
   duration: durationOf(media),
 });
 
