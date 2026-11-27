@@ -20,10 +20,13 @@ const HandlersLive = HostRpcs.toLayer(
     const agentProviders = yield* AgentProviders;
     const chats = yield* Chats;
     return HostRpcs.of({
-      OpenWorkspace: ({ root }) => workspaces.open(root),
-      AddMount: ({ workspaceId, root }) => workspaces.addMount(workspaceId, root),
-      ListRecentWorkspaces: () => workspaces.recent,
+      CreateWorkspace: ({ root }) => workspaces.create(root),
+      ListWorkspaces: () => workspaces.list,
       GetWorkspace: ({ workspaceId }) => workspaces.get(workspaceId),
+      RenameWorkspace: ({ workspaceId, name }) => workspaces.rename(workspaceId, name),
+      DeleteWorkspace: ({ workspaceId }) => workspaces.remove(workspaceId),
+      AddMount: ({ workspaceId, root }) => workspaces.addMount(workspaceId, root),
+      RemoveMount: ({ workspaceId, root }) => workspaces.removeMount(workspaceId, root),
       ListEntries: ({ workspaceId, directory }) => entries.list(workspaceId, directory),
       WatchEntries: ({ workspaceId }) => entries.watch(workspaceId),
       ListMedia: ({ workspaceId, directory }) => media.list(workspaceId, directory),

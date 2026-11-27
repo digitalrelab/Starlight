@@ -27,13 +27,12 @@ interface Selection {
   readonly key: string | undefined;
 }
 
-export const Route = createFileRoute("/_app/w/$workspaceId")({
+export const Route = createFileRoute("/_app/w/$workspaceId/")({
   validateSearch: parseDirectorySearch,
   loaderDeps: ({ search }) => ({ directory: toDirectory(search) }),
   loader: ({ context, params, deps }) => {
     const { queryClient, queries } = context;
     return Promise.all([
-      queryClient.ensureQueryData(queries.workspace(params.workspaceId)),
       queryClient.ensureQueryData(queries.entries(params.workspaceId, deps.directory)),
       layouts[layoutPreference(params.workspaceId).get()].preload?.(
         context,
@@ -73,7 +72,11 @@ function Browser() {
     else if (entry.kind === "file") showFile(entry.ref);
   };
   const preloadFolder = (folder: EntryRef) =>
-    router.preloadRoute({ to: Route.fullPath, params: { workspaceId }, search: toDirectorySearch(folder) });
+    router.preloadRoute({
+      to: "/w/$workspaceId",
+      params: { workspaceId },
+      search: toDirectorySearch(folder),
+    });
   const prefetch = (entry: Entry) => {
     if (entry.kind === "directory") void preloadFolder(entry.ref);
   };

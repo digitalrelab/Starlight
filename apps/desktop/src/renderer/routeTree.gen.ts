@@ -21,6 +21,8 @@ import { Route as SettingsDiskRouteImport } from './routes/settings.disk'
 import { Route as SettingsProvidersRouteImport } from './routes/settings.providers'
 import { Route as SettingsUpdatesRouteImport } from './routes/settings.updates'
 import { Route as AppWWorkspaceIdRouteImport } from './routes/_app.w.$workspaceId'
+import { Route as AppWWorkspaceIdIndexRouteImport } from './routes/_app.w.$workspaceId.index'
+import { Route as AppWWorkspaceIdSettingsRouteImport } from './routes/_app.w.$workspaceId.settings'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
@@ -81,6 +83,16 @@ const AppWWorkspaceIdRoute = AppWWorkspaceIdRouteImport.update({
   path: '/w/$workspaceId',
   getParentRoute: () => AppRoute,
 } as any)
+const AppWWorkspaceIdIndexRoute = AppWWorkspaceIdIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppWWorkspaceIdRoute,
+} as any)
+const AppWWorkspaceIdSettingsRoute = AppWWorkspaceIdSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppWWorkspaceIdRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
@@ -93,7 +105,9 @@ export interface FileRoutesByFullPath {
   '/settings/updates': typeof SettingsUpdatesRoute
   '/agent/': typeof AgentIndexRoute
   '/settings/': typeof SettingsIndexRoute
-  '/w/$workspaceId': typeof AppWWorkspaceIdRoute
+  '/w/$workspaceId': typeof AppWWorkspaceIdRouteWithChildren
+  '/w/$workspaceId/settings': typeof AppWWorkspaceIdSettingsRoute
+  '/w/$workspaceId/': typeof AppWWorkspaceIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/agent/$chatId': typeof AgentChatIdRoute
@@ -104,7 +118,8 @@ export interface FileRoutesByTo {
   '/': typeof AppIndexRoute
   '/agent': typeof AgentIndexRoute
   '/settings': typeof SettingsIndexRoute
-  '/w/$workspaceId': typeof AppWWorkspaceIdRoute
+  '/w/$workspaceId/settings': typeof AppWWorkspaceIdSettingsRoute
+  '/w/$workspaceId': typeof AppWWorkspaceIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -119,7 +134,9 @@ export interface FileRoutesById {
   '/_app/': typeof AppIndexRoute
   '/agent/': typeof AgentIndexRoute
   '/settings/': typeof SettingsIndexRoute
-  '/_app/w/$workspaceId': typeof AppWWorkspaceIdRoute
+  '/_app/w/$workspaceId': typeof AppWWorkspaceIdRouteWithChildren
+  '/_app/w/$workspaceId/settings': typeof AppWWorkspaceIdSettingsRoute
+  '/_app/w/$workspaceId/': typeof AppWWorkspaceIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -135,6 +152,8 @@ export interface FileRouteTypes {
     | '/agent/'
     | '/settings/'
     | '/w/$workspaceId'
+    | '/w/$workspaceId/settings'
+    | '/w/$workspaceId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/agent/$chatId'
@@ -145,6 +164,7 @@ export interface FileRouteTypes {
     | '/'
     | '/agent'
     | '/settings'
+    | '/w/$workspaceId/settings'
     | '/w/$workspaceId'
   id:
     | '__root__'
@@ -160,6 +180,8 @@ export interface FileRouteTypes {
     | '/agent/'
     | '/settings/'
     | '/_app/w/$workspaceId'
+    | '/_app/w/$workspaceId/settings'
+    | '/_app/w/$workspaceId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -254,17 +276,45 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppWWorkspaceIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/w/$workspaceId/': {
+      id: '/_app/w/$workspaceId/'
+      path: '/'
+      fullPath: '/w/$workspaceId/'
+      preLoaderRoute: typeof AppWWorkspaceIdIndexRouteImport
+      parentRoute: typeof AppWWorkspaceIdRoute
+    }
+    '/_app/w/$workspaceId/settings': {
+      id: '/_app/w/$workspaceId/settings'
+      path: '/settings'
+      fullPath: '/w/$workspaceId/settings'
+      preLoaderRoute: typeof AppWWorkspaceIdSettingsRouteImport
+      parentRoute: typeof AppWWorkspaceIdRoute
+    }
   }
 }
 
+interface AppWWorkspaceIdRouteChildren {
+  AppWWorkspaceIdSettingsRoute: typeof AppWWorkspaceIdSettingsRoute
+  AppWWorkspaceIdIndexRoute: typeof AppWWorkspaceIdIndexRoute
+}
+
+const AppWWorkspaceIdRouteChildren: AppWWorkspaceIdRouteChildren = {
+  AppWWorkspaceIdSettingsRoute: AppWWorkspaceIdSettingsRoute,
+  AppWWorkspaceIdIndexRoute: AppWWorkspaceIdIndexRoute,
+}
+
+const AppWWorkspaceIdRouteWithChildren = AppWWorkspaceIdRoute._addFileChildren(
+  AppWWorkspaceIdRouteChildren,
+)
+
 interface AppRouteChildren {
   AppIndexRoute: typeof AppIndexRoute
-  AppWWorkspaceIdRoute: typeof AppWWorkspaceIdRoute
+  AppWWorkspaceIdRoute: typeof AppWWorkspaceIdRouteWithChildren
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppIndexRoute: AppIndexRoute,
-  AppWWorkspaceIdRoute: AppWWorkspaceIdRoute,
+  AppWWorkspaceIdRoute: AppWWorkspaceIdRouteWithChildren,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

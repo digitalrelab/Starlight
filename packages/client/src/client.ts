@@ -50,11 +50,16 @@ export const createClient = (ports: PortSources) => {
 
   return {
     workspaces: {
-      open: (root: EntryRef) => host((c) => c.OpenWorkspace({ root })),
+      create: (root: EntryRef) => host((c) => c.CreateWorkspace({ root })),
+      list: () => host((c) => c.ListWorkspaces()),
+      get: (workspaceId: string) => host((c) => c.GetWorkspace({ workspaceId: id(workspaceId) })),
+      rename: (workspaceId: string, name: string) =>
+        host((c) => c.RenameWorkspace({ workspaceId: id(workspaceId), name })),
+      remove: (workspaceId: string) => host((c) => c.DeleteWorkspace({ workspaceId: id(workspaceId) })),
       addMount: (workspaceId: string, root: EntryRef) =>
         host((c) => c.AddMount({ workspaceId: id(workspaceId), root })),
-      recent: () => host((c) => c.ListRecentWorkspaces()),
-      get: (workspaceId: string) => host((c) => c.GetWorkspace({ workspaceId: id(workspaceId) })),
+      removeMount: (workspaceId: string, root: EntryRef) =>
+        host((c) => c.RemoveMount({ workspaceId: id(workspaceId), root })),
     },
     entries: {
       list: (workspaceId: string, directory: EntryRef | null) =>

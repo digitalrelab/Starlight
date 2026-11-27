@@ -115,4 +115,8 @@ export const migrations = Migrator.fromRecord({
     yield* sql`DROP INDEX conversation_messages_by_conversation`;
     yield* sql`CREATE INDEX chat_messages_by_chat ON chat_messages (chat_id, created_at)`;
   }),
+  "0009_workspace_created_at": Effect.gen(function* () {
+    const sql = yield* SqlClient.SqlClient;
+    yield* sql`ALTER TABLE workspaces RENAME COLUMN opened_at TO created_at`;
+  }),
 });

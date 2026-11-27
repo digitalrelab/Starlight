@@ -107,11 +107,12 @@ export class WorkspaceStore extends Context.Service<
       readonly name: string;
       readonly mounts: ReadonlyArray<Mount>;
     }) => Effect.Effect<Workspace>;
+    readonly rename: (id: WorkspaceId, name: string) => Effect.Effect<void>;
+    readonly remove: (id: WorkspaceId) => Effect.Effect<void>;
     readonly addMount: (id: WorkspaceId, mount: Mount) => Effect.Effect<void>;
-    readonly touch: (id: WorkspaceId) => Effect.Effect<Workspace>;
+    readonly removeMount: (id: WorkspaceId, root: EntryRef) => Effect.Effect<void>;
     readonly findById: (id: WorkspaceId) => Effect.Effect<Option.Option<Workspace>>;
-    readonly findBySoleMount: (root: EntryRef) => Effect.Effect<Option.Option<Workspace>>;
-    readonly recent: (limit: number) => Effect.Effect<ReadonlyArray<Workspace>>;
+    readonly list: Effect.Effect<ReadonlyArray<Workspace>>;
   }
 >()("@starlight/core/WorkspaceStore") {}
 

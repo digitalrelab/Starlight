@@ -24,8 +24,6 @@ import {
   WorkspaceStore,
 } from "./ports.ts";
 
-const RECENT_LIMIT = 20;
-
 export interface LocatedDirectory {
   readonly mount: Mount;
   readonly driver: SourceDriver;
@@ -41,12 +39,21 @@ export interface LocatedFile {
 export class Workspaces extends Context.Service<
   Workspaces,
   {
-    readonly open: (root: EntryRef) => Effect.Effect<Workspace, MountError, CurrentActor>;
+    readonly create: (root: EntryRef) => Effect.Effect<Workspace, MountError, CurrentActor>;
+    readonly list: Effect.Effect<ReadonlyArray<Workspace>>;
+    readonly rename: (
+      id: WorkspaceId,
+      name: string,
+    ) => Effect.Effect<Workspace, WorkspaceNotFound, CurrentActor>;
+    readonly remove: (id: WorkspaceId) => Effect.Effect<void, WorkspaceNotFound, CurrentActor>;
     readonly addMount: (
       id: WorkspaceId,
       root: EntryRef,
     ) => Effect.Effect<Workspace, WorkspaceNotFound | MountError, CurrentActor>;
-    readonly recent: Effect.Effect<ReadonlyArray<Workspace>>;
+    readonly removeMount: (
+      id: WorkspaceId,
+      root: EntryRef,
+    ) => Effect.Effect<Workspace, WorkspaceNotFound, CurrentActor>;
     readonly get: (id: WorkspaceId) => Effect.Effect<Workspace, WorkspaceNotFound>;
     readonly driverFor: (source: SourceId) => Effect.Effect<SourceDriver, SourceUnavailable>;
     readonly locateDirectory: (
@@ -85,8 +92,8 @@ export class Workspaces extends Context.Service<
         return { root: { source: root.source, id }, name: entry.name } satisfies Mount;
       });
 
-      const record = Effect.fn("Workspaces.record")(function* (action: string, root: EntryRef) {
-        yield* audit.record({ actor: yield* CurrentActor, action, target: JSON.stringify(root) });
+      const record = Effect.fn("Workspaces.record")(function* (action: string, target: unknown) {
+        yield* audit.record({ actor: yield* CurrentActor, action, target: JSON.stringify(target) });
       });
 
       const mountOf = (workspace: Workspace, driver: SourceDriver, directory: EntryRef) =>
@@ -125,24 +132,37 @@ export class Workspaces extends Context.Service<
       });
 
       return Workspaces.of({
-        open: Effect.fn("Workspaces.open")(function* (root) {
+        create: Effect.fn("Workspaces.create")(function* (root) {
           const mount = yield* prepareMount(root);
-          const existing = yield* store.findBySoleMount(mount.root);
-          const workspace = yield* Option.match(existing, {
-            onNone: () => store.create({ name: mount.name, mounts: [mount] }),
-            onSome: (found) => store.touch(found.id),
-          });
-          yield* record("OpenWorkspace", mount.root);
+          const workspace = yield* store.create({ name: mount.name, mounts: [mount] });
+          yield* record("CreateWorkspace", { workspaceId: workspace.id, root: mount.root });
           return workspace;
         }),
-        addMount: Effect.fn("Workspaces.addMount")(function* (id, root) {
+        list: store.list,
+        rename: Effect.fn("Workspaces.rename")(function* (id, name) {
           const workspace = yield* get(id);
+          yield* store.rename(id, name);
+          yield* record("RenameWorkspace", { workspaceId: id });
+          return { ...workspace, name };
+        }),
+        remove: Effect.fn("Workspaces.remove")(function* (id) {
+          yield* get(id);
+          yield* store.remove(id);
+          yield* record("DeleteWorkspace", { workspaceId: id });
+        }),
+        addMount: Effect.fn("Workspaces.addMount")(function* (id, root) {
+          yield* get(id);
           const mount = yield* prepareMount(root);
-          yield* store.addMount(workspace.id, mount);
-          yield* record("AddMount", mount.root);
+          yield* store.addMount(id, mount);
+          yield* record("AddMount", { workspaceId: id, root: mount.root });
           return yield* get(id);
         }),
-        recent: store.recent(RECENT_LIMIT),
+        removeMount: Effect.fn("Workspaces.removeMount")(function* (id, root) {
+          yield* get(id);
+          yield* store.removeMount(id, root);
+          yield* record("RemoveMount", { workspaceId: id, root });
+          return yield* get(id);
+        }),
         get,
         driverFor,
         locateDirectory: Effect.fn("Workspaces.locateDirectory")(function* (id, requested) {

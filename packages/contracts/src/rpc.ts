@@ -21,21 +21,35 @@ import { Workspace } from "./workspace.ts";
 const DirectoryRequest = { workspaceId: WorkspaceId, directory: Schema.NullOr(EntryRef) };
 
 export class HostRpcs extends RpcGroup.make(
-  Rpc.make("OpenWorkspace", {
+  Rpc.make("CreateWorkspace", {
     payload: { root: EntryRef },
     success: Workspace,
     error: MountError,
+  }),
+  Rpc.make("ListWorkspaces", {
+    success: Schema.Array(Workspace),
+  }),
+  Rpc.make("GetWorkspace", {
+    payload: { workspaceId: WorkspaceId },
+    success: Workspace,
+    error: WorkspaceNotFound,
+  }),
+  Rpc.make("RenameWorkspace", {
+    payload: { workspaceId: WorkspaceId, name: Schema.NonEmptyString },
+    success: Workspace,
+    error: WorkspaceNotFound,
+  }),
+  Rpc.make("DeleteWorkspace", {
+    payload: { workspaceId: WorkspaceId },
+    error: WorkspaceNotFound,
   }),
   Rpc.make("AddMount", {
     payload: { workspaceId: WorkspaceId, root: EntryRef },
     success: Workspace,
     error: Schema.Union([WorkspaceNotFound, MountError]),
   }),
-  Rpc.make("ListRecentWorkspaces", {
-    success: Schema.Array(Workspace),
-  }),
-  Rpc.make("GetWorkspace", {
-    payload: { workspaceId: WorkspaceId },
+  Rpc.make("RemoveMount", {
+    payload: { workspaceId: WorkspaceId, root: EntryRef },
     success: Workspace,
     error: WorkspaceNotFound,
   }),

@@ -7,7 +7,7 @@ export type Mount = typeof Mount.Type;
 export const Workspace = Schema.Struct({
   id: WorkspaceId,
   name: Schema.String,
-  openedAt: Schema.Number,
+  createdAt: Schema.Number,
   mounts: Schema.Array(Mount),
 });
 export type Workspace = typeof Workspace.Type;
