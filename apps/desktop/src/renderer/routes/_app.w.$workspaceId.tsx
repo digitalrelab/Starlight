@@ -1,30 +1,34 @@
-import { type Entry, isMissingDirectory, parentOf } from "@starlight/client";
+import { DirectoryMissing, type Entry, entryKey } from "@starlight/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, type ErrorComponentProps, Link, Navigate } from "@tanstack/react-router";
 import { useCallback, useEffect } from "react";
 import { Breadcrumbs } from "../features/browser/breadcrumbs.tsx";
+import {
+  parseDirectorySearch,
+  toDirectory,
+  toDirectorySearch,
+} from "../features/browser/directory-search.ts";
 import { DirectoryView } from "../features/browser/directory-view.tsx";
 import { layoutPreference } from "../features/browser/layout-preference.ts";
 import { LayoutSwitcher } from "../features/browser/layout-switcher.tsx";
 import { layouts } from "../features/browser/layouts/registry.ts";
 import { PageHeader } from "../features/shell/page-header.tsx";
+import { AddMountButton } from "../features/workspaces/add-mount-button.tsx";
 import { useStarlight } from "../lib/context.ts";
 
-interface Search {
-  readonly path: string;
-}
-
 export const Route = createFileRoute("/_app/w/$workspaceId")({
-  validateSearch: (search: Record<string, unknown>): Search => ({
-    path: typeof search["path"] === "string" ? search["path"] : "",
-  }),
-  loaderDeps: ({ search }) => ({ path: search.path }),
+  validateSearch: parseDirectorySearch,
+  loaderDeps: ({ search }) => ({ directory: toDirectory(search) }),
   loader: ({ context, params, deps }) => {
     const { queryClient, queries } = context;
     return Promise.all([
       queryClient.ensureQueryData(queries.workspace(params.workspaceId)),
-      queryClient.ensureQueryData(queries.entries(params.workspaceId, deps.path)),
-      layouts[layoutPreference(params.workspaceId).get()].preload?.(context, params.workspaceId, deps.path),
+      queryClient.ensureQueryData(queries.entries(params.workspaceId, deps.directory)),
+      layouts[layoutPreference(params.workspaceId).get()].preload?.(
+        context,
+        params.workspaceId,
+        deps.directory,
+      ),
     ]);
   },
   component: Browser,
@@ -33,18 +37,18 @@ export const Route = createFileRoute("/_app/w/$workspaceId")({
 
 function Browser() {
   const { workspaceId } = Route.useParams();
-  const { path } = Route.useSearch();
+  const { directory } = Route.useLoaderDeps();
   const navigate = Route.useNavigate();
   const { queries, subscriptions } = useStarlight();
-  useEffect(() => subscriptions.entries(workspaceId), [subscriptions, workspaceId]);
   const { data: workspace } = useSuspenseQuery(queries.workspace(workspaceId));
-  const { data: entries, error, isFetching } = useSuspenseQuery(queries.entries(workspaceId, path));
+  const { data: listing, error, isFetching } = useSuspenseQuery(queries.entries(workspaceId, directory));
   const preference = layoutPreference(workspaceId);
   const layout = preference.useValue();
+  useEffect(() => subscriptions.entries(workspaceId), [subscriptions, workspaceId, workspace.mounts]);
 
   const onOpen = useCallback(
     (entry: Entry) => {
-      if (entry.kind === "directory") void navigate({ search: { path: entry.path } });
+      if (entry.kind === "directory") void navigate({ search: toDirectorySearch(entry.ref) });
     },
     [navigate],
   );
@@ -53,14 +57,21 @@ function Browser() {
 
   return (
     <>
-      <PageHeader actions={<LayoutSwitcher value={layout} onChange={preference.set} />}>
-        <Breadcrumbs workspace={workspace} path={path} />
+      <PageHeader
+        actions={
+          <>
+            <AddMountButton workspaceId={workspaceId} />
+            <LayoutSwitcher value={layout} onChange={preference.set} />
+          </>
+        }
+      >
+        <Breadcrumbs workspace={workspace} trail={listing.trail} />
       </PageHeader>
       <DirectoryView
-        key={path}
+        key={directory ? entryKey(directory) : ""}
         workspaceId={workspaceId}
-        path={path}
-        entries={entries}
+        directory={directory}
+        entries={listing.entries}
         layout={layout}
         onOpen={onOpen}
       />
@@ -69,9 +80,8 @@ function Browser() {
 }
 
 function BrowserError({ error }: ErrorComponentProps) {
-  const { path } = Route.useSearch();
-  if (path !== "" && isMissingDirectory(error)) {
-    return <Navigate from={Route.fullPath} search={{ path: parentOf(path) }} replace />;
+  if (error instanceof DirectoryMissing) {
+    return <Navigate from={Route.fullPath} search={toDirectorySearch(error.nearest)} replace />;
   }
   return (
     <>

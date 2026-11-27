@@ -9,12 +9,13 @@ const HandlersLive = HostRpcs.toLayer(
     const entries = yield* Entries;
     const media = yield* MediaLibrary;
     return HostRpcs.of({
-      OpenWorkspace: ({ path }) => workspaces.open(path),
+      OpenWorkspace: ({ root }) => workspaces.open(root),
+      AddMount: ({ workspaceId, root }) => workspaces.addMount(workspaceId, root),
       ListRecentWorkspaces: () => workspaces.recent,
       GetWorkspace: ({ workspaceId }) => workspaces.get(workspaceId),
-      ListEntries: ({ workspaceId, path }) => entries.list(workspaceId, path),
+      ListEntries: ({ workspaceId, directory }) => entries.list(workspaceId, directory),
       WatchEntries: ({ workspaceId }) => entries.watch(workspaceId),
-      ListMedia: ({ workspaceId, path }) => media.list(workspaceId, path),
+      ListMedia: ({ workspaceId, directory }) => media.list(workspaceId, directory),
     });
   }),
 );

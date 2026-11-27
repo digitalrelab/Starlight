@@ -1,10 +1,8 @@
-import { NodePath, NodeRuntime } from "@effect/platform-node";
-import { ConnectRequest } from "@starlight/contracts";
-import { CoreLive } from "@starlight/core";
+import { NodeRuntime } from "@effect/platform-node";
+import { ConnectRequest, LocalSource } from "@starlight/contracts";
+import { CoreLive, SourceDrivers } from "@starlight/core";
 import { Effect, Layer, Queue, Schema } from "effect";
-import { ImageProbeLive } from "./adapters/image-probe/index.ts";
-import { NodeFileSystemLive } from "./adapters/node-file-system.ts";
-import { ParcelFileWatcherLive } from "./adapters/parcel-file-watcher.ts";
+import { makeLocalSource } from "./adapters/local-source/index.ts";
 import { SqliteLive } from "./adapters/sqlite/index.ts";
 import { ThumbnailTokensLive } from "./adapters/thumbnail-tokens.ts";
 import { HostServerLive } from "./rpc/server.ts";
@@ -36,17 +34,10 @@ const thumbnailKey = Buffer.from(requireEnv("STARLIGHT_THUMBNAIL_KEY"), "hex");
 
 const decodeConnect = Schema.decodeUnknownEffect(ConnectRequest);
 
+const SourceDriversLive = Layer.sync(SourceDrivers)(() => new Map([[LocalSource, makeLocalSource()]]));
+
 const HostLive = CoreLive.pipe(
-  Layer.provide(
-    Layer.mergeAll(
-      NodeFileSystemLive,
-      ParcelFileWatcherLive,
-      ImageProbeLive,
-      ThumbnailTokensLive(thumbnailKey),
-      SqliteLive(dataDir),
-      NodePath.layer,
-    ),
-  ),
+  Layer.provide(Layer.mergeAll(SourceDriversLive, ThumbnailTokensLive(thumbnailKey), SqliteLive(dataDir))),
 );
 
 const accept = ({ data, port }: Connection) =>

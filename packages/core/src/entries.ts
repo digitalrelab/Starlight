@@ -1,15 +1,21 @@
-import {
-  type DirectoryError,
-  type Entry,
-  type EntryChange,
-  type FileSystemError,
-  joinRelative,
-  type WorkspaceId,
-  type WorkspaceNotFound,
+import type {
+  DirectoryError,
+  Entry,
+  EntryChange,
+  EntryRef,
+  Listing,
+  Mount,
+  SourceError,
+  SourceId,
+  SourceUnavailable,
+  WorkspaceId,
+  WorkspaceNotFound,
 } from "@starlight/contracts";
-import { Context, Effect, Layer, Option, Result, Stream } from "effect";
-import { type FileWatchEvent, FileSystemPort, FileWatcherPort } from "./ports.ts";
+import { Array as Arr, Context, Effect, Layer, Result, Stream } from "effect";
+import type { SourceChange, SourceDriver, SourceEntry } from "./ports.ts";
 import { Workspaces } from "./workspaces.ts";
+
+const MAX_CHANGED_DIRECTORIES = 1024;
 
 const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
 
@@ -19,16 +25,24 @@ const byKindThenName = (a: Entry, b: Entry) => {
   return aDir - bDir || collator.compare(a.name, b.name);
 };
 
-const MAX_CHANGED_PATHS = 1024;
+const toEntry = (source: SourceId, { id, ...entry }: SourceEntry): Entry => ({
+  ...entry,
+  ref: { source, id },
+});
 
 const resync: EntryChange = { _tag: "Resync" };
 
 const toChange =
-  (relativize: (absolute: string) => Option.Option<string>) =>
-  (event: FileWatchEvent): Result.Result<EntryChange, void> => {
-    if (event._tag === "Resync" || event.paths.length > MAX_CHANGED_PATHS) return Result.succeed(resync);
-    const paths = event.paths.flatMap((absolute) => Option.toArray(relativize(absolute)));
-    return paths.length === 0 ? Result.failVoid : Result.succeed({ _tag: "Changed", paths });
+  (mount: Mount, driver: SourceDriver) =>
+  (change: SourceChange): Result.Result<EntryChange, void> => {
+    if (change._tag === "Resync" || change.directories.length > MAX_CHANGED_DIRECTORIES)
+      return Result.succeed(resync);
+    if (change.directories.length === 0) return Result.failVoid;
+    if (!change.directories.every((id) => driver.contains(mount.root.id, id))) return Result.succeed(resync);
+    return Result.succeed({
+      _tag: "Changed",
+      directories: change.directories.map((id) => ({ source: mount.root.source, id })),
+    });
   };
 
 export class Entries extends Context.Service<
@@ -36,39 +50,57 @@ export class Entries extends Context.Service<
   {
     readonly list: (
       workspaceId: WorkspaceId,
-      path: string,
-    ) => Effect.Effect<ReadonlyArray<Entry>, DirectoryError>;
+      directory: EntryRef | null,
+    ) => Effect.Effect<Listing, DirectoryError>;
     readonly watch: (
       workspaceId: WorkspaceId,
-    ) => Stream.Stream<EntryChange, WorkspaceNotFound | FileSystemError>;
+    ) => Stream.Stream<EntryChange, WorkspaceNotFound | SourceUnavailable | SourceError>;
   }
 >()("@starlight/core/Entries") {
   static readonly layer = Layer.effect(Entries)(
     Effect.gen(function* () {
-      const fs = yield* FileSystemPort;
-      const watcher = yield* FileWatcherPort;
       const workspaces = yield* Workspaces;
 
+      const listMounts = Effect.fn("Entries.listMounts")(function* (workspaceId: WorkspaceId) {
+        const { mounts } = yield* workspaces.get(workspaceId);
+        const entries = yield* Effect.forEach(mounts, (mount) =>
+          workspaces.driverFor(mount.root.source).pipe(
+            Effect.flatMap((driver) => driver.stat(mount.root.id)),
+            Effect.map((entry) => toEntry(mount.root.source, { ...entry, name: mount.name })),
+            Effect.option,
+          ),
+        );
+        return { trail: [], entries: Arr.getSomes(entries) };
+      });
+
       return Entries.of({
-        list: Effect.fn("Entries.list")(function* (workspaceId, path) {
-          const { absolute, relative } = yield* workspaces.resolveDirectory(workspaceId, path);
-          const entries = yield* fs.readDirectory(absolute);
-          return entries
-            .map((entry): Entry => ({
-              ...entry,
-              path: joinRelative(relative, entry.name),
-              hidden: entry.name.startsWith("."),
-            }))
-            .sort(byKindThenName);
+        list: Effect.fn("Entries.list")(function* (workspaceId, requested) {
+          if (!requested) return yield* listMounts(workspaceId);
+          const { mount, driver, directory } = yield* workspaces.locateDirectory(workspaceId, requested);
+          const children = yield* driver.list(directory.id);
+          const below = driver
+            .trail(mount.root.id, directory.id)
+            .map(({ id, name }) => ({ ref: { source: directory.source, id }, name }));
+          return {
+            trail: [{ ref: mount.root, name: mount.name }, ...below],
+            entries: children.map((child) => toEntry(directory.source, child)).sort(byKindThenName),
+          };
         }),
 
         watch: (workspaceId) =>
           workspaces.get(workspaceId).pipe(
-            Effect.map((workspace) =>
-              watcher
-                .watch(workspace.rootPath)
-                .pipe(Stream.filterMap(toChange((absolute) => workspaces.relativize(workspace, absolute)))),
+            Effect.flatMap(({ mounts }) =>
+              Effect.forEach(mounts, (mount) =>
+                workspaces
+                  .driverFor(mount.root.source)
+                  .pipe(
+                    Effect.map((driver) =>
+                      driver.watch(mount.root.id).pipe(Stream.filterMap(toChange(mount, driver))),
+                    ),
+                  ),
+              ),
             ),
+            Effect.map((streams) => Stream.mergeAll(streams, { concurrency: "unbounded" })),
             Stream.unwrap,
           ),
       });

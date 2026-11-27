@@ -1,10 +1,13 @@
 import { Schema } from "effect";
-import { WorkspaceId } from "./ids.ts";
+import { EntryRef, WorkspaceId } from "./ids.ts";
+
+export const Mount = Schema.Struct({ root: EntryRef, name: Schema.String });
+export type Mount = typeof Mount.Type;
 
 export const Workspace = Schema.Struct({
   id: WorkspaceId,
   name: Schema.String,
-  rootPath: Schema.String,
   openedAt: Schema.Number,
+  mounts: Schema.Array(Mount),
 });
 export type Workspace = typeof Workspace.Type;

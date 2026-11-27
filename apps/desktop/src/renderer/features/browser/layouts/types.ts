@@ -1,8 +1,8 @@
-import type { Entry } from "@starlight/client";
+import type { Entry, EntryRef } from "@starlight/client";
 
 export interface LayoutProps {
   readonly workspaceId: string;
-  readonly path: string;
+  readonly directory: EntryRef | null;
   readonly entries: ReadonlyArray<Entry>;
   readonly selected: number;
   readonly onSelect: (index: number) => void;

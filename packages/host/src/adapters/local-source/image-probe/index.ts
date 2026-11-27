@@ -1,7 +1,7 @@
 import { type FileHandle, open } from "node:fs/promises";
 import { extname } from "node:path";
-import { type Dimensions, MediaProbe, type ProbeTarget } from "@starlight/core";
-import { Effect, Layer, Option } from "effect";
+import type { Dimensions } from "@starlight/core";
+import { Effect, Option } from "effect";
 import { imageSize } from "image-size";
 import { locateHeifExif, readExifItemOrientation } from "./heif-exif.ts";
 
@@ -23,6 +23,12 @@ const ROTATED_ORIENTATIONS = new Set([5, 6, 7, 8]);
 const READ_STEPS = [64 * 1024, 1024 * 1024] as const;
 const EXIF_ITEM_LIMIT = 64 * 1024;
 const CACHE_LIMIT = 100_000;
+
+export interface ProbeTarget {
+  readonly absolute: string;
+  readonly size: number;
+  readonly modifiedAt: number;
+}
 
 interface Cached {
   readonly size: number;
@@ -76,7 +82,7 @@ const read = async ({ absolute, size }: ProbeTarget): Promise<Dimensions | null>
   }
 };
 
-export const ImageProbeLive = Layer.sync(MediaProbe)(() => {
+export const createImageProbe = () => {
   const cache = new Map<string, Cached>();
 
   const remember = (target: ProbeTarget, dimensions: Dimensions | null) => {
@@ -86,17 +92,15 @@ export const ImageProbeLive = Layer.sync(MediaProbe)(() => {
     return dimensions;
   };
 
-  return {
-    dimensions: (target) => {
-      if (target.size === 0 || !EXTENSIONS.has(extname(target.absolute).toLowerCase()))
-        return Effect.succeedNone;
-      const hit = cache.get(target.absolute);
-      if (hit && hit.size === target.size && hit.modifiedAt === target.modifiedAt)
-        return Effect.succeed(Option.fromNullOr(hit.dimensions));
-      return Effect.tryPromise(() => read(target)).pipe(
-        Effect.orElseSucceed(() => null),
-        Effect.map((dimensions) => Option.fromNullOr(remember(target, dimensions))),
-      );
-    },
+  return (target: ProbeTarget): Effect.Effect<Option.Option<Dimensions>> => {
+    if (target.size === 0 || !EXTENSIONS.has(extname(target.absolute).toLowerCase()))
+      return Effect.succeedNone;
+    const hit = cache.get(target.absolute);
+    if (hit && hit.size === target.size && hit.modifiedAt === target.modifiedAt)
+      return Effect.succeed(Option.fromNullOr(hit.dimensions));
+    return Effect.tryPromise(() => read(target)).pipe(
+      Effect.orElseSucceed(() => null),
+      Effect.map((dimensions) => Option.fromNullOr(remember(target, dimensions))),
+    );
   };
-});
+};

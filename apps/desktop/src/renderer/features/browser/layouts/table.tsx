@@ -1,3 +1,4 @@
+import { entryKey } from "@starlight/client";
 import { cn } from "@starlight/ui";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { type KeyboardEvent, useEffect, useEffectEvent, useRef } from "react";
@@ -20,8 +21,9 @@ export const TableLayout = ({ entries, selected, onSelect, onOpen }: LayoutProps
   const revealSelected = useEffectEvent(() => {
     if (selected >= 0) virtualizer.scrollToIndex(selected);
   });
-  const selectedPath = entries[selected]?.path;
-  useEffect(() => revealSelected(), [selectedPath]);
+  const selectedEntry = entries[selected];
+  const selectedKey = selectedEntry && entryKey(selectedEntry.ref);
+  useEffect(() => revealSelected(), [selectedKey]);
 
   const onKeyDown = (event: KeyboardEvent) => {
     if (event.key === "ArrowDown") onSelect(selected + 1);
@@ -49,7 +51,7 @@ export const TableLayout = ({ entries, selected, onSelect, onOpen }: LayoutProps
             if (!entry) return null;
             return (
               <div
-                key={entry.path}
+                key={entryKey(entry.ref)}
                 onClick={() => onSelect(row.index)}
                 onDoubleClick={() => onOpen(entry)}
                 className={cn(

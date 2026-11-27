@@ -1,4 +1,5 @@
 import { GridViewIcon, ListViewIcon } from "@hugeicons-pro/core-stroke-rounded";
+import type { EntryRef } from "@starlight/client";
 import type { IconProps } from "@starlight/ui";
 import type { ComponentType } from "react";
 import type { RouterContext } from "../../../lib/context.ts";
@@ -10,7 +11,11 @@ export interface LayoutDefinition {
   readonly label: string;
   readonly icon: IconProps["icon"];
   readonly component: ComponentType<LayoutProps>;
-  readonly preload?: (context: RouterContext, workspaceId: string, path: string) => Promise<unknown>;
+  readonly preload?: (
+    context: RouterContext,
+    workspaceId: string,
+    directory: EntryRef | null,
+  ) => Promise<unknown>;
 }
 
 const definitions = {
@@ -19,8 +24,8 @@ const definitions = {
     label: "Grid",
     icon: GridViewIcon,
     component: GridLayout,
-    preload: ({ queryClient, queries }, workspaceId, path) =>
-      queryClient.ensureQueryData(queries.media(workspaceId, path)),
+    preload: ({ queryClient, queries }, workspaceId, directory) =>
+      queryClient.ensureQueryData(queries.media(workspaceId, directory)),
   },
 } satisfies Record<string, LayoutDefinition>;
 

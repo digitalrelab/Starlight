@@ -1,23 +1,26 @@
-import type { Entry } from "@starlight/client";
+import { type Entry, type EntryRef, entryKey } from "@starlight/client";
 import { type KeyboardEvent, Suspense, useCallback, useMemo, useState } from "react";
 import { type LayoutId, layouts } from "./layouts/registry.ts";
 
 interface Props {
   readonly workspaceId: string;
-  readonly path: string;
+  readonly directory: EntryRef | null;
   readonly entries: ReadonlyArray<Entry>;
   readonly layout: LayoutId;
   readonly onOpen: (entry: Entry) => void;
 }
 
-export const DirectoryView = ({ workspaceId, path, entries, layout, onOpen }: Props) => {
-  const [selectedPath, setSelectedPath] = useState<string>();
+export const DirectoryView = ({ workspaceId, directory, entries, layout, onOpen }: Props) => {
+  const [selectedKey, setSelectedKey] = useState<string>();
   const selected = useMemo(
-    () => entries.findIndex((entry) => entry.path === selectedPath),
-    [entries, selectedPath],
+    () => entries.findIndex((entry) => entryKey(entry.ref) === selectedKey),
+    [entries, selectedKey],
   );
   const onSelect = useCallback(
-    (index: number) => setSelectedPath(entries[Math.max(0, Math.min(entries.length - 1, index))]?.path),
+    (index: number) => {
+      const entry = entries[Math.max(0, Math.min(entries.length - 1, index))];
+      setSelectedKey(entry && entryKey(entry.ref));
+    },
     [entries],
   );
 
@@ -38,7 +41,7 @@ export const DirectoryView = ({ workspaceId, path, entries, layout, onOpen }: Pr
       <Suspense fallback={<div className="flex-1" />}>
         <Layout
           workspaceId={workspaceId}
-          path={path}
+          directory={directory}
           entries={entries}
           selected={selected}
           onSelect={onSelect}
