@@ -23,6 +23,7 @@ const HEIF_TYPES = new Set(["heif", "heic", "avif"]);
 const ROTATED_ORIENTATIONS = new Set([5, 6, 7, 8]);
 const READ_STEPS = [64 * 1024, 1024 * 1024] as const;
 const EXIF_ITEM_LIMIT = 64 * 1024;
+
 const measure = (bytes: Uint8Array) => {
   try {
     const { width, height, orientation, type } = imageSize(bytes);

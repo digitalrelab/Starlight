@@ -5,7 +5,7 @@ import { subscribe } from "@parcel/watcher";
 import { EntryId, type EntryKind, type SourceError } from "@starlight/contracts";
 import type { SourceChange, SourceCrumb, SourceDriver, SourceEntry } from "@starlight/core";
 import { Effect, Queue, Stream } from "effect";
-import { dimensionsExtractor } from "./image-probe/index.ts";
+import { dimensionsExtractor } from "./dimensions/index.ts";
 import { toSourceError } from "./source-error.ts";
 
 const resync: SourceChange = { _tag: "Resync" };
