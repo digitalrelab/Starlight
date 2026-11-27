@@ -48,7 +48,7 @@ export const Composer = ({ placeholder, disabled = false, autoFocus = false, act
             value=""
             label="Message"
             variant="message"
-            className="min-h-12"
+            className="min-h-12 chat-text"
             placeholder={placeholder}
             autoFocus={autoFocus || sent > 0}
             onChange={(read) => setText(read())}
