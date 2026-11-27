@@ -1,9 +1,10 @@
-import { DirectoryMissing, type Entry, type EntryRef, entryKey } from "@starlight/client";
+import { DirectoryMissing, type Entry, type EntryRef } from "@starlight/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, type ErrorComponentProps, Navigate, useRouter } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { DirectoryBreadcrumbs } from "#renderer/features/browser/directory-breadcrumbs.tsx";
 import {
+  directoryKey,
   parseDirectorySearch,
   toDirectory,
   toDirectorySearch,
@@ -15,8 +16,9 @@ import { layoutPreference } from "#renderer/features/browser/layout-preference.t
 import { LayoutSwitcher } from "#renderer/features/browser/layout-switcher.tsx";
 import { layouts } from "#renderer/features/browser/layouts/registry.ts";
 import { NewEntryMenu } from "#renderer/features/browser/naming/new-entry-menu.tsx";
+import { PanelView } from "#renderer/features/browser/panel/panel-view.tsx";
 import { useFoldersAhead } from "#renderer/features/browser/use-folders-ahead.ts";
-import { hiddenFiles } from "#renderer/features/settings/files.ts";
+import { hiddenFiles, visibleEntries } from "#renderer/features/settings/files.ts";
 import { PageError } from "#renderer/features/shell/page-error.tsx";
 import { PageHeader } from "#renderer/features/shell/page-header.tsx";
 import { FileViewer } from "#renderer/features/viewer/file-viewer.tsx";
@@ -49,19 +51,19 @@ function Browser() {
   const { data: listing, error, isFetching } = useSuspenseQuery(queries.entries(projectId, directory));
   const preference = layoutPreference(projectId);
   const layout = useStore(preference);
+  const Layout = layouts[layout].component;
   const showHidden = useStore(hiddenFiles) === "show";
-  const entries = showHidden ? listing.entries : listing.entries.filter((entry) => !entry.hidden);
+  const entries = visibleEntries(listing, showHidden);
   useEffect(() => subscriptions.entries(projectId), [subscriptions, projectId]);
-
-  const directoryKey = directory ? entryKey(directory) : "";
 
   const showFile = (shown: EntryRef) => {
     if (directory) void navigate({ search: toFileSearch(directory, shown), replace: true, state: true });
   };
+  const openFile = (folder: EntryRef, opened: EntryRef) =>
+    void navigate({ search: toFileSearch(folder, opened), state: { fromDirectory: true } });
   const onOpen = ({ ref, kind }: Pick<Entry, "ref" | "kind">) => {
     if (kind === "directory") void navigate({ search: toDirectorySearch(ref) });
-    else if (kind === "file" && directory)
-      void navigate({ search: toFileSearch(directory, ref), state: { fromDirectory: true } });
+    else if (kind === "file" && directory) openFile(directory, ref);
   };
   const preloadFolder = (folder: EntryRef) =>
     router.preloadRoute({
@@ -93,16 +95,28 @@ function Browser() {
       >
         <DirectoryBreadcrumbs project={project} trail={listing.trail} />
       </PageHeader>
-      <DirectoryView
-        key={directoryKey}
-        projectId={projectId}
-        directory={directory}
-        entries={entries}
-        layout={layout}
-        shown={file}
-        onOpen={onOpen}
-        onIntent={prefetch}
-      />
+      {Layout ? (
+        <DirectoryView
+          key={directoryKey(directory)}
+          projectId={projectId}
+          directory={directory}
+          entries={entries}
+          layout={Layout}
+          shown={file}
+          onOpen={onOpen}
+          onIntent={prefetch}
+        />
+      ) : (
+        <PanelView
+          projectId={projectId}
+          projectName={project.name}
+          directory={directory}
+          trail={listing.trail}
+          shown={file}
+          onNavigate={(folder) => void navigate({ search: toDirectorySearch(folder) })}
+          onOpenFile={openFile}
+        />
+      )}
       {directory && file ? (
         <FileViewer
           projectId={projectId}

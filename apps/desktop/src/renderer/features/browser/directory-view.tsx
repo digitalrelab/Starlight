@@ -1,86 +1,50 @@
-import { type Entry, type EntryRef, entryKey } from "@starlight/client";
-import { Suspense, useEffect, useEffectEvent, useLayoutEffect, useRef, useState } from "react";
-import { itemKindOf } from "#renderer/features/files/kind-icon.tsx";
-import { type LayoutId, layouts } from "./layouts/registry.ts";
+import type { Entry, EntryRef } from "@starlight/client";
+import { type ComponentType, Suspense, useEffect, useEffectEvent, useLayoutEffect, useState } from "react";
+import { DirectoryFooter } from "./directory-footer.tsx";
+import type { LayoutProps } from "./layouts/types.ts";
 import { ListingMenu } from "./listing-menu.tsx";
-import { NameField } from "./naming/name-field.tsx";
-import { useNaming } from "./naming/session.ts";
-import { createSelection, type SelectionStore, selectionId, useSelectedCount } from "./selection.ts";
+import { useNamingSlot } from "./naming/use-naming-slot.tsx";
+import { createSelection, selectionId, useFollow } from "./selection.ts";
+import { useDwell } from "./use-dwell.ts";
 
 interface Props {
   readonly projectId: string;
   readonly directory: EntryRef | null;
   readonly entries: ReadonlyArray<Entry>;
-  readonly layout: LayoutId;
+  readonly layout: ComponentType<LayoutProps>;
   readonly shown: EntryRef | null;
   readonly onOpen: (entry: Pick<Entry, "ref" | "kind">) => void;
   readonly onIntent: (entry: Entry) => void;
 }
 
-const INTENT_DWELL_MS = 100;
-
-const selectionIdOf = (entries: ReadonlyArray<Entry>, ref: EntryRef | null) => {
-  if (!ref) return undefined;
-  const key = entryKey(ref);
-  const entry = entries.find((candidate) => entryKey(candidate.ref) === key);
-  return entry && selectionId(entry);
-};
-
-const useDwell = (onDwell: (entry: Entry) => void) => {
-  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
-  useEffect(() => () => clearTimeout(timer.current), []);
-  return (entry: Entry | undefined) => {
-    clearTimeout(timer.current);
-    if (entry) timer.current = setTimeout(() => onDwell(entry), INTENT_DWELL_MS);
-  };
-};
-
-export const DirectoryView = ({ projectId, directory, entries, layout, shown, onOpen, onIntent }: Props) => {
+export const DirectoryView = ({
+  projectId,
+  directory,
+  entries,
+  layout: Layout,
+  shown,
+  onOpen,
+  onIntent,
+}: Props) => {
   const [selection] = useState(createSelection);
   const ids = entries.map(selectionId);
   useLayoutEffect(() => selection.setItems(ids), [selection, ids]);
+  useFollow(selection, entries, shown);
 
-  const shownId = selectionIdOf(entries, shown);
-  useLayoutEffect(() => {
-    if (shownId) selection.follow(shownId);
-  }, [selection, shownId]);
-
-  const naming = useNaming(directory);
-  const [landing, setLanding] = useState<EntryRef | null>(null);
-  const landedId = selectionIdOf(entries, landing);
-  useLayoutEffect(() => {
-    if (landedId) selection.follow(landedId);
-  }, [selection, landedId]);
+  const [named, setNamed] = useState<EntryRef | null>(null);
+  useFollow(selection, entries, named);
+  const naming = useNamingSlot(projectId, directory, {
+    openFile: (ref) => onOpen({ ref, kind: "file" }),
+    land: setNamed,
+  });
 
   const dwell = useDwell(onIntent);
   const intend = useEffectEvent((index: number) => dwell(entries[index]));
   useEffect(() => selection.subscribeFocus((index) => intend(index)), [selection]);
   const onHover = (index: number | null) => dwell(index === null ? undefined : entries[index]);
 
-  const slot =
-    naming && directory
-      ? {
-          entry: naming.target && entryKey(naming.target),
-          kind: itemKindOf(naming),
-          field: (
-            <NameField
-              key={naming.key}
-              projectId={projectId}
-              directory={directory}
-              naming={naming}
-              onNamed={(ref) =>
-                naming.target === null && naming.kind === "file"
-                  ? onOpen({ ref, kind: "file" })
-                  : setLanding(ref)
-              }
-            />
-          ),
-        }
-      : null;
-
-  const Layout = layouts[layout].component;
   const listing =
-    entries.length === 0 && !slot ? (
+    entries.length === 0 && !naming ? (
       <div className="flex flex-1 items-center justify-center text-subtle">Empty folder</div>
     ) : (
       <div className="flex min-h-0 flex-1 flex-col">
@@ -90,12 +54,12 @@ export const DirectoryView = ({ projectId, directory, entries, layout, shown, on
             directory={directory}
             entries={entries}
             selection={selection}
-            naming={slot}
+            naming={naming}
             onHover={onHover}
             onOpen={onOpen}
           />
         </Suspense>
-        <Footer selection={selection} total={entries.length} />
+        <DirectoryFooter selection={selection} total={entries.length} />
       </div>
     );
 
@@ -105,16 +69,5 @@ export const DirectoryView = ({ projectId, directory, entries, layout, shown, on
     </ListingMenu>
   ) : (
     listing
-  );
-};
-
-const Footer = ({ selection, total }: { readonly selection: SelectionStore; readonly total: number }) => {
-  const selected = useSelectedCount(selection);
-  return (
-    <footer className="border-t border-default px-4 py-1 text-xs text-subtle tabular-nums">
-      {selected > 0
-        ? `${selected.toLocaleString()} of ${total.toLocaleString()} selected`
-        : `${total.toLocaleString()} ${total === 1 ? "item" : "items"}`}
-    </footer>
   );
 };

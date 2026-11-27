@@ -7,12 +7,15 @@ export type ItemHandlers = Pick<LayoutProps, "selection" | "onHover" | "onOpen">
 
 export type Step = (from: number, key: string) => number | undefined;
 
-const modifiersOf = (event: MouseEvent): Modifiers => ({
+export const verticalStep: Step = (from, key) =>
+  key === "ArrowDown" ? from + 1 : key === "ArrowUp" ? from - 1 : undefined;
+
+export const modifiersOf = (event: MouseEvent): Modifiers => ({
   toggle: event.metaKey || event.ctrlKey,
   extend: event.shiftKey,
 });
 
-const isPlain = (event: MouseEvent) => !event.metaKey && !event.ctrlKey && !event.shiftKey;
+export const isPlain = (event: MouseEvent) => !event.metaKey && !event.ctrlKey && !event.shiftKey;
 
 export const useItem = (index: number, entry: Entry, { selection, onHover, onOpen }: ItemHandlers) => {
   const selected = useIsSelected(selection, selectionId(entry));
@@ -41,16 +44,19 @@ const targetOf = (key: string, from: number, last: number, step: Step) => {
 
 type ListHandlers = Pick<LayoutProps, "entries" | "selection" | "onOpen">;
 
-const open = ({ entries, selection, onOpen }: ListHandlers) => {
+export const chosenEntry = ({ entries, selection }: Pick<ListHandlers, "entries" | "selection">) => {
   const entry = entries[selection.focusIndex()];
-  if (entry && selection.has(selectionId(entry))) onOpen(entry);
+  return entry && selection.has(selectionId(entry)) ? entry : undefined;
 };
 
-const onListKey = (event: KeyboardEvent, list: ListHandlers, step: Step) => {
+export const onListKey = (event: KeyboardEvent, list: ListHandlers, step: Step) => {
   const { selection } = list;
   const mod = event.metaKey || event.ctrlKey;
-  if (event.key === "Enter") open(list);
-  else if (mod && !event.altKey && !event.shiftKey && event.key.toLowerCase() === "a") selection.selectAll();
+  if (event.key === "Enter") {
+    const entry = chosenEntry(list);
+    if (entry) list.onOpen(entry);
+  } else if (mod && !event.altKey && !event.shiftKey && event.key.toLowerCase() === "a")
+    selection.selectAll();
   else if (event.key === "Escape" && selection.selectedCount() > 0) selection.clear();
   else {
     if (mod || event.altKey) return;

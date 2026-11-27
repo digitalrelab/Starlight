@@ -12,17 +12,19 @@ interface Props {
   readonly directory: EntryRef;
   readonly entries: ReadonlyArray<Entry>;
   readonly selection: SelectionStore;
+  readonly disabled?: boolean;
   readonly children: ReactNode;
 }
 
-export const ListingMenu = ({ directory, entries, selection, children }: Props) => {
+export const ListingMenu = ({ directory, entries, selection, disabled, children }: Props) => {
   const { onOpenChange, finalFocus, start } = useNamingMenu();
   const [target, setTarget] = useState<Entry | null>(null);
   return (
-    <ContextMenu.Root onOpenChange={onOpenChange}>
+    <ContextMenu.Root disabled={disabled} onOpenChange={onOpenChange}>
       <ContextMenu.Trigger
         render={<div className="contents" />}
         onContextMenu={(event) => {
+          if (disabled) return;
           const index = itemIndexAt(event.target);
           const entry = index === null ? undefined : entries[index];
           if (index !== null && entry && !selection.has(selectionId(entry)))

@@ -5,7 +5,7 @@ import { memo, type ReactElement, useRef } from "react";
 import { formatDate, formatSize } from "#renderer/lib/format.ts";
 import { KindIcon, itemKindOf } from "#renderer/features/files/kind-icon.tsx";
 import { useRevealFocus } from "#renderer/features/browser/selection.ts";
-import { type ItemHandlers, listProps, type Step, useItem } from "./events.ts";
+import { type ItemHandlers, listProps, useItem, verticalStep } from "./events.ts";
 import { draftOf, fieldFor } from "./naming-slot.ts";
 import type { LayoutProps } from "./types.ts";
 
@@ -13,8 +13,6 @@ const ROW_HEIGHT = 26;
 const COLUMNS = "grid grid-cols-[minmax(0,1fr)_96px_168px] gap-4";
 const ROW = cn(COLUMNS, "absolute inset-x-2 items-center rounded-md px-2");
 const NAME = "flex min-w-0 items-center gap-2";
-
-const step: Step = (from, key) => (key === "ArrowDown" ? from + 1 : key === "ArrowUp" ? from - 1 : undefined);
 
 export const TableLayout = ({ entries, selection, naming, onHover, onOpen }: LayoutProps) => {
   const draft = draftOf(naming);
@@ -36,7 +34,11 @@ export const TableLayout = ({ entries, selection, naming, onHover, onOpen }: Lay
         <span className="text-right">Size</span>
         <span>Modified</span>
       </div>
-      <ScrollArea ref={scrollRef} {...listProps({ entries, selection, onOpen }, step)} className="flex-1">
+      <ScrollArea
+        ref={scrollRef}
+        {...listProps({ entries, selection, onOpen }, verticalStep)}
+        className="flex-1"
+      >
         <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
           {draft ? (
             <div className={ROW} style={{ height: ROW_HEIGHT }}>
