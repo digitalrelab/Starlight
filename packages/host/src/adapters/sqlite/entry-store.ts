@@ -132,59 +132,61 @@ export const SqliteEntryStoreLive = Layer.effect(EntryStore)(
           Effect.orDie,
         ),
       save: (source, directory, entries) =>
-        inBatches(entries, (batch) => {
-          const fileIds = batch.flatMap((entry) => (entry.fileId ? [entry.fileId] : []));
-          const upsert = sql`
-            INSERT INTO entries ${sql.insert(
-              Arr.map(batch, (entry) => ({
-                source,
-                id: entry.id,
-                parent: directory,
-                key: entry.key,
-                name: entry.name,
-                kind: entry.kind,
-                size: entry.size,
-                created_at: entry.createdAt,
-                modified_at: entry.modifiedAt,
-                hidden: entry.hidden ? 1 : 0,
-                words: wordsOf(entry.name),
-                file_id: entry.fileId,
-              })),
-            )}
-            ON CONFLICT (source, id) DO UPDATE SET
-              parent = excluded.parent,
-              key = excluded.key,
-              name = excluded.name,
-              kind = excluded.kind,
-              size = excluded.size,
-              created_at = excluded.created_at,
-              modified_at = excluded.modified_at,
-              hidden = excluded.hidden,
-              words = excluded.words,
-              file_id = COALESCE(entries.file_id, excluded.file_id)
-          `;
-          const ids = sql.in(batch.map((entry) => entry.id));
-          const relinked =
-            fileIds.length === 0
-              ? Effect.void
-              : sql`DELETE FROM entries WHERE file_id IN ${sql.in(fileIds)} AND NOT (source = ${source} AND id IN ${ids})`;
-          const concealed = sql`
-            UPDATE entries SET concealed = hidden OR COALESCE(
-              (SELECT concealed FROM entries AS above WHERE above.source = entries.source AND above.id = entries.parent),
-              0
-            )
-            WHERE source = ${source} AND id IN ${ids}
-          `;
-          const cascaded = sql`
-            WITH RECURSIVE below (id) AS (
-              SELECT id FROM entries WHERE source = ${source} AND id IN ${ids} AND concealed = 1 AND kind = 'directory'
-              UNION
-              SELECT entries.id FROM entries JOIN below ON entries.parent = below.id WHERE entries.source = ${source}
-            )
-            UPDATE entries SET concealed = 1 WHERE source = ${source} AND id IN (SELECT id FROM below)
-          `;
-          return Effect.andThen(relinked, Effect.andThen(upsert, Effect.andThen(concealed, cascaded)));
-        }),
+        inBatches(entries, (batch) =>
+          Effect.gen(function* () {
+            const ids = sql.in(batch.map((entry) => entry.id));
+            const fileIds = batch.flatMap((entry) => (entry.fileId ? [entry.fileId] : []));
+            if (fileIds.length > 0) {
+              yield* sql`DELETE FROM entries WHERE file_id IN ${sql.in(fileIds)} AND NOT (source = ${source} AND id IN ${ids})`;
+            }
+            const [above] = yield* sql<{ readonly concealed: number }>`
+              SELECT concealed FROM entries WHERE source = ${source} AND id = ${directory}
+            `;
+            const concealed = (entry: StoredEntry) => above?.concealed === 1 || entry.hidden;
+            yield* sql`
+              INSERT INTO entries ${sql.insert(
+                Arr.map(batch, (entry) => ({
+                  source,
+                  id: entry.id,
+                  parent: directory,
+                  key: entry.key,
+                  name: entry.name,
+                  kind: entry.kind,
+                  size: entry.size,
+                  created_at: entry.createdAt,
+                  modified_at: entry.modifiedAt,
+                  hidden: entry.hidden ? 1 : 0,
+                  concealed: concealed(entry) ? 1 : 0,
+                  words: wordsOf(entry.name),
+                  file_id: entry.fileId,
+                })),
+              )}
+              ON CONFLICT (source, id) DO UPDATE SET
+                parent = excluded.parent,
+                key = excluded.key,
+                name = excluded.name,
+                kind = excluded.kind,
+                size = excluded.size,
+                created_at = excluded.created_at,
+                modified_at = excluded.modified_at,
+                hidden = excluded.hidden,
+                concealed = excluded.concealed,
+                words = excluded.words,
+                file_id = COALESCE(entries.file_id, excluded.file_id)
+            `;
+            const concealing = batch.filter((entry) => entry.kind === "directory" && concealed(entry));
+            if (concealing.length > 0) {
+              yield* sql`
+                WITH RECURSIVE below (id) AS (
+                  SELECT id FROM entries WHERE source = ${source} AND parent IN ${sql.in(concealing.map((entry) => entry.id))}
+                  UNION
+                  SELECT entries.id FROM entries JOIN below ON entries.parent = below.id WHERE entries.source = ${source}
+                )
+                UPDATE entries SET concealed = 1 WHERE source = ${source} AND id IN (SELECT id FROM below)
+              `;
+            }
+          }),
+        ),
       search: ({ text, ...query }) =>
         search({ ...query, words: wordsOf(text) }).pipe(
           Effect.map((rows) =>
