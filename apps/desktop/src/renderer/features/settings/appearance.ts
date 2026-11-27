@@ -2,7 +2,7 @@ import { COLOR_SCHEMES } from "@starlight/ui";
 import { useEffect, useLayoutEffect } from "react";
 import { Channel } from "#shared/channels.ts";
 import type { ZoomStep } from "#shared/zoom.ts";
-import { defineStored, oneOf } from "#renderer/lib/storage.ts";
+import { defineStored, oneOf, useStored } from "#renderer/lib/storage.ts";
 
 export const colorScheme = defineStored("color-scheme", oneOf(COLOR_SCHEMES), "system");
 
@@ -27,7 +27,7 @@ const stepped = (size: InterfaceSize, step: ZoomStep) => {
 };
 
 export const useInterfaceZoom = () => {
-  const factor = ZOOM_FACTORS[interfaceSize.useValue()];
+  const factor = ZOOM_FACTORS[useStored(interfaceSize)];
   useLayoutEffect(() => {
     document.documentElement.style.setProperty("--interface-zoom", String(factor));
     window.postMessage({ type: Channel.zoom, factor }, "*");

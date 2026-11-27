@@ -9,6 +9,7 @@ import {
 } from "#renderer/features/settings/appearance.ts";
 import { SettingsPage } from "#renderer/features/settings/settings-page.tsx";
 import { SettingsSelect } from "#renderer/features/settings/settings-select.tsx";
+import { useStored } from "#renderer/lib/storage.ts";
 
 const COLOR_SCHEME_LABELS: Record<ColorScheme, string> = {
   system: "System",
@@ -42,7 +43,7 @@ function Appearance() {
             values={COLOR_SCHEMES}
             labels={COLOR_SCHEME_LABELS}
             swatch={(scheme) => <ColorSchemeSwatch scheme={scheme} />}
-            value={colorScheme.useValue()}
+            value={useStored(colorScheme)}
             onValueChange={colorScheme.set}
           />
         </Item.Root>
@@ -55,7 +56,7 @@ function Appearance() {
             id="interface-size"
             values={INTERFACE_SIZES}
             labels={INTERFACE_SIZE_LABELS}
-            value={interfaceSize.useValue()}
+            value={useStored(interfaceSize)}
             onValueChange={interfaceSize.set}
           />
         </Item.Root>
@@ -66,7 +67,7 @@ function Appearance() {
           </Item.Content>
           <Switch
             id="pointer-cursors"
-            checked={cursor.useValue() === "pointer"}
+            checked={useStored(cursor) === "pointer"}
             onCheckedChange={(checked) => cursor.set(checked ? "pointer" : "default")}
           />
         </Item.Root>

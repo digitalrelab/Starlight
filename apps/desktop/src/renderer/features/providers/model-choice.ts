@@ -2,7 +2,7 @@ import type { AgentProvider, Conversation, ModelChoice } from "@starlight/client
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useStarlight } from "#renderer/lib/context.ts";
-import { anyString, defineStored } from "#renderer/lib/storage.ts";
+import { anyString, defineStored, useStored } from "#renderer/lib/storage.ts";
 
 interface Wanted {
   readonly provider?: string;
@@ -35,7 +35,7 @@ const resolve = (providers: ReadonlyArray<AgentProvider>, wanted: Wanted): Model
 export const useModelChoice = (conversation?: Conversation) => {
   const { queries } = useStarlight();
   const { data } = useSuspenseQuery(queries.agentProviders());
-  const stored = lastChoice.useValue();
+  const stored = useStored(lastChoice);
   const scope = conversation?.id ?? "";
   const [picked, setPicked] = useState<{ readonly scope: string; readonly choice: ModelChoice } | null>(null);
 
