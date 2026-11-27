@@ -9,12 +9,12 @@ export interface SwitchProps extends Omit<ComponentProps<typeof BaseSwitch.Root>
 export const Switch = ({ className, ...props }: SwitchProps) => (
   <BaseSwitch.Root
     className={cn(
-      "inline-flex h-5 w-8 shrink-0 items-center rounded-full bg-border p-0.5 transition-colors duration-150",
-      "focus-ring data-[checked]:bg-accent data-[disabled]:opacity-50",
+      "inline-flex h-5 w-8 shrink-0 items-center rounded-full bg-neutral-bold p-0.5 transition-colors",
+      "focus-ring data-[checked]:bg-brand-bold data-[disabled]:opacity-50",
       className,
     )}
     {...props}
   >
-    <BaseSwitch.Thumb className="size-4 rounded-full bg-white shadow-xs transition-transform duration-150 data-[checked]:translate-x-3" />
+    <BaseSwitch.Thumb className="size-4 rounded-full bg-white shadow-xs transition-transform data-[checked]:translate-x-3" />
   </BaseSwitch.Root>
 );

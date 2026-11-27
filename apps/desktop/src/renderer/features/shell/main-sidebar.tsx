@@ -11,11 +11,11 @@ export const MainSidebar = () => {
     <>
       <div className="flex flex-col gap-1">
         <NavItem onClick={openWorkspace.run} disabled={openWorkspace.pending}>
-          <Icon icon={FolderOpenIcon} className="shrink-0" />
+          <Icon icon={FolderOpenIcon} />
           Open Folder…
         </NavItem>
         {openWorkspace.error ? (
-          <p className="px-2 text-[12px] text-danger">{openWorkspace.error.message}</p>
+          <p className="px-2 text-sm text-danger">{openWorkspace.error.message}</p>
         ) : null}
       </div>
       <RecentWorkspaces />

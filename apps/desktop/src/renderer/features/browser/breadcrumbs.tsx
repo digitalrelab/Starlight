@@ -19,14 +19,14 @@ export const Breadcrumbs = ({ workspace, path }: Props) => {
     <nav className="flex min-w-0 items-center gap-0.5">
       {crumbs.map((crumb, i) => (
         <span key={crumb.path} className="flex min-w-0 items-center gap-0.5">
-          {i > 0 ? <Icon icon={ArrowRight01Icon} size={12} className="shrink-0 text-muted" /> : null}
+          {i > 0 ? <Icon icon={ArrowRight01Icon} size={12} className="text-subtle" /> : null}
           <Link
             to="/w/$workspaceId"
             params={{ workspaceId: workspace.id }}
             search={{ path: crumb.path }}
             className={cn(
-              "truncate rounded px-1.5 py-0.5 hover:bg-hover",
-              i === crumbs.length - 1 ? "font-medium" : "text-muted",
+              "truncate rounded-sm px-1.5 py-0.5 hover:bg-neutral-subtle-hovered",
+              i === crumbs.length - 1 ? "font-medium" : "text-subtle",
             )}
           >
             {crumb.label}
