@@ -1,4 +1,11 @@
-import { Dimensions, type EntryId, type EntryRef, type FileId } from "@starlight/contracts";
+import {
+  Dimensions,
+  type EntryId,
+  type EntryRef,
+  type FileId,
+  Palette,
+  Property,
+} from "@starlight/contracts";
 import { Context, type Duration, Effect, Layer, Option, Schema, Stream } from "effect";
 import {
   type IdentifiedEntry,
@@ -11,17 +18,37 @@ import {
   type SourceDriver,
   type StoredFact,
 } from "./ports.ts";
-import { processedNames, processSample, processors } from "./processors.ts";
+import { processedNames, processSample, processors } from "./processors/index.ts";
 
 const EXTRACT_CONCURRENCY = 32;
 const SAMPLE_CONCURRENCY = 3;
 const BATCH_SIZE = 24;
 const BATCH_WINDOW: Duration.Input = "300 millis";
 
-const codecs: { readonly [F in FactName]: Schema.Codec<Facts[F], string> } = {
+const probedCodecs: { readonly [F in keyof ProbedFacts]: Schema.Codec<ProbedFacts[F], string> } = {
   dimensions: Schema.fromJsonString(Dimensions),
-  placeholder: Schema.fromJsonString(Schema.String),
 };
+
+const processedCodecs: { readonly [F in keyof ProcessedFacts]: Schema.Codec<ProcessedFacts[F], string> } = {
+  placeholder: Schema.fromJsonString(Schema.String),
+  palette: Schema.fromJsonString(Palette),
+  traits: Schema.fromJsonString(Schema.Array(Property)),
+};
+
+const freshValue = <F extends ProcessedName>(
+  fact: F,
+  entry: IdentifiedEntry,
+  found: StoredFact | undefined,
+): Option.Option<ProcessedFacts[F]> =>
+  !found || found.value === null || !isFresh(found, entry, processors[fact].version)
+    ? Option.none()
+    : Schema.decodeOption(processedCodec(fact))(found.value);
+
+const probedCodec = <F extends keyof ProbedFacts>(fact: F): Schema.Codec<ProbedFacts[F], string> =>
+  probedCodecs[fact];
+
+const processedCodec = <F extends keyof ProcessedFacts>(fact: F): Schema.Codec<ProcessedFacts[F], string> =>
+  processedCodecs[fact];
 
 type ProcessedName = keyof ProcessedFacts;
 
@@ -63,6 +90,10 @@ export class Catalog extends Context.Service<
       directory: EntryRef,
       entries: ReadonlyArray<IdentifiedEntry>,
     ) => Effect.Effect<ReadonlyMap<EntryId, ProcessedFacts[F]>>;
+    readonly processedEntry: <F extends ProcessedName>(
+      fact: F,
+      entry: IdentifiedEntry,
+    ) => Effect.Effect<Option.Option<ProcessedFacts[F]>>;
     readonly process: (
       driver: SourceDriver,
       directory: EntryRef,
@@ -118,7 +149,7 @@ export class Catalog extends Context.Service<
         });
 
       const saveProcessed = <F extends ProcessedName>(fact: F, batch: ReadonlyArray<Processed>) => {
-        const encode = Schema.encodeSync(codecs[fact]);
+        const encode = Schema.encodeSync(processedCodec(fact));
         return store.save(
           fact,
           batch.map(({ entry, facts }) =>
@@ -134,7 +165,7 @@ export class Catalog extends Context.Service<
             const stored = yield* store.inDirectory({ source: directory.source, fact }, directory.id);
             return yield* resolve(
               fact,
-              codecs[fact],
+              probedCodec(fact),
               extractor,
               entries.filter(extractor.accepts),
               byFileId(stored),
@@ -147,7 +178,7 @@ export class Catalog extends Context.Service<
             const stored = yield* store.find(fact, entry.fileId);
             const values = yield* resolve(
               fact,
-              codecs[fact],
+              probedCodec(fact),
               extractor,
               [entry],
               byFileId(Option.toArray(stored)),
@@ -159,17 +190,17 @@ export class Catalog extends Context.Service<
             const known = byFileId(
               yield* store.inDirectory({ source: directory.source, fact }, directory.id),
             );
-            const decode = Schema.decodeOption(codecs[fact]);
             const values = new Map<EntryId, ProcessedFacts[typeof fact]>();
             for (const entry of entries) {
-              const found = known.get(entry.fileId);
-              if (!found || found.value === null || !isFresh(found, entry, processors[fact].version))
-                continue;
-              const decoded = decode(found.value);
-              if (Option.isSome(decoded)) values.set(entry.id, decoded.value);
+              const value = freshValue(fact, entry, known.get(entry.fileId));
+              if (Option.isSome(value)) values.set(entry.id, value.value);
             }
             return values;
           }),
+        processedEntry: (fact, entry) =>
+          Effect.map(store.find(fact, entry.fileId), (found) =>
+            freshValue(fact, entry, Option.getOrUndefined(found)),
+          ),
         process: (driver, directory, entries) =>
           Stream.unwrap(
             Effect.gen(function* () {

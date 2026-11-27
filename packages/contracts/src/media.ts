@@ -1,5 +1,6 @@
 import { Schema } from "effect";
 import { EntryRef, FileId } from "./ids.ts";
+import { Property } from "./property.ts";
 
 export const FileToken = Schema.String.pipe(Schema.brand("FileToken"));
 export type FileToken = typeof FileToken.Type;
@@ -12,6 +13,15 @@ export const Dimensions = Schema.Struct({
   height: Schema.Number,
 });
 export type Dimensions = typeof Dimensions.Type;
+
+export const Swatch = Schema.Struct({
+  color: Schema.String,
+  share: Schema.Number,
+});
+export type Swatch = typeof Swatch.Type;
+
+export const Palette = Schema.Array(Swatch);
+export type Palette = typeof Palette.Type;
 
 export const MediaAppearance = Schema.Struct({
   placeholder: Schema.NullOr(Schema.String),
@@ -37,5 +47,7 @@ export const FileSource = Schema.Struct({
   token: FileToken,
   version: FileVersion,
   dimensions: Schema.NullOr(Dimensions),
+  palette: Palette,
+  properties: Schema.Array(Property),
 });
 export type FileSource = typeof FileSource.Type;
