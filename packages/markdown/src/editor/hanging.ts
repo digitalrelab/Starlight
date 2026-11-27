@@ -50,15 +50,11 @@ const decorate = (view: EditorView) => {
   const builder = new RangeSetBuilder<Decoration>();
   const { state } = view;
   const tree = syntaxTree(state);
-  let previous = -1;
   for (const { from, to } of view.visibleRanges) {
     for (let position = from; position <= to;) {
       const line = state.doc.lineAt(position);
-      if (line.from > previous) {
-        const style = styleOf(tree, line, state.tabSize);
-        if (style) builder.add(line.from, line.from, lineDecoration(style));
-      }
-      previous = line.from;
+      const style = styleOf(tree, line, state.tabSize);
+      if (style) builder.add(line.from, line.from, lineDecoration(style));
       position = line.to + 1;
     }
   }

@@ -1,5 +1,3 @@
-@source "./";
-
 @layer components {
   .markdown {
     @apply select-text;
@@ -24,7 +22,7 @@
   }
 
   .markdown :where(h1, h2, h3, h4, h5, h6) {
-    @apply font-semibold text-default;
+    @apply font-semibold;
     margin-block: 1.5em 0.5em;
     line-height: 1.3;
     text-wrap: balance;
@@ -216,10 +214,6 @@
   .tok-link {
     @apply underline;
   }
-}
-
-.markdown-editor .cm-editor {
-  @apply bg-transparent text-default;
 }
 
 .markdown-editor .cm-editor.cm-focused {
