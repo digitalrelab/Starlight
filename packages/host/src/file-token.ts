@@ -2,12 +2,12 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 
 const sign = (key: Buffer, payload: string) => createHmac("sha256", key).update(payload).digest();
 
-export const issueThumbnailToken = (key: Buffer, absolute: string, version: number) => {
+export const issueFileToken = (key: Buffer, absolute: string, version: number) => {
   const payload = `${Buffer.from(absolute).toString("base64url")}.${Math.trunc(version).toString(36)}`;
   return `${payload}.${sign(key, payload).toString("base64url")}`;
 };
 
-export const verifyThumbnailToken = (key: Buffer, token: string): string | null => {
+export const verifyFileToken = (key: Buffer, token: string): string | null => {
   const separator = token.lastIndexOf(".");
   if (separator < 0) return null;
   const payload = token.slice(0, separator);

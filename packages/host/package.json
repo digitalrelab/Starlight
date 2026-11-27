@@ -5,7 +5,7 @@
   "exports": {
     "./main": "./src/main.ts",
     "./transport": "./src/rpc/transport.ts",
-    "./thumbnail-token": "./src/thumbnail-token.ts"
+    "./file-token": "./src/file-token.ts"
   },
   "dependencies": {
     "@effect/platform-node": "catalog:",

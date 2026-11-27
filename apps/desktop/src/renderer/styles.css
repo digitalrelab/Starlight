@@ -4,6 +4,7 @@
 
 @theme {
   --spacing-titlebar: 2.75rem;
+  --spacing-traffic-lights: 5rem;
 }
 
 @layer base {

@@ -25,6 +25,14 @@ export class NotADirectory extends Schema.TaggedError<NotADirectory>()("NotADire
   }
 }
 
+export class NotAFile extends Schema.TaggedError<NotAFile>()("NotAFile", {
+  path: Schema.String,
+}) {
+  override get message() {
+    return `Not a file: ${this.path}`;
+  }
+}
+
 export class FileSystemError extends Schema.TaggedError<FileSystemError>()("FileSystemError", {
   path: Schema.String,
   reason: Schema.Literals(["NotFound", "PermissionDenied", "Unknown"]),
@@ -38,6 +46,9 @@ export const DirectoryError = Schema.Union([
   FileSystemError,
 ]);
 export type DirectoryError = typeof DirectoryError.Type;
+
+export const FileError = Schema.Union([WorkspaceNotFound, PathOutsideWorkspace, NotAFile, FileSystemError]);
+export type FileError = typeof FileError.Type;
 
 export const isMissingDirectory = (error: unknown) =>
   error instanceof NotADirectory || (error instanceof FileSystemError && error.reason === "NotFound");

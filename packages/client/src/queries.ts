@@ -40,6 +40,12 @@ const createQueries = (client: StarlightClient) => ({
       queryFn: () => client.media.list(workspaceId, path),
     }),
 
+  fileSource: (workspaceId: string, path: string) =>
+    queryOptions({
+      queryKey: [...directoryKey(workspaceId), parentOf(path), "source", path],
+      queryFn: () => client.media.source(workspaceId, path),
+    }),
+
   update: () =>
     queryOptions({
       queryKey: ["update"],

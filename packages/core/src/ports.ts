@@ -1,8 +1,9 @@
 import type {
   Actor,
+  Dimensions,
   EntryKind,
   FileSystemError,
-  ThumbnailToken,
+  FileToken,
   Workspace,
   WorkspaceId,
 } from "@starlight/contracts";
@@ -38,11 +39,6 @@ export class FileWatcherPort extends Context.Service<
   }
 >()("@starlight/core/FileWatcherPort") {}
 
-export interface Dimensions {
-  readonly width: number;
-  readonly height: number;
-}
-
 export interface ProbeTarget {
   readonly absolute: string;
   readonly size: number;
@@ -54,10 +50,10 @@ export class MediaProbe extends Context.Service<
   { readonly dimensions: (target: ProbeTarget) => Effect.Effect<Option.Option<Dimensions>> }
 >()("@starlight/core/MediaProbe") {}
 
-export class ThumbnailTokens extends Context.Service<
-  ThumbnailTokens,
-  { readonly issue: (absolute: string, version: number) => ThumbnailToken }
->()("@starlight/core/ThumbnailTokens") {}
+export class FileTokens extends Context.Service<
+  FileTokens,
+  { readonly issue: (absolute: string, version: number) => FileToken }
+>()("@starlight/core/FileTokens") {}
 
 export class WorkspaceStore extends Context.Service<
   WorkspaceStore,

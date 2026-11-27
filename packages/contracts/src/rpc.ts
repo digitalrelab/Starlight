@@ -1,9 +1,9 @@
 import { Schema } from "effect";
 import { Rpc, RpcGroup } from "effect/rpc";
 import { Entry, EntryChange } from "./entry.ts";
-import { DirectoryError, FileSystemError, NotADirectory, WorkspaceNotFound } from "./errors.ts";
+import { DirectoryError, FileError, FileSystemError, NotADirectory, WorkspaceNotFound } from "./errors.ts";
 import { RelativePath, WorkspaceId } from "./ids.ts";
-import { Media } from "./media.ts";
+import { FileSource, Media } from "./media.ts";
 import { Update } from "./update.ts";
 import { Workspace } from "./workspace.ts";
 
@@ -30,6 +30,11 @@ export class HostRpcs extends RpcGroup.make(
     payload: { workspaceId: WorkspaceId, path: RelativePath },
     success: Schema.Array(Media),
     error: DirectoryError,
+  }),
+  Rpc.make("GetFileSource", {
+    payload: { workspaceId: WorkspaceId, path: RelativePath },
+    success: FileSource,
+    error: FileError,
   }),
   Rpc.make("WatchEntries", {
     payload: { workspaceId: WorkspaceId },

@@ -1,16 +1,24 @@
 import {
   type DirectoryError,
+  type FileError,
   type FileSystemError,
   NotADirectory,
+  NotAFile,
   PathOutsideWorkspace,
   type Workspace,
   type WorkspaceId,
   WorkspaceNotFound,
 } from "@starlight/contracts";
 import { Context, Effect, Layer, Option, Path } from "effect";
-import { AuditLog, CurrentActor, FileSystemPort, WorkspaceStore } from "./ports.ts";
+import { AuditLog, CurrentActor, type FileStat, FileSystemPort, WorkspaceStore } from "./ports.ts";
 
 const RECENT_LIMIT = 20;
+
+export interface Resolved {
+  readonly absolute: string;
+  readonly relative: string;
+  readonly stat: FileStat;
+}
 
 export class Workspaces extends Context.Service<
   Workspaces,
@@ -19,10 +27,8 @@ export class Workspaces extends Context.Service<
     readonly recent: Effect.Effect<ReadonlyArray<Workspace>>;
     readonly get: (id: WorkspaceId) => Effect.Effect<Workspace, WorkspaceNotFound>;
     readonly relativize: (workspace: Workspace, absolute: string) => Option.Option<string>;
-    readonly resolveDirectory: (
-      id: WorkspaceId,
-      relative: string,
-    ) => Effect.Effect<{ readonly absolute: string; readonly relative: string }, DirectoryError>;
+    readonly resolveDirectory: (id: WorkspaceId, relative: string) => Effect.Effect<Resolved, DirectoryError>;
+    readonly resolveFile: (id: WorkspaceId, relative: string) => Effect.Effect<Resolved, FileError>;
   }
 >()("@starlight/core/Workspaces") {
   static readonly layer = Layer.effect(Workspaces)(
@@ -50,6 +56,17 @@ export class Workspaces extends Context.Service<
           ),
         );
 
+      const resolve = Effect.fnUntraced(function* (id: WorkspaceId, relative: string) {
+        const workspace = yield* get(id);
+        const lexical = path.resolve(workspace.rootPath, relative);
+        if (!isWithin(workspace.rootPath, lexical))
+          return yield* new PathOutsideWorkspace({ path: relative });
+        const absolute = yield* fs.realPath(lexical);
+        const inside = relativize(workspace, absolute);
+        if (Option.isNone(inside)) return yield* new PathOutsideWorkspace({ path: relative });
+        return { absolute, relative: inside.value, stat: yield* fs.stat(absolute) };
+      });
+
       return Workspaces.of({
         open: Effect.fn("Workspaces.open")(function* (input) {
           const rootPath = yield* fs.realPath(input);
@@ -63,16 +80,15 @@ export class Workspaces extends Context.Service<
         get,
         relativize,
         resolveDirectory: Effect.fn("Workspaces.resolveDirectory")(function* (id, relative) {
-          const workspace = yield* get(id);
-          const lexical = path.resolve(workspace.rootPath, relative);
-          if (!isWithin(workspace.rootPath, lexical))
-            return yield* new PathOutsideWorkspace({ path: relative });
-          const absolute = yield* fs.realPath(lexical);
-          const inside = relativize(workspace, absolute);
-          if (Option.isNone(inside)) return yield* new PathOutsideWorkspace({ path: relative });
-          const info = yield* fs.stat(absolute);
-          if (info.kind !== "directory") return yield* new NotADirectory({ path: inside.value });
-          return { absolute, relative: inside.value };
+          const resolved = yield* resolve(id, relative);
+          if (resolved.stat.kind !== "directory")
+            return yield* new NotADirectory({ path: resolved.relative });
+          return resolved;
+        }),
+        resolveFile: Effect.fn("Workspaces.resolveFile")(function* (id, relative) {
+          const resolved = yield* resolve(id, relative);
+          if (resolved.stat.kind !== "file") return yield* new NotAFile({ path: resolved.relative });
+          return resolved;
         }),
       });
     }),

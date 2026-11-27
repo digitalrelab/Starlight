@@ -2,11 +2,11 @@ import { NodePath, NodeRuntime } from "@effect/platform-node";
 import { ConnectRequest } from "@starlight/contracts";
 import { CoreLive } from "@starlight/core";
 import { Effect, Layer, Queue, Schema } from "effect";
+import { FileTokensLive } from "./adapters/file-tokens.ts";
 import { ImageProbeLive } from "./adapters/image-probe/index.ts";
 import { NodeFileSystemLive } from "./adapters/node-file-system.ts";
 import { ParcelFileWatcherLive } from "./adapters/parcel-file-watcher.ts";
 import { SqliteLive } from "./adapters/sqlite/index.ts";
-import { ThumbnailTokensLive } from "./adapters/thumbnail-tokens.ts";
 import { HostServerLive } from "./rpc/server.ts";
 import { type MainPortLike, serve } from "./rpc/transport.ts";
 
@@ -32,7 +32,7 @@ const requireEnv = (name: string) => {
 };
 
 const dataDir = requireEnv("STARLIGHT_DATA_DIR");
-const thumbnailKey = Buffer.from(requireEnv("STARLIGHT_THUMBNAIL_KEY"), "hex");
+const fileKey = Buffer.from(requireEnv("STARLIGHT_FILE_KEY"), "hex");
 
 const decodeConnect = Schema.decodeUnknownEffect(ConnectRequest);
 
@@ -42,7 +42,7 @@ const HostLive = CoreLive.pipe(
       NodeFileSystemLive,
       ParcelFileWatcherLive,
       ImageProbeLive,
-      ThumbnailTokensLive(thumbnailKey),
+      FileTokensLive(fileKey),
       SqliteLive(dataDir),
       NodePath.layer,
     ),

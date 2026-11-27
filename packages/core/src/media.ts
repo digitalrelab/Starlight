@@ -1,6 +1,13 @@
-import { type DirectoryError, joinRelative, type Media, type WorkspaceId } from "@starlight/contracts";
+import {
+  type DirectoryError,
+  type FileError,
+  type FileSource,
+  joinRelative,
+  type Media,
+  type WorkspaceId,
+} from "@starlight/contracts";
 import { Array as Arr, Context, Effect, Layer, Option, Path } from "effect";
-import { FileSystemPort, MediaProbe, ThumbnailTokens } from "./ports.ts";
+import { FileSystemPort, FileTokens, MediaProbe } from "./ports.ts";
 import { Workspaces } from "./workspaces.ts";
 
 const PROBE_CONCURRENCY = 32;
@@ -12,6 +19,7 @@ export class MediaLibrary extends Context.Service<
       workspaceId: WorkspaceId,
       path: string,
     ) => Effect.Effect<ReadonlyArray<Media>, DirectoryError>;
+    readonly source: (workspaceId: WorkspaceId, path: string) => Effect.Effect<FileSource, FileError>;
   }
 >()("@starlight/core/MediaLibrary") {
   static readonly layer = Layer.effect(MediaLibrary)(
@@ -19,7 +27,7 @@ export class MediaLibrary extends Context.Service<
       const fs = yield* FileSystemPort;
       const workspaces = yield* Workspaces;
       const probe = yield* MediaProbe;
-      const tokens = yield* ThumbnailTokens;
+      const tokens = yield* FileTokens;
       const path = yield* Path.Path;
 
       return MediaLibrary.of({
@@ -35,10 +43,9 @@ export class MediaLibrary extends Context.Service<
                 .pipe(
                   Effect.map(
                     Option.map((dimensions): Media => ({
+                      ...dimensions,
                       path: joinRelative(relative, entry.name),
-                      width: dimensions.width,
-                      height: dimensions.height,
-                      thumbnail: tokens.issue(file, entry.modifiedAt),
+                      token: tokens.issue(file, entry.modifiedAt),
                     })),
                   ),
                 );
@@ -46,6 +53,14 @@ export class MediaLibrary extends Context.Service<
             { concurrency: PROBE_CONCURRENCY },
           );
           return Arr.getSomes(media);
+        }),
+        source: Effect.fn("MediaLibrary.source")(function* (workspaceId, file) {
+          const { absolute, stat } = yield* workspaces.resolveFile(workspaceId, file);
+          const dimensions = yield* probe.dimensions({ absolute, ...stat });
+          return {
+            token: tokens.issue(absolute, stat.modifiedAt),
+            dimensions: Option.getOrNull(dimensions),
+          };
         }),
       });
     }),

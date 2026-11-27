@@ -1,5 +1,5 @@
-const LARGEST_SIZE = 1024;
-const SIZES = [256, 512, LARGEST_SIZE] as const;
+const LARGEST_SIZE = 2048;
+const SIZES = [256, 512, 1024, LARGEST_SIZE] as const;
 
 export const THUMBNAIL_SCHEME = "starlight-thumbnail";
 

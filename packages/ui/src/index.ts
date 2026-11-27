@@ -13,4 +13,5 @@ export * from "./prose.tsx";
 export * from "./segmented-control.tsx";
 export * from "./select.tsx";
 export * from "./switch.tsx";
+export * from "./theater.tsx";
 export { Tooltip } from "./tooltip.tsx";

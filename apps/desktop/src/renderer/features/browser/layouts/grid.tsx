@@ -173,7 +173,7 @@ const Tile = memo(({ index, entry, media, left, width, height, selected, onSelec
             className="absolute top-1/2 left-1/2 -translate-1/2 text-subtlest"
           />
           <img
-            src={thumbnailUrl(media.thumbnail, Math.max(width, height) * window.devicePixelRatio)}
+            src={thumbnailUrl(media.token, Math.max(width, height) * window.devicePixelRatio)}
             alt=""
             decoding="async"
             draggable={false}

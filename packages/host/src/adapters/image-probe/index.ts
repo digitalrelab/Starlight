@@ -1,6 +1,7 @@
 import { type FileHandle, open } from "node:fs/promises";
 import { extname } from "node:path";
-import { type Dimensions, MediaProbe, type ProbeTarget } from "@starlight/core";
+import type { Dimensions } from "@starlight/contracts";
+import { MediaProbe, type ProbeTarget } from "@starlight/core";
 import { Effect, Layer, Option } from "effect";
 import { imageSize } from "image-size";
 import { locateHeifExif, readExifItemOrientation } from "./heif-exif.ts";

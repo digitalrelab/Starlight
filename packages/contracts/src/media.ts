@@ -1,13 +1,21 @@
 import { Schema } from "effect";
-import { RelativePath } from "./ids.ts";
+import { FileToken, RelativePath } from "./ids.ts";
 
-export const ThumbnailToken = Schema.String.pipe(Schema.brand("ThumbnailToken"));
-export type ThumbnailToken = typeof ThumbnailToken.Type;
-
-export const Media = Schema.Struct({
-  path: RelativePath,
+export const Dimensions = Schema.Struct({
   width: Schema.Number,
   height: Schema.Number,
-  thumbnail: ThumbnailToken,
+});
+export type Dimensions = typeof Dimensions.Type;
+
+export const Media = Schema.Struct({
+  ...Dimensions.fields,
+  path: RelativePath,
+  token: FileToken,
 });
 export type Media = typeof Media.Type;
+
+export const FileSource = Schema.Struct({
+  token: FileToken,
+  dimensions: Schema.NullOr(Dimensions),
+});
+export type FileSource = typeof FileSource.Type;
