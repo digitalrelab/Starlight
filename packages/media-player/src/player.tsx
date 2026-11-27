@@ -4,6 +4,7 @@ import { Controls } from "./controls.tsx";
 import { PlayerContext, PlayerFrame, usePlayerEngine } from "./engine.tsx";
 import { Center } from "./center.tsx";
 import { AudioSurface, VideoSurface } from "./surface.tsx";
+import { releaseDetached } from "./visualizer.tsx";
 
 const IDLE_DELAY_MS = 2000;
 
@@ -65,6 +66,8 @@ const Player = ({
   const engine = usePlayerEngine({ src, autoPlay, hasPageShortcuts, onKey: wake });
   const { media, state } = engine;
   const isPlaying = !state.paused && !state.buffering;
+
+  useEffect(() => (media ? () => releaseDetached(media) : undefined), [media]);
 
   useEffect(() => {
     if (isPlaying) wake();

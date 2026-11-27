@@ -1,7 +1,6 @@
 import { cn } from "cn";
 import { useEffect, useRef } from "react";
 
-const BARS = 15;
 const FFT_SIZE = 2048;
 const LOWEST_HZ = 187.5;
 const HIGHEST_HZ = 6000;
@@ -43,38 +42,39 @@ export const releaseDetached = (media: HTMLMediaElement) => {
   taps.delete(media);
 };
 
-const bandsOf = (analyser: AnalyserNode) => {
+const bandsOf = (analyser: AnalyserNode, bars: number) => {
   const binHz = analyser.context.sampleRate / analyser.fftSize;
-  const edge = (band: number) => Math.floor((LOWEST_HZ * (HIGHEST_HZ / LOWEST_HZ) ** (band / BARS)) / binHz);
+  const edge = (band: number) => Math.floor((LOWEST_HZ * (HIGHEST_HZ / LOWEST_HZ) ** (band / bars)) / binHz);
   return Array.from(
-    { length: BARS },
+    { length: bars },
     (_, band) => [edge(band), Math.max(edge(band) + 1, edge(band + 1))] as const,
   );
 };
 
-const slotOf = (band: number) => (BARS - 1) / 2 + (band % 2 ? -(band + 1) / 2 : band / 2);
+const slotOf = (band: number, bars: number) => (bars - 1) / 2 + (band % 2 ? -(band + 1) / 2 : band / 2);
 
 interface Props {
   readonly media: HTMLMediaElement;
   readonly active: boolean;
+  readonly bars: number;
   readonly className?: string;
 }
 
-export const Visualizer = ({ media, active, className }: Props) => {
+export const Visualizer = ({ media, active, bars, className }: Props) => {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const root = ref.current;
     if (!active || !root) return;
-    const bars = Array.from(root.children, (bar) => bar as HTMLElement);
-    const levels = new Float32Array(BARS).fill(FLOOR);
+    const elements = Array.from(root.children, (bar) => bar as HTMLElement);
+    const levels = new Float32Array(bars).fill(FLOOR);
     let frame = 0;
     let cancelled = false;
 
     void analyserOf(media).then((analyser) => {
       if (cancelled || !analyser) return;
       const bins = new Uint8Array(analyser.frequencyBinCount);
-      const bands = bandsOf(analyser);
+      const bands = bandsOf(analyser, bars);
       root.dataset["live"] = "";
       const draw = () => {
         analyser.getByteFrequencyData(bins);
@@ -85,7 +85,7 @@ export const Visualizer = ({ media, active, className }: Props) => {
           const target = Math.max(FLOOR, (peak / BYTE_MAX) ** CONTRAST);
           const next = level + (target - level) * (target > level ? ATTACK : RELEASE);
           levels[band] = next;
-          bars[slotOf(band)]?.style.setProperty("height", `${next * 100}%`);
+          elements[slotOf(band, bars)]?.style.setProperty("height", `${next * 100}%`);
         });
         frame = requestAnimationFrame(draw);
       };
@@ -96,13 +96,13 @@ export const Visualizer = ({ media, active, className }: Props) => {
       cancelled = true;
       cancelAnimationFrame(frame);
       delete root.dataset["live"];
-      for (const bar of bars) bar.style.removeProperty("height");
+      for (const bar of elements) bar.style.removeProperty("height");
     };
-  }, [media, active]);
+  }, [media, active, bars]);
 
   return (
-    <div ref={ref} aria-hidden className={cn("group/visualizer flex items-center gap-3", className)}>
-      {Array.from({ length: BARS }, (_, slot) => (
+    <div ref={ref} aria-hidden className={cn("group/visualizer flex items-center", className)}>
+      {Array.from({ length: bars }, (_, slot) => (
         <span
           key={slot}
           className="h-1/5 flex-1 rounded-full bg-current transition-[height] duration-300 ease-out group-data-live/visualizer:transition-none"

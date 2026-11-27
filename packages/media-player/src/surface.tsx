@@ -1,7 +1,6 @@
 import { cn } from "cn";
-import { useEffect } from "react";
 import { usePlayer } from "./engine.tsx";
-import { releaseDetached, Visualizer } from "./visualizer.tsx";
+import { Visualizer } from "./visualizer.tsx";
 
 const fit = "size-full object-contain";
 
@@ -25,6 +24,7 @@ export const VideoSurface = ({ poster }: { readonly poster: string | undefined }
       <video
         ref={attachMedia}
         src={src}
+        crossOrigin="anonymous"
         className={cn(fit, "relative transition-opacity duration-300", state.ended && "opacity-40")}
         onClick={togglePlayback}
       />
@@ -34,12 +34,16 @@ export const VideoSurface = ({ poster }: { readonly poster: string | undefined }
 
 export const AudioSurface = () => {
   const { src, media, state, attachMedia, togglePlayback } = usePlayer();
-  useEffect(() => (media ? () => releaseDetached(media) : undefined), [media]);
   return (
     <>
       <div className="absolute inset-0 flex items-center justify-center p-6 pb-24" onClick={togglePlayback}>
         {media && !state.failed ? (
-          <Visualizer media={media} active={!state.paused} className="h-40 w-full max-w-lg text-subtle" />
+          <Visualizer
+            media={media}
+            active={!state.paused}
+            bars={15}
+            className="h-40 w-full max-w-lg gap-3 text-subtle"
+          />
         ) : null}
       </div>
       <audio ref={attachMedia} src={src} crossOrigin="anonymous" />
