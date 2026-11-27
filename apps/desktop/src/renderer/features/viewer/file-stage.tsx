@@ -1,4 +1,5 @@
 import { type Entry, type EntryRef, type FileSource, textCodec } from "@starlight/client";
+import { MediaPlayer } from "@starlight/media-player";
 import { cn, ScrollArea } from "@starlight/ui";
 import { useQuery } from "@tanstack/react-query";
 import { type ReactNode, Suspense, useContext, useState } from "react";
@@ -64,22 +65,21 @@ const Picture = ({ name, source, presentation }: PictureProps) => {
   );
 };
 
-const Video = ({ source }: { readonly source: FileSource }) => {
-  const [failed, setFailed] = useState(false);
-  if (failed) return <Notice kind="video">Can’t play this video</Notice>;
-  return (
-    <div className="flex size-full items-center justify-center">
-      <video
-        src={fileUrl(source.token)}
-        poster={previewUrl(source.token, POSTER_PIXELS)}
-        controls
-        autoPlay
-        onError={() => setFailed(true)}
-        className="max-h-full max-w-full"
-      />
-    </div>
-  );
-};
+const Video = ({ source }: { readonly source: FileSource }) => (
+  <MediaPlayer.Video
+    src={fileUrl(source.token)}
+    poster={previewUrl(source.token, POSTER_PIXELS)}
+    autoPlay
+    hasPageShortcuts
+    failure={
+      <>
+        <KindIcon kind="video" size={40} />
+        <p>Can’t play this video</p>
+      </>
+    }
+    className="size-full"
+  />
+);
 
 interface MarkdownFileProps {
   readonly workspaceId: string;

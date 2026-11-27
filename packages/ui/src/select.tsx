@@ -8,11 +8,16 @@ import { popupSurface } from "./popup.ts";
 interface RootProps<Value extends string> {
   readonly value: Value;
   readonly onValueChange: (value: Value) => void;
+  readonly onOpenChange?: ((open: boolean) => void) | undefined;
   readonly children: ReactNode;
 }
 
-const Root = <Value extends string>({ value, onValueChange, children }: RootProps<Value>) => (
-  <BaseSelect.Root<Value> value={value} onValueChange={(next) => next !== null && onValueChange(next)}>
+const Root = <Value extends string>({ value, onValueChange, onOpenChange, children }: RootProps<Value>) => (
+  <BaseSelect.Root<Value>
+    value={value}
+    onValueChange={(next) => next !== null && onValueChange(next)}
+    onOpenChange={(open) => onOpenChange?.(open)}
+  >
     {children}
   </BaseSelect.Root>
 );

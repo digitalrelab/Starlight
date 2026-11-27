@@ -1,5 +1,6 @@
 import { ArrowLeft01Icon, ArrowRight01Icon } from "@hugeicons-pro/core-stroke-rounded";
 import type { Entry, EntryRef } from "@starlight/client";
+import { PLAYER_ATTRIBUTE } from "@starlight/media-player";
 import { Button, Icon, IconButton, Theater } from "@starlight/ui";
 import { type KeyboardEvent, useEffect, useEffectEvent, useRef, useState } from "react";
 import { KindIcon, itemKindOf } from "#renderer/features/files/kind-icon.tsx";
@@ -29,8 +30,8 @@ const isKeyConsumed = (event: KeyboardEvent) =>
   event.ctrlKey ||
   event.metaKey ||
   event.shiftKey ||
-  event.target instanceof HTMLMediaElement ||
-  (event.target instanceof HTMLElement && event.target.isContentEditable);
+  (event.target instanceof HTMLElement &&
+    (event.target.isContentEditable || event.target.closest(`[${PLAYER_ATTRIBUTE}]`) !== null));
 
 const usePrefetch = (
   workspaceId: string,
