@@ -39,7 +39,6 @@ export const definePreference = <Value extends string>(
   const get = () => current;
 
   return {
-    get,
     set: (next: Value) => {
       write(key, next);
       update(next);
