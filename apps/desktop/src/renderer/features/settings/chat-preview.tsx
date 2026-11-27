@@ -1,16 +1,20 @@
+import { Item } from "@starlight/ui";
 import { Composer } from "#renderer/features/agent/composer.tsx";
 import { Message } from "#renderer/features/agent/transcript.tsx";
 
+const REPLY = `It holds **12 photos** from a weekend trip and a \`notes.md\` with the itinerary:
+
+- Saturday: coastal hike
+- Sunday: market and museum
+
+\`\`\`sh
+open notes.md
+\`\`\``;
+
 export const ChatPreview = () => (
-  <div className="py-4">
-    <div inert className="flex flex-col gap-6 rounded-md bg-surface-sunken p-4">
-      <Message role="user" text="Summarize this folder in one line." pending={false} />
-      <Message
-        role="assistant"
-        text="It holds **12 photos** from a weekend trip and a `notes.md` with the itinerary."
-        pending={false}
-      />
-      <Composer placeholder="Reply…" disabled onSubmit={() => Promise.resolve()} />
-    </div>
-  </div>
+  <Item.Panel inert className="flex flex-col gap-6 bg-surface-sunken">
+    <Message role="user" text="What’s in this folder?" pending={false} />
+    <Message role="assistant" text={REPLY} pending={false} />
+    <Composer placeholder="Reply…" disabled onSubmit={() => Promise.resolve()} />
+  </Item.Panel>
 );

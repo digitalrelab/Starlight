@@ -19,6 +19,10 @@ const Group = ({ title, children }: { readonly title: string; readonly children:
   </section>
 );
 
+const Panel = ({ className, ...props }: ComponentProps<"div">) => (
+  <div className={cn("-mx-4 p-4", className)} {...props} />
+);
+
 const Root = ({ render, className, ...props }: useRender.ComponentProps<"div">) =>
   useRender({
     defaultTagName: "div",
@@ -45,4 +49,4 @@ const Description = ({ className, ...props }: ComponentProps<"p">) => (
   <p className={cn("text-sm text-subtle", className)} {...props} />
 );
 
-export const Item = { Group, List, Root, Main, Media, Content, Title, Description };
+export const Item = { Group, List, Panel, Root, Main, Media, Content, Title, Description };
