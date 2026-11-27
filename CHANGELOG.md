@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.6.0](https://github.com/digitalrelab/Starlight/compare/v0.5.0...v0.6.0) (2026-11-27)
+
+
+### Features
+
+* **browser:** create folders and markdown files from the browser ([#95](https://github.com/digitalrelab/Starlight/issues/95)) ([bc4670f](https://github.com/digitalrelab/Starlight/commit/bc4670f7bbd0ffe96579a8e46dba1aff755b224e))
+* **browser:** fit transparent images inside their grid tiles ([#99](https://github.com/digitalrelab/Starlight/issues/99)) ([f28f164](https://github.com/digitalrelab/Starlight/commit/f28f16480036c8e1ed215fffd27f19afb32ae177))
+* **browser:** rename files and folders in place ([#105](https://github.com/digitalrelab/Starlight/issues/105)) ([eb825ac](https://github.com/digitalrelab/Starlight/commit/eb825ac4b8b7e5ae01a0e86080116f4cbbc8f0ef))
+* **browser:** select multiple items with mouse and keyboard ([#94](https://github.com/digitalrelab/Starlight/issues/94)) ([b57a766](https://github.com/digitalrelab/Starlight/commit/b57a7666b1c2c5984d310a3f30e1cf357fa1bc07))
+* **desktop:** open a command palette with ⌘K to jump to projects, chats, settings and actions ([#89](https://github.com/digitalrelab/Starlight/issues/89)) ([9b53cc1](https://github.com/digitalrelab/Starlight/commit/9b53cc1203833a2a98e4740a87d6b951391871d6))
+* **desktop:** toggle hidden files with ⌘⇧. ([#85](https://github.com/digitalrelab/Starlight/issues/85)) ([fbed40c](https://github.com/digitalrelab/Starlight/commit/fbed40cbcdef1df7418834394fcbcc55f9ff2b01))
+* **index:** index every mount in the background and keep it current ([#97](https://github.com/digitalrelab/Starlight/issues/97)) ([1fef630](https://github.com/digitalrelab/Starlight/commit/1fef6309e8be2927bf0b460c7fcc2e8867af55a0))
+* **media-player:** remember volume, speed and the visualizer switch across restarts ([#100](https://github.com/digitalrelab/Starlight/issues/100)) ([59c0c32](https://github.com/digitalrelab/Starlight/commit/59c0c32f5e1c77a82d7cbfefcc60a9d55230b0a9))
+* **references:** mention files, folders and chats with @ in the composer ([#96](https://github.com/digitalrelab/Starlight/issues/96)) ([4344d6c](https://github.com/digitalrelab/Starlight/commit/4344d6c1e2d1013a15231e0d44cacdf831557009))
+* **references:** starchive: links to entries and chats, shown as chips ([#90](https://github.com/digitalrelab/Starlight/issues/90)) ([d1a53c4](https://github.com/digitalrelab/Starlight/commit/d1a53c492c49ee703f96059c66c7f1e0a91f78aa))
+* **search:** find files and folders by name from the command palette ([#101](https://github.com/digitalrelab/Starlight/issues/101)) ([d16a8b2](https://github.com/digitalrelab/Starlight/commit/d16a8b24092af806689b61cd0fb26d880c36a133))
+* **settings:** show AI plan usage limits on a Usage page ([#93](https://github.com/digitalrelab/Starlight/issues/93)) ([c1c6aca](https://github.com/digitalrelab/Starlight/commit/c1c6acaf85d05f95c5afcc2831d34bd960573477))
+* **usage:** refresh usage when a chat turn ends ([#98](https://github.com/digitalrelab/Starlight/issues/98)) ([0642e80](https://github.com/digitalrelab/Starlight/commit/0642e806f987c46b95cf1aa3fc7c83866d2e374f))
+
+
+### Bug Fixes
+
+* **agent:** stop Codex chats viewing images anywhere on disk ([#110](https://github.com/digitalrelab/Starlight/issues/110)) ([0f2aff0](https://github.com/digitalrelab/Starlight/commit/0f2aff0bc756af8bff6f6070c180c6ba390fe01c))
+* **browser:** stop placeholders showing through transparent previews ([#87](https://github.com/digitalrelab/Starlight/issues/87)) ([b5e319d](https://github.com/digitalrelab/Starlight/commit/b5e319d9ad3ec195cc089c3d24156438baeed8b4))
+* **ui:** follow the system appearance until a theme is applied ([#86](https://github.com/digitalrelab/Starlight/issues/86)) ([1d00b11](https://github.com/digitalrelab/Starlight/commit/1d00b11f572e981bea41eda2d8592f4453db1891))
+* **ui:** show pressed toggles as selected and favorites in the favorite color ([#92](https://github.com/digitalrelab/Starlight/issues/92)) ([93f6826](https://github.com/digitalrelab/Starlight/commit/93f6826285359a4189e2fa02d228d4d831ee0e9a))
+* **viewer:** give the stage and inspector cards the raised surface ([#91](https://github.com/digitalrelab/Starlight/issues/91)) ([0059307](https://github.com/digitalrelab/Starlight/commit/0059307f986fa8f537cc7508afc4c5383bb4dd7c))
+
+
+### Performance Improvements
+
+* **client:** read providers on app focus instead of every page ([#102](https://github.com/digitalrelab/Starlight/issues/102)) ([232a995](https://github.com/digitalrelab/Starlight/commit/232a995ff7b69f9d016e3605c3cd57f00f861ac8))
+
 ## [0.5.0](https://github.com/digitalrelab/Starlight/compare/v0.4.0...v0.5.0) (2026-11-27)
 
 
