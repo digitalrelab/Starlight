@@ -38,7 +38,7 @@ const useMedia = (projectId: string, directory: EntryRef | null, entries: Readon
   const { data } = useSuspenseQuery(queries.media(projectId, directory));
   useEffect(
     () => (directory ? subscriptions.media(projectId, directory) : undefined),
-    [subscriptions, projectId, directory, entries],
+    [subscriptions, projectId, directory],
   );
   const byKey = indexByKey(data);
   return { byKey, aspects: Float64Array.from(entries, (entry) => aspectOf(byKey.get(entryKey(entry.ref)))) };

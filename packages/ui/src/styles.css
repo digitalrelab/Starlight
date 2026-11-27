@@ -20,6 +20,10 @@
   );
 }
 
+@utility squircle {
+  @apply rounded-[30%] supports-[corner-shape:squircle]:rounded-full supports-[corner-shape:squircle]:[corner-shape:squircle];
+}
+
 @utility focus-ring {
   @apply outline-none focus-visible:ring-2 focus-visible:ring-selected;
 }

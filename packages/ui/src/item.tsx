@@ -1,13 +1,11 @@
 import { useRender } from "@base-ui/react";
 import { cn } from "cn";
 import type { ComponentProps, ReactNode } from "react";
+import { Card } from "./card.tsx";
 
 const List = ({ className, ...props }: ComponentProps<"div">) => (
-  <div
-    className={cn(
-      "flex flex-col overflow-hidden rounded-lg border border-default bg-surface-raised px-4 shadow-xs *:border-default *:not-first:border-t",
-      className,
-    )}
+  <Card
+    className={cn("flex flex-col overflow-hidden px-4 *:border-default *:not-first:border-t", className)}
     {...props}
   />
 );

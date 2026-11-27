@@ -29,7 +29,7 @@ const byKindThenName = (a: Entry, b: Entry) => {
 
 const toEntry = (
   source: SourceId,
-  { id, key: _key, ...entry }: SourceEntry,
+  { id, key: _key, createdAt: _createdAt, ...entry }: SourceEntry,
   fileId: FileId | null,
 ): Entry => ({
   ...entry,
@@ -38,6 +38,12 @@ const toEntry = (
 });
 
 const resync: EntryChange = { _tag: "Resync" };
+
+const sameMounts = (a: ReadonlyArray<Mount>, b: ReadonlyArray<Mount>) =>
+  a.length === b.length &&
+  a.every(
+    (mount, index) => mount.root.source === b[index]?.root.source && mount.root.id === b[index]?.root.id,
+  );
 
 const toChange =
   (mount: Mount, driver: SourceDriver) =>
@@ -104,8 +110,10 @@ export class Entries extends Context.Service<
         }),
 
         watch: (projectId) =>
-          projects.get(projectId).pipe(
-            Effect.flatMap(({ mounts }) =>
+          projects.watch(projectId).pipe(
+            Stream.map(({ mounts }) => mounts),
+            Stream.changesWith(sameMounts),
+            Stream.switchMap((mounts) =>
               Effect.forEach(mounts, (mount) =>
                 projects
                   .driverFor(mount.root.source)
@@ -114,10 +122,11 @@ export class Entries extends Context.Service<
                       driver.watch(mount.root.id).pipe(Stream.filterMap(toChange(mount, driver))),
                     ),
                   ),
+              ).pipe(
+                Effect.map((streams) => Stream.mergeAll(streams, { concurrency: "unbounded" })),
+                Stream.unwrap,
               ),
             ),
-            Effect.map((streams) => Stream.mergeAll(streams, { concurrency: "unbounded" })),
-            Stream.unwrap,
           ),
       });
     }),

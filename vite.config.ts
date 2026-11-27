@@ -30,6 +30,7 @@ const reactRules: OxlintOverride["rules"] = {
   "react/unsupported-syntax": "error",
   "react/use-memo": "error",
   "react/void-use-memo": "error",
+  "react/exhaustive-effect-dependencies": "error",
   "react/incompatible-library": "off",
 };
 
