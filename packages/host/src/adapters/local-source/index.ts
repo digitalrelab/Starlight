@@ -7,6 +7,7 @@ import type { SourceChange, SourceCrumb, SourceDriver, SourceEntry } from "@star
 import { Effect, Queue, Stream } from "effect";
 import type { Imaging } from "#adapters/imaging.ts";
 import { dimensionsExtractor, durationExtractor } from "./extractors.ts";
+import { readRange } from "./read-range.ts";
 import { sourceError, toSourceError } from "./source-error.ts";
 
 const resync: SourceChange = { _tag: "Resync" };
@@ -52,6 +53,15 @@ const writeInPlace = async (path: string, content: Uint8Array) => {
     await handle.truncate(content.byteLength);
     await handle.sync();
     return await handle.stat();
+  } finally {
+    await handle.close();
+  }
+};
+
+const readStart = async (path: string, limit: number) => {
+  const handle = await open(path, "r");
+  try {
+    return await readRange(handle, 0, limit);
   } finally {
     await handle.close();
   }
@@ -125,6 +135,7 @@ export const makeLocalSource = (imaging: Imaging["Service"]): SourceDriver => {
         },
         catch: toSourceError(id),
       }),
+    read: (id, limit) => Effect.tryPromise({ try: () => readStart(id, limit), catch: toSourceError(id) }),
     write: (id, content) =>
       Effect.tryPromise({ try: () => writeInPlace(id, content), catch: toSourceError(id) }).pipe(
         Effect.map((s) => toEntry(id, s)),

@@ -3,7 +3,7 @@ import { Effect } from "effect";
 import { COMMAND_TIMEOUT_MS } from "./cli.ts";
 
 export const AGENT_INSTRUCTIONS =
-  "You are the assistant inside Starlight, a desktop file manager. Answer clearly and concisely. You cannot see or change the user's files yet.";
+  "You are the assistant inside Starlight, a desktop file manager. Answer clearly and concisely. You can only reach the user's files through the tools Starlight gives you.";
 
 const EFFORT_LABELS: Readonly<Record<string, string>> = { xhigh: "Extra High" };
 

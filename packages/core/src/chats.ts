@@ -23,6 +23,7 @@ import {
   IdGenerator,
   type StoredChat,
 } from "./ports.ts";
+import { AgentTools } from "./agent-tools.ts";
 import { Projects } from "./projects.ts";
 
 const TITLE_LENGTH = 80;
@@ -66,6 +67,7 @@ export class Chats extends Context.Service<
     Effect.gen(function* () {
       const store = yield* ChatStore;
       const projects = yield* Projects;
+      const agentTools = yield* AgentTools;
       const drivers = yield* AgentProviderDrivers;
       const audit = yield* AuditLog;
       const ids = yield* IdGenerator;
@@ -111,7 +113,8 @@ export class Chats extends Context.Service<
         return Effect.gen(function* () {
           let draft = initial;
           let session = stored.session;
-          yield* driver.respond({ prompt, history: stored.messages, session, model }).pipe(
+          const toolkit = Option.map(Option.fromNullishOr(stored.chat.projectId), agentTools.forProject);
+          yield* driver.respond({ prompt, history: stored.messages, session, model, toolkit }).pipe(
             Stream.runForEach((event) => {
               if (event._tag === "Completed") {
                 session = event.session;

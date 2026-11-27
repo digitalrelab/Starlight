@@ -21,7 +21,7 @@ const toEvents = (message: SDKMessage): Stream.Stream<AgentTurnEvent, AgentTurnF
 
 export const respond =
   (pool: Pool) =>
-  ({ prompt, session, model }: AgentTurnInput): Stream.Stream<AgentTurnEvent, AgentTurnFailed> =>
+  ({ prompt, session, model, toolkit }: AgentTurnInput): Stream.Stream<AgentTurnEvent, AgentTurnFailed> =>
     Stream.unwrap(
       Effect.map(
         Effect.tryPromise({
@@ -29,7 +29,7 @@ export const respond =
           catch: AgentTurnFailed.from,
         }),
         (claude) =>
-          Stream.fromAsyncIterable(claude.turn(prompt, model), AgentTurnFailed.from).pipe(
+          Stream.fromAsyncIterable(claude.turn(prompt, model, toolkit), AgentTurnFailed.from).pipe(
             Stream.flatMap(toEvents),
             Stream.onExit((exit) =>
               Effect.sync(() => (Exit.isSuccess(exit) ? pool.park(claude) : claude.close())),
