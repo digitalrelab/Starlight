@@ -11,47 +11,40 @@ import { WindowChart } from "./window-chart.tsx";
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 const COLUMNS = 8;
 
-interface Window {
+interface WindowItem {
+  readonly label: string;
   readonly resetsAt: number;
   readonly durationMs: number;
-  readonly series: Array<UsageSeries>;
 }
 
-const windowsOf = (series: ReadonlyArray<UsageSeries>) => {
-  const windows = new Map<number, Window>();
-  for (const entry of series) {
-    const window = windows.get(entry.resetsAt) ?? { ...entry, series: [] };
-    windows.set(entry.resetsAt, window);
-    window.series.push(entry);
-  }
-  return [...windows.values()];
-};
+const byWindow = <A extends WindowItem>(items: ReadonlyArray<A>) => [
+  ...Map.groupBy(items, ({ resetsAt }) => resetsAt).values(),
+];
 
 const peakOf = ({ points }: UsageSeries) => Math.max(0, ...points.map(({ usedPercent }) => usedPercent));
 
-const columnsOf = (past: ReadonlyArray<UsagePeak>, current: Window | undefined) => {
-  const columns = new Map<number, PeakColumn & { readonly peaks: Map<string, number> }>();
-  for (const peak of past) {
-    const column = columns.get(peak.resetsAt) ?? {
-      start: peak.resetsAt - peak.durationMs,
-      peaks: new Map(),
-      current: false,
-    };
-    columns.set(peak.resetsAt, column);
-    column.peaks.set(peak.label, peak.peakPercent);
-  }
-  const finished: Array<PeakColumn> = [...columns.values()].sort((a, b) => a.start - b.start);
-  const ongoing: Array<PeakColumn> = current
+const columnOf = <A extends WindowItem>(
+  group: ReadonlyArray<A>,
+  percentOf: (item: A) => number,
+  current: boolean,
+): Array<PeakColumn> => {
+  const [first] = group;
+  return first
     ? [
         {
-          start: current.resetsAt - current.durationMs,
-          peaks: new Map(current.series.map((series) => [series.label, peakOf(series)])),
-          current: true,
+          start: first.resetsAt - first.durationMs,
+          peaks: new Map(group.map((item) => [item.label, percentOf(item)])),
+          current,
         },
       ]
     : [];
-  return [...finished, ...ongoing].slice(-COLUMNS);
 };
+
+const columnsOf = (past: ReadonlyArray<UsagePeak>, current: ReadonlyArray<UsageSeries>) =>
+  [
+    ...byWindow(past).flatMap((group) => columnOf(group, ({ peakPercent }) => peakPercent, false)),
+    ...columnOf(current, peakOf, true),
+  ].slice(-COLUMNS);
 
 const summaryOf = (columns: ReadonlyArray<PeakColumn>, unit: string) => {
   const finished = columns.filter(({ current }) => !current).map(({ peaks }) => Math.max(...peaks.values()));
@@ -97,28 +90,31 @@ const Charts = ({ provider, history, now }: Props) => {
 
   const labels = [...new Set([...current, ...past].map(({ label }) => label))];
   const colorOf = (label: string) => seriesColor(labels.indexOf(label));
-  const windows = windowsOf(current);
-  const columns = columnsOf(past, windows[0]);
+  const windows = byWindow(current);
+  const columns = columnsOf(past, windows[0] ?? []);
   const weekly = [...current, ...past].every(({ durationMs }) => durationMs === WEEK_MS);
 
   return (
     <>
-      {windows.map(({ resetsAt, durationMs, series }, index) => (
-        <Block
-          key={resetsAt}
-          title={weekly ? "This week" : "Current window"}
-          aside={`Resets in ${formatSpan(Math.max(resetsAt - now, 0))}`}
-        >
-          {index === 0 && labels.length > 1 ? <Legend labels={labels} colorOf={colorOf} /> : null}
-          <WindowChart
-            resetsAt={resetsAt}
-            durationMs={durationMs}
-            series={series}
-            colorOf={colorOf}
-            now={now}
-          />
-        </Block>
-      ))}
+      {windows.map((series, index) => {
+        const [first] = series;
+        return first ? (
+          <Block
+            key={first.resetsAt}
+            title={weekly ? "This week" : "Current window"}
+            aside={`Resets in ${formatSpan(Math.max(first.resetsAt - now, 0))}`}
+          >
+            {index === 0 && labels.length > 1 ? <Legend labels={labels} colorOf={colorOf} /> : null}
+            <WindowChart
+              resetsAt={first.resetsAt}
+              durationMs={first.durationMs}
+              series={series}
+              colorOf={colorOf}
+              now={now}
+            />
+          </Block>
+        ) : null;
+      })}
       {columns.length > 1 ? (
         <Block
           title={weekly ? "Past weeks" : "Past windows"}

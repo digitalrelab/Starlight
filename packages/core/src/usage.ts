@@ -1,4 +1,4 @@
-import type { AgentProviderUsage, UsageHistory, UsagePoint, UsageSeries } from "@starlight/contracts";
+import type { AgentProviderUsage, UsageHistory, UsageSeries } from "@starlight/contracts";
 import { Clock, Context, Duration, Effect, Layer, PubSub, Stream } from "effect";
 import { Chats } from "./chats.ts";
 import { AgentProviderDrivers, type UsageSample, UsageStore } from "./ports.ts";
@@ -29,22 +29,25 @@ const samplesOf = (at: number, usage: ReadonlyArray<AgentProviderUsage>): Array<
       : [],
   );
 
-const seriesOf = (samples: ReadonlyArray<UsageSample>): Array<UsageSeries> => {
-  const series = new Map<string, { readonly window: UsageSample; readonly points: Array<UsagePoint> }>();
-  for (const sample of samples) {
-    const key = JSON.stringify([sample.provider, sample.label, sample.resetsAt]);
-    const entry = series.get(key) ?? { window: sample, points: [] };
-    series.set(key, entry);
-    entry.points.push({ at: sample.at, usedPercent: sample.usedPercent });
-  }
-  return [...series.values()].map(({ window: { provider, label, resetsAt, durationMs }, points }) => ({
-    provider,
-    label,
-    resetsAt,
-    durationMs,
-    points,
-  }));
-};
+const seriesOf = (samples: ReadonlyArray<UsageSample>): Array<UsageSeries> =>
+  [
+    ...Map.groupBy(samples, (sample) =>
+      JSON.stringify([sample.provider, sample.label, sample.resetsAt]),
+    ).values(),
+  ].flatMap((group) => {
+    const [first] = group;
+    return first
+      ? [
+          {
+            provider: first.provider,
+            label: first.label,
+            resetsAt: first.resetsAt,
+            durationMs: first.durationMs,
+            points: group.map(({ at, usedPercent }) => ({ at, usedPercent })),
+          },
+        ]
+      : [];
+  });
 
 export class Usage extends Context.Service<
   Usage,
@@ -74,8 +77,8 @@ export class Usage extends Context.Service<
       });
 
       const history = Effect.gen(function* () {
-        const windows = { now: yield* Clock.currentTimeMillis, minDurationMs: HISTORY_MIN_DURATION_MS };
-        const [open, past] = yield* Effect.all([store.open(windows), store.peaks(windows)], {
+        const filter = { now: yield* Clock.currentTimeMillis, minDurationMs: HISTORY_MIN_DURATION_MS };
+        const [open, past] = yield* Effect.all([store.open(filter), store.peaks(filter)], {
           concurrency: "unbounded",
         });
         return { current: seriesOf(open), past };

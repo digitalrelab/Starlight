@@ -17,14 +17,12 @@ export interface Inset {
 
 export interface PercentScale {
   readonly width: number;
-  readonly height: number;
   readonly inset: Inset;
   readonly y: (percent: number) => number;
 }
 
 export const percentScale = (width: number, height: number, inset: Inset): PercentScale => ({
   width,
-  height,
   inset,
   y: (percent) => inset.top + (1 - percent / FULL_PERCENT) * (height - inset.top - inset.bottom),
 });

@@ -208,7 +208,7 @@ export interface UsageSample {
   readonly durationMs: number;
 }
 
-export interface UsageWindows {
+export interface UsageWindowFilter {
   readonly now: number;
   readonly minDurationMs: number;
 }
@@ -218,8 +218,8 @@ export class UsageStore extends Context.Service<
   {
     readonly record: (samples: ReadonlyArray<UsageSample>) => Effect.Effect<void>;
     readonly forget: (before: number) => Effect.Effect<void>;
-    readonly open: (windows: UsageWindows) => Effect.Effect<ReadonlyArray<UsageSample>>;
-    readonly peaks: (windows: UsageWindows) => Effect.Effect<ReadonlyArray<UsagePeak>>;
+    readonly open: (filter: UsageWindowFilter) => Effect.Effect<ReadonlyArray<UsageSample>>;
+    readonly peaks: (filter: UsageWindowFilter) => Effect.Effect<ReadonlyArray<UsagePeak>>;
   }
 >()("@starlight/core/UsageStore") {}
 

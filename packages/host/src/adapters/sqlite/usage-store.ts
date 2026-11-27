@@ -5,7 +5,7 @@ import { Array as Arr, Effect, Layer, Schema } from "effect";
 import { SqlClient, SqlSchema } from "effect/sql";
 import { batched } from "./batched.ts";
 
-const Windows = Schema.Struct({ now: Schema.Number, minDurationMs: Schema.Number });
+const WindowFilter = Schema.Struct({ now: Schema.Number, minDurationMs: Schema.Number });
 
 const SampleRow = Schema.Struct({
   at: Schema.Number,
@@ -47,7 +47,7 @@ export const SqliteUsageStoreLive = Layer.effect(UsageStore)(
     const inBatches = batched(sql);
 
     const open = SqlSchema.findAll({
-      Request: Windows,
+      Request: WindowFilter,
       Result: SampleRow,
       execute: ({ now, minDurationMs }) => sql`
         SELECT at, provider, label, used_percent, resets_at, duration_ms
@@ -58,7 +58,7 @@ export const SqliteUsageStoreLive = Layer.effect(UsageStore)(
     });
 
     const peaks = SqlSchema.findAll({
-      Request: Windows,
+      Request: WindowFilter,
       Result: PeakRow,
       execute: ({ now, minDurationMs }) => sql`
         SELECT provider, label, resets_at, duration_ms, MAX(used_percent) AS peak_percent
@@ -88,13 +88,13 @@ export const SqliteUsageStoreLive = Layer.effect(UsageStore)(
         ),
       forget: (before) =>
         sql`DELETE FROM usage_samples WHERE at < ${before}`.pipe(Effect.asVoid, Effect.orDie),
-      open: (windows) =>
-        open(windows).pipe(
+      open: (filter) =>
+        open(filter).pipe(
           Effect.map((rows) => rows.map(toSample)),
           Effect.orDie,
         ),
-      peaks: (windows) =>
-        peaks(windows).pipe(
+      peaks: (filter) =>
+        peaks(filter).pipe(
           Effect.map((rows) => rows.map(toPeak)),
           Effect.orDie,
         ),
