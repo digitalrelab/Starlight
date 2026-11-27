@@ -59,7 +59,7 @@ export const submitOnEnter = (submit: () => void) =>
       {
         key: "Enter",
         run: (view) => {
-          if (view.composing || completionStatus(view.state) !== null) return false;
+          if (view.composing || completionStatus(view.state) === "active") return false;
           submit();
           return true;
         },
