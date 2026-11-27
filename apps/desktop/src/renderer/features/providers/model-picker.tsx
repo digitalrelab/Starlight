@@ -7,7 +7,16 @@ import {
   Tick02Icon,
 } from "@hugeicons-pro/core-stroke-rounded";
 import type { AgentEffort, AgentModel, AgentProvider, ModelChoice } from "@starlight/client";
-import { cn, Icon, Kbd, Popover, PopoverContent, PopoverTrigger, ScrollArea } from "@starlight/ui";
+import {
+  cn,
+  Icon,
+  IconButton,
+  Kbd,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  ScrollArea,
+} from "@starlight/ui";
 import { type ReactNode, useEffect, useEffectEvent, useState } from "react";
 import { type Favorite, sameModel, useFavoriteModels } from "./favorite-models.ts";
 import { providerAppearance } from "./provider-appearance.ts";
@@ -66,23 +75,22 @@ const Row = ({
 );
 
 const Star = ({
-  label,
+  model,
   starred,
   onToggle,
 }: {
-  readonly label: string;
+  readonly model: string;
   readonly starred: boolean;
   readonly onToggle: () => void;
 }) => (
-  <button
-    type="button"
-    aria-label={starred ? `Remove ${label} from favorites` : `Add ${label} to favorites`}
+  <IconButton
+    icon={starred ? StarFilledIcon : StarIcon}
+    label={starred ? "Remove from favorites" : "Add to favorites"}
+    aria-label={starred ? `Remove ${model} from favorites` : `Add ${model} to favorites`}
     aria-pressed={starred}
     onClick={onToggle}
-    className="inline-flex size-5 items-center justify-center rounded-sm text-subtlest opacity-0 focus-ring group-hover/row:opacity-100 hover:text-default focus-visible:opacity-100 aria-pressed:text-accent-yellow aria-pressed:opacity-100 aria-pressed:hover:text-accent-yellow/50"
-  >
-    <Icon icon={starred ? StarFilledIcon : StarIcon} size={14} />
-  </button>
+    className="size-6 rounded-md text-subtlest opacity-0 group-hover/row:opacity-100 highlighted:bg-neutral-hovered focus-visible:opacity-100 aria-pressed:text-accent-yellow aria-pressed:opacity-100 aria-pressed:highlighted:text-accent-yellow"
+  />
 );
 
 const RailButton = ({
@@ -168,7 +176,7 @@ export const ModelPicker = ({ providers, choice, onChoose }: Props) => {
   const star = (entry: Entry | undefined) =>
     entry ? (
       <Star
-        label={entry.model.name}
+        model={entry.model.name}
         starred={isFavorite(entry.choice)}
         onToggle={() => toggle(entry.choice, kept)}
       />
