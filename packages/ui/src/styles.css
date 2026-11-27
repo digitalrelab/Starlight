@@ -1,51 +1,8 @@
+@import "./theme.css";
 @source "./";
 
-:root {
-  color-scheme: light dark;
-  --sl-chrome: oklch(0.97 0.003 260);
-  --sl-panel: oklch(0.995 0.001 260);
-  --sl-fg: oklch(0.22 0.01 260);
-  --sl-muted: oklch(0.55 0.01 260);
-  --sl-border: oklch(0.9 0.004 260);
-  --sl-hover: oklch(0.94 0.004 260);
-  --sl-selected: oklch(0.9 0.04 255);
-  --sl-accent: oklch(0.6 0.17 255);
-  --sl-accent-fg: oklch(0.99 0 0);
-  --sl-danger: oklch(0.58 0.2 25);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --sl-chrome: oklch(0.15 0.004 260);
-    --sl-panel: oklch(0.185 0.005 260);
-    --sl-fg: oklch(0.93 0.005 260);
-    --sl-muted: oklch(0.62 0.01 260);
-    --sl-border: oklch(0.27 0.006 260);
-    --sl-hover: oklch(0.24 0.006 260);
-    --sl-selected: oklch(0.32 0.06 255);
-    --sl-accent: oklch(0.68 0.15 255);
-    --sl-accent-fg: oklch(0.15 0.01 260);
-    --sl-danger: oklch(0.7 0.17 25);
-  }
-}
-
-@theme inline {
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "SF Pro Text", sans-serif;
-  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
-  --color-chrome: var(--sl-chrome);
-  --color-panel: var(--sl-panel);
-  --color-fg: var(--sl-fg);
-  --color-muted: var(--sl-muted);
-  --color-border: var(--sl-border);
-  --color-hover: var(--sl-hover);
-  --color-selected: var(--sl-selected);
-  --color-accent: var(--sl-accent);
-  --color-accent-fg: var(--sl-accent-fg);
-  --color-danger: var(--sl-danger);
-}
-
 @utility focus-ring {
-  @apply outline-none focus-visible:ring-2 focus-visible:ring-accent/60;
+  @apply outline-none focus-visible:ring-2 focus-visible:ring-selected;
 }
 
 @layer base {

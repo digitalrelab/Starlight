@@ -15,7 +15,7 @@ export const MainSidebar = () => {
           Open Folder…
         </NavItem>
         {openWorkspace.error ? (
-          <p className="px-2 text-[12px] text-danger">{openWorkspace.error.message}</p>
+          <p className="px-2 text-sm text-danger">{openWorkspace.error.message}</p>
         ) : null}
       </div>
       <RecentWorkspaces />

@@ -38,12 +38,12 @@ export const EntryList = ({ entries, onOpen }: Props) => {
   };
 
   if (entries.length === 0) {
-    return <div className="flex flex-1 items-center justify-center text-muted">Empty folder</div>;
+    return <div className="flex flex-1 items-center justify-center text-subtle">Empty folder</div>;
   }
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className={cn(COLUMNS, "border-b border-border px-4 py-1.5 text-[11px] font-medium text-muted")}>
+      <div className={cn(COLUMNS, "border-b border-default px-4 py-1.5 text-xs font-medium text-subtle")}>
         <span>Name</span>
         <span className="text-right">Size</span>
         <span>Modified</span>
@@ -67,7 +67,7 @@ export const EntryList = ({ entries, onOpen }: Props) => {
                 className={cn(
                   COLUMNS,
                   "absolute inset-x-2 items-center rounded-md px-2",
-                  row.index === selected ? "bg-selected" : "hover:bg-hover",
+                  row.index === selected ? "bg-selected" : "hover:bg-neutral-subtle-hovered",
                   entry.hidden && "opacity-50",
                 )}
                 style={{ height: ROW_HEIGHT, transform: `translateY(${row.start}px)` }}
@@ -75,20 +75,20 @@ export const EntryList = ({ entries, onOpen }: Props) => {
                 <span className="flex min-w-0 items-center gap-2">
                   <Icon
                     icon={isDir ? FolderIcon : File01Icon}
-                    className={cn("shrink-0", isDir ? "text-accent" : "text-muted")}
+                    className={cn("shrink-0", isDir ? "text-brand" : "text-subtle")}
                   />
                   <span className="truncate">{entry.name}</span>
                 </span>
-                <span className="text-right text-muted tabular-nums">
+                <span className="text-right text-subtle tabular-nums">
                   {isDir ? "—" : formatSize(entry.size)}
                 </span>
-                <span className="truncate text-muted tabular-nums">{formatDate(entry.modifiedAt)}</span>
+                <span className="truncate text-subtle tabular-nums">{formatDate(entry.modifiedAt)}</span>
               </div>
             );
           })}
         </div>
       </div>
-      <footer className="border-t border-border px-4 py-1 text-[11px] text-muted">
+      <footer className="border-t border-default px-4 py-1 text-xs text-subtle">
         {entries.length.toLocaleString()} {entries.length === 1 ? "item" : "items"}
       </footer>
     </div>

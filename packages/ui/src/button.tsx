@@ -3,8 +3,8 @@ import type { ComponentProps } from "react";
 import { cn } from "cn";
 
 const variants = {
-  primary: "bg-accent text-accent-fg hover:brightness-110",
-  ghost: "text-fg hover:bg-hover",
+  primary: "bg-brand-bold text-inverse hover:bg-brand-bold-hovered",
+  ghost: "text-default hover:bg-neutral-subtle-hovered",
 } as const;
 
 export interface ButtonProps extends Omit<ComponentProps<typeof BaseButton>, "className"> {
@@ -15,8 +15,8 @@ export interface ButtonProps extends Omit<ComponentProps<typeof BaseButton>, "cl
 export const Button = ({ variant = "ghost", className, ...props }: ButtonProps) => (
   <BaseButton
     className={cn(
-      "inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 text-[13px] font-medium select-none",
-      "transition-[background-color,filter] duration-100 focus-ring data-[disabled]:opacity-50",
+      "inline-flex h-control items-center gap-1.5 rounded-md px-2.5 text-base font-medium select-none",
+      "transition-colors focus-ring data-[disabled]:opacity-50",
       variants[variant],
       className,
     )}
