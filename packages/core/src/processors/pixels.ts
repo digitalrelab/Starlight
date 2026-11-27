@@ -13,3 +13,10 @@ export const forEachPixel = (
     visit(rgba[offset] ?? 0, rgba[offset + 1] ?? 0, rgba[offset + 2] ?? 0, rgba[offset + 3] ?? 0);
   }
 };
+
+export const isTransparent = ({ rgba }: PixelSample) => {
+  for (let offset = CHANNELS - 1; offset < rgba.length; offset += CHANNELS) {
+    if ((rgba[offset] ?? 0) < FULL_ALPHA) return true;
+  }
+  return false;
+};

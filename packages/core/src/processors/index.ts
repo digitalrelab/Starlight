@@ -3,12 +3,14 @@ import { Base64 } from "effect/encoding";
 import { rgbaToThumbHash } from "thumbhash";
 import type { ProcessedFacts, Processor } from "#ports.ts";
 import { paletteOf } from "./palette.ts";
+import { isTransparent } from "./pixels.ts";
 import { traitsOf } from "./traits.ts";
 
 export const processors: { readonly [F in keyof ProcessedFacts]: Processor<ProcessedFacts[F]> } = {
   placeholder: {
-    version: 1,
-    process: ({ width, height, rgba }) => Base64.encode(rgbaToThumbHash(width, height, rgba)),
+    version: 2,
+    process: (sample) =>
+      isTransparent(sample) ? null : Base64.encode(rgbaToThumbHash(sample.width, sample.height, sample.rgba)),
   },
   palette: { version: 1, process: paletteOf },
   traits: { version: 1, process: traitsOf },

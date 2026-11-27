@@ -64,7 +64,7 @@ export const Tile = memo(
       >
         <div
           className={cn(
-            "relative min-h-0 flex-1 overflow-hidden rounded-md bg-surface-sunken outline-2 outline-offset-2",
+            "group/preview relative min-h-0 flex-1 overflow-hidden rounded-md bg-surface-sunken outline-2 outline-offset-2",
             selected
               ? "outline-(--border-color-selected) group-hover:outline-(--border-color-selected-hovered)"
               : "outline-transparent group-hover:outline-(--text-color-subtlest)",
@@ -112,20 +112,22 @@ interface PreviewProps {
   readonly visible: boolean;
 }
 
+const underImage = "transition-opacity duration-150 group-has-data-loaded/preview:opacity-0";
+
 const Preview = ({ url, placeholder, visible }: PreviewProps) => {
-  const src = usePreview(url, visible);
+  const { src, instant } = usePreview(url, visible);
   return (
     <>
       {placeholder ? (
         <div
-          className="absolute inset-0 bg-cover bg-center"
+          className={cn("absolute inset-0 bg-cover bg-center", underImage)}
           style={{ backgroundImage: `url(${placeholderUrl(placeholder)})` }}
         />
       ) : (
         <Icon
           icon={Image01Icon}
           size={24}
-          className="absolute top-1/2 left-1/2 -translate-1/2 text-subtlest"
+          className={cn("absolute top-1/2 left-1/2 -translate-1/2 text-subtlest", underImage)}
         />
       )}
       {src && (
@@ -134,6 +136,7 @@ const Preview = ({ url, placeholder, visible }: PreviewProps) => {
           alt=""
           decoding="async"
           draggable={false}
+          data-loaded={instant ? "" : undefined}
           onLoad={reveal}
           className="relative size-full object-cover opacity-0 transition-opacity duration-150 data-loaded:opacity-100"
         />
