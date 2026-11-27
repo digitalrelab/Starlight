@@ -49,5 +49,6 @@ export class ShellRpcs extends RpcGroup.make(
     success: Update,
     stream: true,
   }),
+  Rpc.make("DownloadUpdate"),
   Rpc.make("InstallUpdate"),
 ) {}

@@ -6,6 +6,7 @@ export * from "./icon-button.tsx";
 export * from "./nav-item.tsx";
 export * from "./nav-section.tsx";
 export * from "./popover.tsx";
+export * from "./progress.tsx";
 export * from "./prose.tsx";
 export * from "./switch.tsx";
 export * from "./tooltip.tsx";

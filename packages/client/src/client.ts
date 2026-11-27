@@ -60,6 +60,7 @@ export const createClient = (ports: PortSources) => {
     },
     updates: {
       watch: () => shell((c) => Stream.toAsyncIterableEffect(c.WatchUpdates())),
+      download: () => shell((c) => c.DownloadUpdate()),
       install: () => shell((c) => c.InstallUpdate()),
     },
   };

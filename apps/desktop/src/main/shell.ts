@@ -14,6 +14,7 @@ const ShellServerLive = (window: BrowserWindow, updater: Updater) =>
             dialog.showOpenDialog(window, { properties: ["openDirectory", "createDirectory"] }),
           ).pipe(Effect.map((result) => (result.canceled ? null : (result.filePaths[0] ?? null)))),
         WatchUpdates: () => updater.updates,
+        DownloadUpdate: () => Effect.sync(updater.download),
         InstallUpdate: () => Effect.sync(updater.install),
       }),
     ),

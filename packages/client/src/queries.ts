@@ -53,6 +53,8 @@ const createQueries = (client: StarlightClient) => ({
 const createMutations = (client: StarlightClient, queryClient: QueryClient, queries: Queries) => ({
   pickDirectory: () => mutationOptions({ mutationFn: () => client.shell.pickDirectory() }),
 
+  downloadUpdate: () => mutationOptions({ mutationFn: () => client.updates.download() }),
+
   installUpdate: () => mutationOptions({ mutationFn: () => client.updates.install() }),
 
   openWorkspace: () =>
