@@ -57,7 +57,7 @@ export const openSession = async (
   let effort: EffortLevel | null | undefined;
 
   return {
-    query,
+    models: () => query.supportedModels(),
     get id() {
       return id;
     },

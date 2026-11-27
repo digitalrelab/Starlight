@@ -17,7 +17,7 @@ const DEFAULT_ALIAS = "default";
 export const isEffort = (effort: string): effort is EffortLevel => Object.hasOwn(EFFORTS, effort);
 
 const load = (pool: Pool) =>
-  Effect.tryPromise(() => pool.prepare().then((session) => session.query.supportedModels())).pipe(
+  Effect.tryPromise(() => pool.prepare().then((session) => session.models())).pipe(
     Effect.timeout(COMMAND_TIMEOUT_MS),
     Effect.map((models) =>
       models
