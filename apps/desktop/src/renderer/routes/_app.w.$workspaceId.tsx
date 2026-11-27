@@ -64,19 +64,18 @@ function Browser() {
     [directoryKey],
   );
 
-  const onOpen = useCallback(
-    (entry: Entry) => {
-      if (entry.kind === "directory") void navigate({ search: toDirectorySearch(entry.ref) });
-      else if (entry.kind === "file" && directory)
-        void navigate({ search: toFileSearch(directory, entry.ref) });
-    },
-    [navigate, directory],
-  );
   const showFile = useCallback(
     (shown: EntryRef) => {
       if (directory) void navigate({ search: toFileSearch(directory, shown), replace: true });
     },
     [navigate, directory],
+  );
+  const onOpen = useCallback(
+    (entry: Entry) => {
+      if (entry.kind === "directory") void navigate({ search: toDirectorySearch(entry.ref) });
+      else if (entry.kind === "file") showFile(entry.ref);
+    },
+    [navigate, showFile],
   );
   const closeViewer = useCallback(() => {
     select(fileKey);

@@ -4,7 +4,7 @@ import { fileUrl } from "../../../shared/files.ts";
 import { mediaTypeOf } from "../../../shared/media-types.ts";
 import { thumbnailUrl } from "../../../shared/thumbnails.ts";
 
-export type Presentation = "image" | "rendition" | "video" | "none";
+type Presentation = "image" | "rendition" | "video" | "none";
 
 const RENDERED_TYPES = new Set(["image/heic", "image/heif", "image/tiff"]);
 

@@ -1,12 +1,12 @@
-import { extname } from "node:path";
 import { type CustomScheme, nativeImage, screen } from "electron";
+import { mediaTypeOf } from "../shared/media-types.ts";
 import { fitThumbnailSize, THUMBNAIL_SCHEME } from "../shared/thumbnails.ts";
 import { serveLocalFiles } from "./local-files.ts";
 
 const CONCURRENCY = 6;
 const MAX_POINTS = 1024;
 const JPEG_QUALITY = 85;
-const OPAQUE_EXTENSIONS = new Set([".jpg", ".jpeg", ".heic", ".heif"]);
+const OPAQUE_TYPES = new Set(["image/jpeg", "image/heic", "image/heif"]);
 
 export const thumbnailScheme: CustomScheme = {
   scheme: THUMBNAIL_SCHEME,
@@ -42,7 +42,7 @@ const render = async (absolute: string, pixels: number) => {
   const points = Math.min(MAX_POINTS, Math.ceil(pixels / screen.getPrimaryDisplay().scaleFactor));
   const image = await nativeImage.createThumbnailFromPath(absolute, { width: points, height: points });
   if (image.isEmpty()) return new Response(null, { status: 404 });
-  const opaque = OPAQUE_EXTENSIONS.has(extname(absolute).toLowerCase());
+  const opaque = OPAQUE_TYPES.has(mediaTypeOf(absolute) ?? "");
   return new Response(new Uint8Array(opaque ? image.toJPEG(JPEG_QUALITY) : image.toPNG()), {
     headers: {
       "content-type": opaque ? "image/jpeg" : "image/png",
