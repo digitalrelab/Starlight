@@ -1,5 +1,14 @@
 import { type Actor, HostRpcs } from "@starlight/contracts";
-import { AgentProviders, Chats, CurrentActor, Entries, Files, MediaLibrary, Projects } from "@starlight/core";
+import {
+  AgentProviders,
+  Chats,
+  CurrentActor,
+  Entries,
+  EntrySearch,
+  Files,
+  MediaLibrary,
+  Projects,
+} from "@starlight/core";
 import { Effect, Layer } from "effect";
 import { RpcServer } from "effect/rpc";
 
@@ -11,6 +20,7 @@ const HandlersLive = HostRpcs.toLayer(
     const media = yield* MediaLibrary;
     const agentProviders = yield* AgentProviders;
     const chats = yield* Chats;
+    const search = yield* EntrySearch;
     return HostRpcs.of({
       CreateProject: ({ root }) => projects.create(root),
       ListProjects: () => projects.list,
@@ -26,6 +36,7 @@ const HandlersLive = HostRpcs.toLayer(
       ProcessMedia: ({ projectId, directory }) => media.process(projectId, directory),
       GetFileSource: ({ projectId, file }) => files.source(projectId, file),
       LocateEntry: ({ ref }) => projects.locateEntry(ref),
+      SearchEntries: ({ query, projectId, includeHidden }) => search.search(query, projectId, includeHidden),
       GetFileDetails: ({ projectId, file }) => files.details(projectId, file),
       WriteFile: ({ projectId, file, content, base }) => files.write(projectId, file, content, base),
       ListAgentProviders: () => agentProviders.list,

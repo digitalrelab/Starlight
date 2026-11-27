@@ -6,7 +6,7 @@ import {
   Navigation03Icon,
 } from "@hugeicons-pro/core-stroke-rounded";
 import type { Project } from "@starlight/client";
-import { Command, type CommandGroup, type CommandItem } from "@starlight/ui";
+import { Command, type CommandGroup, type CommandItem, Icon } from "@starlight/ui";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { useState } from "react";
@@ -18,6 +18,7 @@ import { SETTINGS_SECTIONS } from "#renderer/features/settings/settings-pages.ts
 import { useStarlight } from "#renderer/lib/context.ts";
 import { onMainMessage } from "#renderer/lib/main-messages.ts";
 import { defineStore, useStore } from "#renderer/lib/store.ts";
+import { useEntryGroups } from "./entry-groups.tsx";
 
 export const COMMAND_PALETTE_SHORTCUT = ["Meta", COMMAND_PALETTE_KEY];
 
@@ -43,7 +44,7 @@ const useChatItems = (projects: ReadonlyArray<Project>): ReadonlyArray<CommandIt
           key: chat.id,
           label: chat.title,
           detail: (chat.projectId && names.get(chat.projectId)) || "Agent",
-          icon: Message01Icon,
+          leading: <Icon icon={Message01Icon} />,
           run: () => navigate(chatLink(chat)),
         })),
   });
@@ -58,36 +59,47 @@ const Palette = ({ createProject }: { readonly createProject: () => void }) => {
   const projects = useQuery(queries.projects()).data ?? [];
   const project = projects.find(({ id }) => id === projectId);
   const chats = useChatItems(projects);
+  const entries = useEntryGroups(text, projectId ?? null);
 
   const projectItems = projects.map(({ id, name }): CommandItem => ({
     key: id,
     label: name,
-    icon: FolderIcon,
+    leading: <Icon icon={FolderIcon} />,
     run: () => navigate({ to: "/p/$projectId", params: { projectId: id } }),
   }));
 
   const pages: ReadonlyArray<CommandItem> = [
-    { key: "agent", label: "Agent", icon: Navigation03Icon, run: () => navigate({ to: "/agent" }) },
+    {
+      key: "agent",
+      label: "Agent",
+      leading: <Icon icon={Navigation03Icon} />,
+      run: () => navigate({ to: "/agent" }),
+    },
     ...SETTINGS_SECTIONS.flatMap(({ pages }) =>
       pages.map(({ label, icon, link }) => ({
         key: link.to,
         label,
         detail: "Settings",
-        icon,
+        leading: <Icon icon={icon} />,
         run: () => navigate(link),
       })),
     ),
   ];
 
   const actions: ReadonlyArray<CommandItem> = [
-    { key: "new-project", label: "New Project…", icon: FolderAddIcon, run: createProject },
+    {
+      key: "new-project",
+      label: "New Project…",
+      leading: <Icon icon={FolderAddIcon} />,
+      run: createProject,
+    },
     ...(project
       ? [
           {
             key: "new-chat",
             label: "New chat",
             detail: project.name,
-            icon: MessageAdd01Icon,
+            leading: <Icon icon={MessageAdd01Icon} />,
             run: () => navigate(newChatLink(project.id)),
           },
         ]
@@ -100,6 +112,7 @@ const Palette = ({ createProject }: { readonly createProject: () => void }) => {
     { label: "Chats", items: text === "" ? [] : Command.rank(chats, text) },
     { label: "Pages", items: Command.rank(pages, text) },
     { label: "Actions", items: Command.rank(actions, text) },
+    ...entries,
   ].filter(({ items }) => items.length > 0);
 
   return (

@@ -26,6 +26,17 @@ import {
   type SourceEntry,
 } from "./ports.ts";
 
+const mountOf = (project: Project, driver: SourceDriver, ref: EntryRef) =>
+  project.mounts.find((mount) => mount.root.source === ref.source && driver.contains(mount.root.id, ref.id));
+
+export const ownerOf = (projects: ReadonlyArray<Project>, driver: SourceDriver, ref: EntryRef) => {
+  for (const project of projects) {
+    const mount = mountOf(project, driver, ref);
+    if (mount) return { project, mount };
+  }
+  return undefined;
+};
+
 export interface LocatedDirectory {
   readonly mount: Mount;
   readonly driver: SourceDriver;
@@ -116,11 +127,6 @@ export class Projects extends Context.Service<
               ),
             ),
           ),
-        );
-
-      const mountOf = (project: Project, driver: SourceDriver, directory: EntryRef) =>
-        project.mounts.find(
-          (mount) => mount.root.source === directory.source && driver.contains(mount.root.id, directory.id),
         );
 
       const statIfExists = (driver: SourceDriver, ref: EntryRef) =>
@@ -216,7 +222,7 @@ export class Projects extends Context.Service<
           const driver = yield* driverFor(requested.source);
           const ref = { source: requested.source, id: yield* driver.canonicalize(requested.id) };
           const entry = yield* driver.stat(ref.id);
-          const project = (yield* store.list).find((candidate) => mountOf(candidate, driver, ref));
+          const project = ownerOf(yield* store.list, driver, ref)?.project;
           return {
             name: entry.name,
             kind: entry.kind,
