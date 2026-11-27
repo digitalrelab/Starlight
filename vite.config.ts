@@ -11,7 +11,7 @@ const forbid = (...groups: string[]): OxlintOverride["rules"] => ({
 export default defineConfig({
   fmt: {
     printWidth: 110,
-    ignorePatterns: ["**/routeTree.gen.ts"],
+    ignorePatterns: ["**/routeTree.gen.ts", "CHANGELOG.md"],
   },
   lint: {
     plugins: ["typescript", "unicorn", "oxc", "import"],
