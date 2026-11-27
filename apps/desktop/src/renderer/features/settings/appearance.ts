@@ -26,14 +26,6 @@ export type ChatFont = (typeof CHAT_FONTS)[number];
 
 export const chatFont = defineStored("chat-font", oneOf(CHAT_FONTS), "sans");
 
-const CHAT_TEXT_SIZES: Record<Size, string> = {
-  smaller: "0.8125rem",
-  small: "0.875rem",
-  default: "0.9375rem",
-  large: "1rem",
-  larger: "1.0625rem",
-};
-
 export const chatTextSize = defineStored("chat-text-size", oneOf(SIZES), "default");
 
 const stepped = (size: Size, step: ZoomStep) => {
@@ -60,9 +52,8 @@ export const useInterfaceZoom = () => {
 
 export const useChatAppearance = () => {
   const font = useStored(chatFont);
-  const size = CHAT_TEXT_SIZES[useStored(chatTextSize)];
+  const textSize = useStored(chatTextSize);
   useLayoutEffect(() => {
-    document.documentElement.dataset["chatFont"] = font;
-    document.documentElement.style.setProperty("--text-chat", size);
-  }, [font, size]);
+    Object.assign(document.documentElement.dataset, { chatFont: font, chatTextSize: textSize });
+  }, [font, textSize]);
 };

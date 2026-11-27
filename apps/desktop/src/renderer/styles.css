@@ -19,6 +19,22 @@
   --font-chat: var(--font-mono);
 }
 
+:root[data-chat-text-size="smaller"] {
+  --text-chat: 0.8125rem;
+}
+
+:root[data-chat-text-size="small"] {
+  --text-chat: 0.875rem;
+}
+
+:root[data-chat-text-size="large"] {
+  --text-chat: 1rem;
+}
+
+:root[data-chat-text-size="larger"] {
+  --text-chat: 1.0625rem;
+}
+
 @layer base {
   html,
   body,
