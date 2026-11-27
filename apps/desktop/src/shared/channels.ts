@@ -5,6 +5,7 @@ export const Channel = {
   history: "starlight:history",
   historyRequest: "starlight:history-request",
   ports: "starlight:ports",
+  projectSwitcher: "starlight:project-switcher",
   ready: "starlight:ready",
   toggleHiddenFiles: "starlight:toggle-hidden-files",
   zoom: "starlight:zoom",

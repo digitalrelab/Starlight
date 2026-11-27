@@ -9,3 +9,5 @@ export const useCreateProject = () => {
     navigate({ to: "/p/$projectId", params: { projectId: project.id } }),
   );
 };
+
+export type CreateProject = ReturnType<typeof useCreateProject>;

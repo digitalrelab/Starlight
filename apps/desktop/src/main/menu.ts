@@ -27,6 +27,11 @@ export const installMenu = () =>
             accelerator: `CommandOrControl+${COMMAND_PALETTE_KEY}`,
             click: () => sendToFocused(Channel.commandPalette),
           },
+          {
+            label: "Switch Project…",
+            accelerator: "CommandOrControl+O",
+            click: () => sendToFocused(Channel.projectSwitcher),
+          },
           { type: "separator" },
           { role: "reload" },
           { role: "forceReload" },
