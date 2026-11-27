@@ -65,18 +65,30 @@ const Picture = ({ name, source, presentation }: PictureProps) => {
   );
 };
 
+const playbackFailure = (kind: "video" | "audio") => (
+  <>
+    <KindIcon kind={kind} size={40} />
+    <p>Can’t play this {kind}</p>
+  </>
+);
+
 const Video = ({ source }: { readonly source: FileSource }) => (
   <MediaPlayer.Video
     src={fileUrl(source.token)}
     poster={previewUrl(source.token, POSTER_PIXELS)}
     autoPlay
     hasPageShortcuts
-    failure={
-      <>
-        <KindIcon kind="video" size={40} />
-        <p>Can’t play this video</p>
-      </>
-    }
+    failure={playbackFailure("video")}
+    className="size-full"
+  />
+);
+
+const Audio = ({ source }: { readonly source: FileSource }) => (
+  <MediaPlayer.Audio
+    src={fileUrl(source.token)}
+    autoPlay
+    hasPageShortcuts
+    failure={playbackFailure("audio")}
     className="size-full"
   />
 );
@@ -128,6 +140,7 @@ export const FileStage = ({ projectId, directory, entry }: Props) => {
   if (source.isError) return <Notice kind={itemKindOf(entry)}>Can’t open this file</Notice>;
   if (!source.data) return null;
   if (presentation === "video") return <Video source={source.data} />;
+  if (presentation === "audio") return <Audio source={source.data} />;
   if (presentation === "markdown")
     return <MarkdownFile projectId={projectId} entry={entry} source={source.data} />;
   return <Picture name={entry.name} source={source.data} presentation={presentation} />;

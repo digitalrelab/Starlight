@@ -99,6 +99,14 @@ const KIND_BY_EXTENSION: ReadonlyMap<string, FileKind> = new Map(
 );
 
 const MEDIA_TYPES: Readonly<Record<string, string>> = {
+  aac: "audio/aac",
+  flac: "audio/flac",
+  m4a: "audio/mp4",
+  mp3: "audio/mpeg",
+  oga: "audio/ogg",
+  ogg: "audio/ogg",
+  opus: "audio/ogg",
+  wav: "audio/wav",
   avif: "image/avif",
   bmp: "image/bmp",
   gif: "image/gif",
