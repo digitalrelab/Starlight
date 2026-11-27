@@ -1,0 +1,24 @@
+{
+  "name": "@starlight/media-player",
+  "private": true,
+  "type": "module",
+  "imports": {
+    "#*": "./src/*"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./style.css": "./src/style.css"
+  },
+  "dependencies": {
+    "@hugeicons-pro/core-solid-rounded": "catalog:",
+    "@hugeicons-pro/core-stroke-rounded": "catalog:",
+    "@starlight/ui": "workspace:*",
+    "cn": "catalog:"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:"
+  },
+  "peerDependencies": {
+    "react": "catalog:"
+  }
+}
