@@ -57,6 +57,14 @@ const createQueries = (client: StarlightClient) => ({
       staleTime: Infinity,
     }),
 
+  diskUsage: () =>
+    queryOptions({
+      queryKey: ["diskUsage"],
+      queryFn: () => client.disk.usage(),
+      staleTime: 0,
+      refetchOnWindowFocus: true,
+    }),
+
   update: () =>
     queryOptions({
       queryKey: ["update"],
@@ -86,6 +94,12 @@ const createMutations = (client: StarlightClient, queryClient: QueryClient, quer
         readonly text: string;
       }) => client.conversations.send(conversationId, text),
       onSuccess: () => queryClient.invalidateQueries(queries.conversations()),
+    }),
+
+  clearPreviews: () =>
+    mutationOptions({
+      mutationFn: () => client.disk.clearPreviews(),
+      onSettled: () => queryClient.invalidateQueries(queries.diskUsage()),
     }),
 
   openWorkspace: () =>

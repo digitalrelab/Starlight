@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto";
 import { mkdirSync } from "node:fs";
-import { join } from "node:path";
 import { NodeRuntime } from "@effect/platform-node";
 import { ClaudeCodeProvider, ConnectRequest, LocalSource } from "@starlight/contracts";
 import { AgentProviderDrivers, CoreLive, IdGenerator, SourceDrivers } from "@starlight/core";
@@ -33,8 +32,8 @@ const requireEnv = (name: string) => {
   return value;
 };
 
-const dataDir = requireEnv("STARLIGHT_DATA_DIR");
-const agentDir = join(dataDir, "agent");
+const databasePath = requireEnv("STARLIGHT_DATABASE_PATH");
+const agentDir = requireEnv("STARLIGHT_AGENT_PATH");
 mkdirSync(agentDir, { recursive: true });
 const fileKey = Buffer.from(requireEnv("STARLIGHT_FILE_KEY"), "hex");
 
@@ -55,7 +54,7 @@ const HostLive = CoreLive.pipe(
       AgentProviderDriversLive,
       IdGeneratorLive,
       FileTokensLive(fileKey),
-      SqliteLive(dataDir),
+      SqliteLive(databasePath),
     ),
   ),
 );

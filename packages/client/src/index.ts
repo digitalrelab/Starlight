@@ -4,6 +4,7 @@ export type {
   Conversation,
   Draft,
   Crumb,
+  DiskUsage,
   Entry,
   EntryRef,
   FileKind,
