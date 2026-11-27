@@ -7,7 +7,7 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-  Progress,
+  ProgressRing,
   Prose,
 } from "@starlight/ui";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -33,10 +33,9 @@ const UpdateAction = ({ update }: { readonly update: Update }) => {
       );
     case "downloading":
       return (
-        <div className="flex h-control items-center gap-3">
-          <Progress value={update.progress} label={LABELS.downloading} />
-          <span className="text-sm text-subtle tabular-nums">{Math.round(update.progress * 100)}%</span>
-        </div>
+        <Button className="self-end tabular-nums" disabled>
+          Downloading… {Math.round(update.progress * 100)}%
+        </Button>
       );
     case "downloaded":
       return (
@@ -54,12 +53,21 @@ export const UpdateButton = ({ className }: { readonly className?: string }) => 
 
   return (
     <Popover>
-      <IconButton
-        icon={RefreshDotIcon}
-        label={LABELS[update.status]}
-        className={cn("text-brand hover:text-brand data-[popup-open]:text-brand", className)}
-        render={<PopoverTrigger />}
-      />
+      <span className={cn("relative inline-flex text-brand", className)}>
+        <IconButton
+          icon={RefreshDotIcon}
+          label={LABELS[update.status]}
+          className="text-brand hover:text-brand data-[popup-open]:text-brand"
+          render={<PopoverTrigger />}
+        />
+        {update.status === "downloading" ? (
+          <ProgressRing
+            value={update.progress}
+            label={LABELS.downloading}
+            className="pointer-events-none absolute inset-0 size-full"
+          />
+        ) : null}
+      </span>
       <PopoverContent
         side="top"
         align="end"

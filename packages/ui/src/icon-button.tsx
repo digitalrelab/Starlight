@@ -18,7 +18,7 @@ export const IconButton = ({ icon, label, render, className, ...props }: IconBut
       {
         "aria-label": label,
         className: cn(
-          "inline-flex size-control items-center justify-center rounded-md text-subtle focus-ring",
+          "inline-flex size-control items-center justify-center rounded-full text-subtle focus-ring",
           "hover:bg-neutral-subtle-hovered hover:text-default aria-[current=page]:text-default",
           "data-[popup-open]:bg-neutral-subtle-hovered data-[popup-open]:text-default",
           className,
