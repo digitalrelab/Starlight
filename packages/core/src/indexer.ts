@@ -72,25 +72,22 @@ export const IndexerLive = Layer.effectDiscard(
         (resolved) => new Map(Arr.getSomes(resolved).map((root) => [keyOf(root.ref), root])),
       );
 
-    const rootsOf = Effect.fnUntraced(function* (all: ReadonlyArray<Project>) {
-      const roots = [
-        ...(yield* resolve(all.flatMap(({ mounts }) => mounts.map(({ root }) => root)))).values(),
-      ];
-      return new Map(
-        roots
-          .filter((root) => !roots.some((other) => other !== root && covers(other, root)))
-          .map((root) => [keyOf(root.ref), root]),
-      );
-    });
+    const rootsOf = (all: ReadonlyArray<Project>) =>
+      Effect.map(resolve(all.flatMap(({ mounts }) => mounts.map(({ root }) => root))), (roots) => {
+        const candidates = [...roots.values()];
+        return new Map(
+          [...roots].filter(([, root]) => !candidates.some((other) => other !== root && covers(other, root))),
+        );
+      });
 
     const apply = Effect.fnUntraced(function* (
       current: ReadonlyMap<string, Root>,
       next: ReadonlyMap<string, Root>,
     ) {
+      const remaining = [...next.values()];
       for (const [key, root] of current) {
         if (next.has(key)) continue;
         yield* FiberMap.remove(fibers, key);
-        const remaining = [...next.values()];
         if (remaining.some((other) => covers(other, root))) continue;
         yield* index.drop(
           root.ref,
