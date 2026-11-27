@@ -16,7 +16,6 @@ export * from "./prose.tsx";
 export * from "./scroll-area.tsx";
 export * from "./segmented-control.tsx";
 export * from "./select.tsx";
-export * from "./shimmer.tsx";
 export * from "./switch.tsx";
 export * from "./theater.tsx";
 export { Tooltip } from "./tooltip.tsx";

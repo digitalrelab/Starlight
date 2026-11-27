@@ -1,5 +1,5 @@
 import type { ChatMessage, Draft } from "@starlight/client";
-import { cn, Markdown, ScrollArea, Shimmer } from "@starlight/ui";
+import { cn, Markdown, ScrollArea } from "@starlight/ui";
 import { useRevealedText } from "./use-revealed-text.ts";
 import { useStickToBottom } from "./use-stick-to-bottom.ts";
 
@@ -12,7 +12,11 @@ interface Props {
 
 const Reply = ({ text, pending }: { readonly text: string; readonly pending: boolean }) => {
   const shown = useRevealedText(text);
-  return pending && shown === "" ? <Shimmer>Thinking…</Shimmer> : <Markdown source={shown} />;
+  return pending && shown === "" ? (
+    <p className="w-fit shimmer-text">Thinking…</p>
+  ) : (
+    <Markdown source={shown} />
+  );
 };
 
 const Message = ({

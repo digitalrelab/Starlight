@@ -28,33 +28,30 @@
   background-image: linear-gradient(--value(--background-color-*), --value(--background-color-*));
 }
 
-@utility shimmer {
-  --shimmer-spread: calc(var(--shimmer-length) * 2px);
-  display: inline-block;
-  background-color: var(--text-color-subtlest);
+@utility shimmer-text {
   background-image: linear-gradient(
     90deg,
-    transparent calc(50% - var(--shimmer-spread)),
-    var(--text-color-default),
-    transparent calc(50% + var(--shimmer-spread))
+    var(--text-color-subtlest) 35%,
+    var(--text-color-default) 50%,
+    var(--text-color-subtlest) 65%
   );
-  background-size: 250% 100%;
-  background-repeat: no-repeat;
+  background-size: 300% 100%;
   background-clip: text;
   color: transparent;
-  animation: shimmer 4s ease-in-out infinite;
+  animation: text-shimmer 2s linear infinite;
 
-  @media (prefers-reduced-motion: reduce) {
+  @variant motion-reduce {
     animation: none;
+    background-image: none;
+    color: var(--text-color-subtlest);
   }
 }
 
-@keyframes shimmer {
+@keyframes text-shimmer {
   from {
-    background-position: 100% center;
+    background-position: 100% 0;
   }
-  60%,
   to {
-    background-position: 0% center;
+    background-position: 0 0;
   }
 }
