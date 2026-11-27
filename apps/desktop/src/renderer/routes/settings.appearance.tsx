@@ -1,7 +1,6 @@
-import { COLOR_SCHEMES, type ColorScheme, ColorSchemeSwatch, Switch } from "@starlight/ui";
+import { COLOR_SCHEMES, type ColorScheme, ColorSchemeSwatch, Item, Switch } from "@starlight/ui";
 import { createFileRoute } from "@tanstack/react-router";
 import { colorScheme, cursor } from "../features/settings/appearance.ts";
-import { SettingRow } from "../features/settings/setting-row.tsx";
 import { SettingsPage } from "../features/settings/settings-page.tsx";
 import { SettingsSelect } from "../features/settings/settings-select.tsx";
 
@@ -18,22 +17,33 @@ export const Route = createFileRoute("/settings/appearance")({
 function Appearance() {
   return (
     <SettingsPage title="Appearance">
-      <SettingRow label="Theme" description="Choose light or dark, or match your device">
-        <SettingsSelect
-          id="theme"
-          values={COLOR_SCHEMES}
-          labels={COLOR_SCHEME_LABELS}
-          swatch={(scheme) => <ColorSchemeSwatch scheme={scheme} />}
-          value={colorScheme.useValue()}
-          onValueChange={colorScheme.set}
-        />
-      </SettingRow>
-      <SettingRow label="Use pointer cursors" description="Show a hand cursor over anything you can click">
-        <Switch
-          checked={cursor.useValue() === "pointer"}
-          onCheckedChange={(checked) => cursor.set(checked ? "pointer" : "default")}
-        />
-      </SettingRow>
+      <Item.List>
+        <Item.Root>
+          <Item.Content>
+            <Item.Title htmlFor="theme">Theme</Item.Title>
+            <Item.Description>Choose light or dark, or match your device</Item.Description>
+          </Item.Content>
+          <SettingsSelect
+            id="theme"
+            values={COLOR_SCHEMES}
+            labels={COLOR_SCHEME_LABELS}
+            swatch={(scheme) => <ColorSchemeSwatch scheme={scheme} />}
+            value={colorScheme.useValue()}
+            onValueChange={colorScheme.set}
+          />
+        </Item.Root>
+        <Item.Root>
+          <Item.Content>
+            <Item.Title htmlFor="pointer-cursors">Use pointer cursors</Item.Title>
+            <Item.Description>Show a hand cursor over anything you can click</Item.Description>
+          </Item.Content>
+          <Switch
+            id="pointer-cursors"
+            checked={cursor.useValue() === "pointer"}
+            onCheckedChange={(checked) => cursor.set(checked ? "pointer" : "default")}
+          />
+        </Item.Root>
+      </Item.List>
     </SettingsPage>
   );
 }
