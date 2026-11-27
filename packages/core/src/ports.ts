@@ -16,7 +16,9 @@ import type {
   SourceId,
   FileToken,
   FileId,
+  Palette,
   PixelSample,
+  Property,
   SampleFailed,
   Project,
   ProjectId,
@@ -52,6 +54,8 @@ export interface ProbedFacts {
 
 export interface ProcessedFacts {
   readonly placeholder: string;
+  readonly palette: Palette;
+  readonly traits: ReadonlyArray<Property>;
 }
 
 export type Facts = ProbedFacts & ProcessedFacts;
