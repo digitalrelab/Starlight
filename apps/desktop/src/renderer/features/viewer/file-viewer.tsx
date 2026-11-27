@@ -46,11 +46,13 @@ const usePrefetch = (
   directory: EntryRef,
   previous: Entry | undefined,
   next: Entry | undefined,
+  details: boolean,
 ) => {
   const { queryClient, queries } = useStarlight();
   useEffect(() => {
     for (const entry of [next, previous]) {
       if (!entry) continue;
+      if (details) void queryClient.prefetchQuery(queries.fileDetails(projectId, directory, entry.ref));
       const presentation = presentationOf(entry);
       if (presentation === "none") continue;
       void queryClient.query(queries.fileSource(projectId, directory, entry.ref)).then(
@@ -64,7 +66,7 @@ const usePrefetch = (
         () => undefined,
       );
     }
-  }, [queryClient, queries, projectId, directory, previous, next]);
+  }, [queryClient, queries, projectId, directory, previous, next, details]);
 };
 
 export const FileViewer = ({
@@ -84,7 +86,7 @@ export const FileViewer = ({
   const current = files[index];
   const previous = index > 0 ? files[index - 1] : undefined;
   const next = index >= 0 ? files[index + 1] : undefined;
-  usePrefetch(projectId, directory, previous, next);
+  usePrefetch(projectId, directory, previous, next, inspector === "open");
 
   const shownAt = useRef(index);
   const recover = useEffectEvent(() => {
