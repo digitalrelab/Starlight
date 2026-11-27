@@ -2,11 +2,9 @@ import { execFile } from "node:child_process";
 import { access, constants } from "node:fs/promises";
 import { homedir } from "node:os";
 import { isAbsolute, join } from "node:path";
-import { AgentProviderId, type AgentProviderStatus } from "@starlight/contracts";
+import type { AgentProviderStatus } from "@starlight/contracts";
 import type { AgentProviderDriver } from "@starlight/core";
 import { Effect, Option, Schema } from "effect";
-
-export const ClaudeCode = AgentProviderId.make("claude-code");
 
 const COMMAND_TIMEOUT_MS = 10_000;
 

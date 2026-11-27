@@ -1,8 +1,8 @@
 import { NodeRuntime } from "@effect/platform-node";
-import { ConnectRequest, LocalSource } from "@starlight/contracts";
+import { ClaudeCodeProvider, ConnectRequest, LocalSource } from "@starlight/contracts";
 import { AgentProviderDrivers, CoreLive, SourceDrivers } from "@starlight/core";
 import { Effect, Layer, Queue, Schema } from "effect";
-import { ClaudeCode, claudeCodeDriver } from "./adapters/claude-code/index.ts";
+import { claudeCodeDriver } from "./adapters/claude-code/index.ts";
 import { makeLocalSource } from "./adapters/local-source/index.ts";
 import { SqliteLive } from "./adapters/sqlite/index.ts";
 import { ThumbnailTokensLive } from "./adapters/thumbnail-tokens.ts";
@@ -38,7 +38,7 @@ const decodeConnect = Schema.decodeUnknownEffect(ConnectRequest);
 const SourceDriversLive = Layer.sync(SourceDrivers)(() => new Map([[LocalSource, makeLocalSource()]]));
 
 const AgentProviderDriversLive = Layer.succeed(AgentProviderDrivers)(
-  new Map([[ClaudeCode, claudeCodeDriver]]),
+  new Map([[ClaudeCodeProvider, claudeCodeDriver]]),
 );
 
 const HostLive = CoreLive.pipe(

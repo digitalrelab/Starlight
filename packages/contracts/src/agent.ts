@@ -3,6 +3,8 @@ import { Schema } from "effect";
 export const AgentProviderId = Schema.String.pipe(Schema.brand("AgentProviderId"));
 export type AgentProviderId = typeof AgentProviderId.Type;
 
+export const ClaudeCodeProvider = AgentProviderId.make("claude-code");
+
 export const AgentProviderStatus = Schema.Union([
   Schema.TaggedStruct("Ready", {
     account: Schema.optionalKey(Schema.String),
