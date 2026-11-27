@@ -35,12 +35,12 @@ export const insertLink = (
   };
 };
 
-export interface Mention {
+interface Mention {
   readonly url: string;
   readonly label: string;
 }
 
-export interface MentionHost extends Mention {
+interface MentionHost extends Mention {
   readonly key: string;
   readonly element: HTMLElement;
 }
@@ -54,8 +54,9 @@ interface Placed extends Mention {
 
 const createHosts = () => {
   const hosts = storeOf<ReadonlyArray<MentionHost>>([]);
+  const store: MentionHosts = hosts;
   return {
-    store: hosts satisfies MentionHosts,
+    store,
     mount: (element: HTMLElement, mention: Mention) =>
       hosts.set([...hosts.get(), { ...mention, element, key: crypto.randomUUID() }]),
     unmount: (element: HTMLElement) => hosts.set(hosts.get().filter((host) => host.element !== element)),

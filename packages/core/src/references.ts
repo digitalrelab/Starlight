@@ -1,6 +1,7 @@
 import {
   type EntryLocation,
   type EntryRef,
+  type FileKind,
   fileKindOf,
   type Project,
   type ReferenceMatch,
@@ -21,11 +22,10 @@ import { mountOf, Projects } from "./projects.ts";
 
 const ENTRY_LIMIT = 12;
 const CHAT_LIMIT = 6;
+const PREVIEWED = new Set<FileKind>(["image", "video"]);
 
 const sameEntry = (a: ReferenceMatch, b: ReferenceMatch) =>
   a._tag === "Entry" && b._tag === "Entry" && a.ref.source === b.ref.source && a.ref.id === b.ref.id;
-
-const PREVIEWED = new Set(["image", "video"]);
 
 const rootsOf = ({ id, name, mounts }: Project) =>
   mounts.map((mount): ReferenceMatch => ({

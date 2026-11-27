@@ -20,7 +20,7 @@ interface ChipProps {
 
 const Chip = ({ icon, label, link, unresolved }: ChipProps) => {
   const className = cn(
-    "inline-flex items-baseline gap-1 rounded-md px-1.5 align-baseline no-underline focus-ring [&>svg]:self-center",
+    "inline-flex items-baseline gap-1 rounded-md px-1.5 align-baseline no-underline focus-ring [&>:is(svg,img)]:self-center",
     unresolved ? "bg-neutral-subtle text-subtlest" : "bg-neutral text-default highlighted:bg-neutral-hovered",
   );
   return link && !unresolved ? (
@@ -63,10 +63,12 @@ const EntryIcon = ({ location }: { readonly location: EntryLocation | undefined 
         <img
           alt=""
           src={previewUrl(preview, ICON_SIZE * window.devicePixelRatio)}
+          width={ICON_SIZE}
+          height={ICON_SIZE}
           hidden={!loaded}
           onLoad={() => setSettled({ preview, loaded: true })}
           onError={() => setSettled({ preview, loaded: false })}
-          className="size-3.5 shrink-0 self-center rounded-xs object-cover"
+          className="shrink-0 rounded-xs object-cover"
         />
       )}
     </>
