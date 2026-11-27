@@ -64,3 +64,25 @@ export type AgentUsage = typeof AgentUsage.Type;
 
 export const AgentProviderUsage = Schema.Struct({ provider: AgentProviderId, usage: AgentUsage });
 export type AgentProviderUsage = typeof AgentProviderUsage.Type;
+
+export const UsagePoint = Schema.Struct({ at: Schema.Number, usedPercent: Schema.Number });
+export type UsagePoint = typeof UsagePoint.Type;
+
+const UsageWindowKey = {
+  provider: AgentProviderId,
+  label: Schema.String,
+  resetsAt: Schema.Number,
+  durationMs: Schema.Number,
+};
+
+export const UsageSeries = Schema.Struct({ ...UsageWindowKey, points: Schema.Array(UsagePoint) });
+export type UsageSeries = typeof UsageSeries.Type;
+
+export const UsagePeak = Schema.Struct({ ...UsageWindowKey, peakPercent: Schema.Number });
+export type UsagePeak = typeof UsagePeak.Type;
+
+export const UsageHistory = Schema.Struct({
+  current: Schema.Array(UsageSeries),
+  past: Schema.Array(UsagePeak),
+});
+export type UsageHistory = typeof UsageHistory.Type;

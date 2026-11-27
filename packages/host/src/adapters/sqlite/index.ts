@@ -6,6 +6,7 @@ import { SqliteEntryStoreLive } from "./entry-store.ts";
 import { SqliteFactStoreLive } from "./fact-store.ts";
 import { migrations } from "./migrations.ts";
 import { SqliteProjectStoreLive } from "./project-store.ts";
+import { SqliteUsageStoreLive } from "./usage-store.ts";
 
 export const SqliteLive = (filename: string) => {
   const client = SqliteClient.layer({ filename });
@@ -16,5 +17,6 @@ export const SqliteLive = (filename: string) => {
     SqliteFactStoreLive,
     SqliteEntryStoreLive,
     SqliteAuditLogLive,
+    SqliteUsageStoreLive,
   ).pipe(Layer.provide(migrator), Layer.provide(client));
 };
