@@ -38,6 +38,7 @@ const HandlersLive = HostRpcs.toLayer(
       RenameChat: ({ chatId, title }) => chats.rename(chatId, title),
       DeleteChat: ({ chatId }) => chats.remove(chatId),
       WatchChat: ({ chatId }) => chats.watch(chatId),
+      WatchSettledTurns: () => chats.settledTurns,
     });
   }),
 );

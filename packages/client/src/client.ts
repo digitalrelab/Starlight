@@ -106,6 +106,8 @@ export const createClient = (ports: PortSources) => {
       remove: (chatId: string) => host((c) => c.DeleteChat({ chatId: chat(chatId) })),
       watch: (chatId: string, onEvent: (event: ChatEvent) => void) =>
         watch("Chat", (c) => c.WatchChat({ chatId: chat(chatId) }), onEvent),
+      watchSettled: (onSettled: () => void) =>
+        watch("Settled turns", (c) => c.WatchSettledTurns(), onSettled),
     },
     shell: {
       pickDirectory: () => shell((c) => c.PickDirectory()),
