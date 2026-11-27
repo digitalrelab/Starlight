@@ -23,8 +23,8 @@ const isOwned = (group: number) =>
   spawnSync("ps", ["-Ao", "pgid=,command="], { encoding: "utf8" })
     .stdout.split("\n")
     .some((line) => {
-      const [pgid, ...command] = line.trim().split(/\s+/);
-      return Number(pgid) === group && command.join(" ").includes(root);
+      const [, pgid, command = ""] = /^\s*(\d+)\s+(.*)$/.exec(line) ?? [];
+      return Number(pgid) === group && command.includes(root);
     });
 
 const recordedGroup = () => {
