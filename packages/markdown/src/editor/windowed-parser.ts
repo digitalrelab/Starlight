@@ -35,7 +35,7 @@ const reuseOf = (fragments: readonly TreeFragment[], length: number): Reuse | un
   };
 };
 
-const lineAfter = (input: Input, block: SyntaxNode, next: number, offset = 0) => {
+const freshStartAfter = (input: Input, block: SyntaxNode, next: number, offset = 0) => {
   if (OPEN_ENDED.has(block.name)) return undefined;
   const gap = input.read(block.to - offset, next - offset);
   return BLANK_LINE.test(gap) ? block.to - offset + gap.lastIndexOf("\n") + 1 : undefined;
@@ -46,7 +46,7 @@ const restartBefore = ({ tree, prefixEnd }: Reuse, input: Input) => {
     const before = block.prevSibling;
     if (!before) return 0;
     if (block.from < prefixEnd - MAX_WINDOW) return undefined;
-    const start = lineAfter(input, before, block.from);
+    const start = freshStartAfter(input, before, block.from);
     if (start !== undefined) return start;
   }
   return 0;
@@ -57,7 +57,9 @@ function* resumesAfter({ tree, suffixStart, offset }: Reuse, input: Input, limit
     if (block.from - offset > limit) return;
     const before = block.prevSibling;
     const start =
-      before && before.to - offset >= suffixStart ? lineAfter(input, before, block.from, offset) : undefined;
+      before && before.to - offset >= suffixStart
+        ? freshStartAfter(input, before, block.from, offset)
+        : undefined;
     if (start !== undefined) yield start;
   }
   yield input.length;
@@ -65,15 +67,15 @@ function* resumesAfter({ tree, suffixStart, offset }: Reuse, input: Input, limit
 
 const settlesAt = (input: Input, parsed: Tree, from: number) => {
   const last = parsed.topNode.lastChild;
-  return !last || lineAfter(input, last, parsed.length, -from) !== undefined;
+  return !last || freshStartAfter(input, last, parsed.length, -from) !== undefined;
 };
 
 const splice = ({ tree, offset }: Reuse, parsed: Tree, from: number, to: number, length: number) => {
   const before = topLevelIn(tree, 0, from);
-  const window = topLevelIn(parsed, 0, parsed.length, -from);
+  const reparsed = topLevelIn(parsed, 0, parsed.length, -from);
   const after = to < length ? topLevelIn(tree, to + offset, tree.length, offset) : undefined;
   if (before.end > from || (after && after.start < to + offset)) return undefined;
-  const parts = after ? [before, window, after] : [before, window];
+  const parts = after ? [before, reparsed, after] : [before, reparsed];
   return new Tree(
     tree.type,
     parts.flatMap((part) => part.children),
@@ -98,7 +100,7 @@ const reparseWindow = (inner: Parser, input: Input, reuse: Reuse) => {
   return undefined;
 };
 
-const parsed = (tree: Tree): PartialParse => ({
+const finishedParse = (tree: Tree): PartialParse => ({
   parsedPos: tree.length,
   stoppedAt: null,
   advance: () => tree,
@@ -118,6 +120,6 @@ export class WindowedParser extends Parser {
     const whole = ranges.length === 1 && ranges[0]?.from === 0 && ranges[0].to === input.length;
     const reuse = whole ? reuseOf(fragments, input.length) : undefined;
     const tree = reuse && reparseWindow(this.inner, input, reuse);
-    return tree ? parsed(tree) : this.inner.startParse(input, fragments, ranges);
+    return tree ? finishedParse(tree) : this.inner.startParse(input, fragments, ranges);
   }
 }
