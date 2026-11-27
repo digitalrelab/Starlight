@@ -1,4 +1,4 @@
-import { ScrollArea } from "@starlight/ui";
+import { Card, ScrollArea } from "@starlight/ui";
 import type { ReactNode } from "react";
 
 interface Props {
@@ -16,8 +16,12 @@ export const AppShell = ({ sidebar, footer, children }: Props) => (
       </ScrollArea>
       {footer ? <footer className="flex shrink-0 items-center gap-1 px-2 pb-2">{footer}</footer> : null}
     </aside>
-    <main className="my-2 mr-2 flex min-w-0 flex-1 flex-col overflow-hidden rounded-lg bg-surface shadow-lifted">
+    <Card
+      surface="panel"
+      render={<main />}
+      className="my-2 mr-2 flex min-w-0 flex-1 flex-col overflow-hidden"
+    >
       {children}
-    </main>
+    </Card>
   </div>
 );

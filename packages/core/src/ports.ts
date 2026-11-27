@@ -31,6 +31,7 @@ export interface SourceEntry {
   readonly name: string;
   readonly kind: EntryKind;
   readonly size: number;
+  readonly createdAt: number;
   readonly modifiedAt: number;
   readonly hidden: boolean;
 }

@@ -29,7 +29,7 @@ const byKindThenName = (a: Entry, b: Entry) => {
 
 const toEntry = (
   source: SourceId,
-  { id, key: _key, ...entry }: SourceEntry,
+  { id, key: _key, createdAt: _createdAt, ...entry }: SourceEntry,
   fileId: FileId | null,
 ): Entry => ({
   ...entry,

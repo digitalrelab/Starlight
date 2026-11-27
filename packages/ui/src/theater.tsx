@@ -2,6 +2,7 @@ import { Dialog } from "@base-ui/react";
 import { Cancel01Icon } from "@hugeicons-pro/core-stroke-rounded";
 import { cn } from "cn";
 import { type KeyboardEventHandler, type ReactNode, useRef } from "react";
+import { Card } from "./card.tsx";
 import { IconButton } from "./icon-button.tsx";
 
 interface RootProps {
@@ -69,10 +70,17 @@ const Close = () => (
   <Dialog.Close render={<IconButton label="Close" icon={Cancel01Icon} shortcut={["Escape"]} />} />
 );
 
-const Stage = ({ children }: { readonly children: ReactNode }) => (
-  <div className="relative mx-2 mb-2 min-h-0 flex-1 overflow-hidden rounded-lg bg-surface shadow-lifted">
+const Body = ({ aside, children }: { readonly aside?: ReactNode; readonly children: ReactNode }) => (
+  <div className="flex min-h-0 flex-1">
     {children}
+    {aside ? <div className="mr-2 mb-2 flex w-72 shrink-0 flex-col">{aside}</div> : null}
   </div>
 );
 
-export const Theater = { Root, Header, Start, Title, End, Separator, Close, Stage };
+const Stage = ({ children }: { readonly children: ReactNode }) => (
+  <Card surface="panel" className="relative mx-2 mb-2 min-h-0 flex-1 overflow-hidden">
+    {children}
+  </Card>
+);
+
+export const Theater = { Root, Header, Start, Title, End, Separator, Close, Body, Stage };
