@@ -52,10 +52,7 @@ export const NewEntryContextMenu = ({ children, ...props }: Props & { readonly c
   const { onOpenChange, finalFocus, items } = useDraftStarter(props, ({ label }) => `New ${label}`);
   return (
     <ContextMenu.Root onOpenChange={onOpenChange}>
-      <ContextMenu.Trigger
-        render={<div className="flex min-h-0 flex-1 flex-col" />}
-        onContextMenu={skipItems}
-      >
+      <ContextMenu.Trigger render={<div className="contents" />} onContextMenu={skipItems}>
         {children}
       </ContextMenu.Trigger>
       <ContextMenu.Popup finalFocus={finalFocus}>{items}</ContextMenu.Popup>

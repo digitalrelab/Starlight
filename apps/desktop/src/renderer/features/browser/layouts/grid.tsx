@@ -74,7 +74,7 @@ const useGridLayout = (
     ...stack(shelf, GUTTER, tiles, GUTTER - TILE_INSET, SECTION_GAP - TILE_INSET),
     folderCount,
     draftSlot:
-      lead > 0 && slots.width.length > 0
+      drafting && slots.width.length > 0
         ? { top: paddingStart, left: GUTTER + slots.left[0]!, width: slots.width[0]! }
         : null,
     paddingStart,

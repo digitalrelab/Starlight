@@ -95,16 +95,19 @@ export const shelve = (count: number, options: ShelfOptions): RowLayout => {
   return { rows, left, width: widths, rowOf };
 };
 
-export const dropLeading = ({ rows, left, width, rowOf }: RowLayout, count: number): RowLayout => ({
-  rows: rows.map((row) => ({
-    ...row,
-    start: Math.max(0, row.start - count),
-    end: Math.max(0, row.end - count),
-  })),
-  left: left.subarray(count),
-  width: width.subarray(count),
-  rowOf: rowOf.subarray(count),
-});
+export const dropLeading = (layout: RowLayout, count: number): RowLayout =>
+  count === 0
+    ? layout
+    : {
+        rows: layout.rows.map((row) => ({
+          ...row,
+          start: Math.max(0, row.start - count),
+          end: Math.max(0, row.end - count),
+        })),
+        left: layout.left.subarray(count),
+        width: layout.width.subarray(count),
+        rowOf: layout.rowOf.subarray(count),
+      };
 
 export const stack = (
   top: RowLayout,
