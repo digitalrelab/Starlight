@@ -20,10 +20,10 @@ const ZOOM_FACTORS: Record<InterfaceSize, number> = {
 
 export const interfaceSize = defineStored("interface-size", oneOf(INTERFACE_SIZES), "default");
 
-export const useInterfaceZoom = (size: InterfaceSize) => {
+export const useInterfaceZoom = () => {
+  const factor = ZOOM_FACTORS[interfaceSize.useValue()];
   useLayoutEffect(() => {
-    const factor = ZOOM_FACTORS[size];
     document.documentElement.style.setProperty("--interface-zoom", String(factor));
     window.postMessage({ type: Channel.zoom, factor }, "*");
-  }, [size]);
+  }, [factor]);
 };
