@@ -237,6 +237,10 @@ const createMutations = (client: StarlightClient, queryClient: QueryClient, quer
 });
 
 const createSubscriptions = (client: StarlightClient, queryClient: QueryClient, queries: Queries) => ({
+  agentUsage: () =>
+    client.agents.watchUsage(
+      () => void queryClient.invalidateQueries({ queryKey: queries.agentUsage().queryKey }),
+    ),
   chat: (id: string) => {
     const { queryKey } = queries.chat(id);
     const update = (change: (detail: ChatDetail) => ChatDetail) =>

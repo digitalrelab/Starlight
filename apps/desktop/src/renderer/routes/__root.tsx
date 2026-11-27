@@ -1,5 +1,6 @@
 import { Interface } from "@starlight/ui";
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { CommandPalette } from "#renderer/features/command-palette/command-palette.tsx";
 import { useMouseHistory } from "#renderer/features/history/use-mouse-history.ts";
 import {
@@ -10,11 +11,13 @@ import {
   useNativeColorScheme,
 } from "#renderer/features/settings/appearance.ts";
 import { useHiddenFilesToggle } from "#renderer/features/settings/files.ts";
-import type { RouterContext } from "#renderer/lib/context.ts";
+import { type RouterContext, useStarlight } from "#renderer/lib/context.ts";
 import { useStore } from "#renderer/lib/store.ts";
 import { useWindowReady } from "#renderer/lib/use-window-ready.ts";
 
 const Root = () => {
+  const { subscriptions } = useStarlight();
+  useEffect(() => subscriptions.agentUsage(), [subscriptions]);
   useInterfaceZoom();
   useNativeColorScheme();
   useChatAppearance();

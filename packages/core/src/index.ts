@@ -22,8 +22,7 @@ export const CoreLive = Layer.mergeAll(
   Entries.layer,
   Files.layer,
   MediaLibrary.layer,
-  AgentProviders.layer,
-  Chats.layer,
+  AgentProviders.layer.pipe(Layer.provideMerge(Chats.layer)),
 ).pipe(
   Layer.provideMerge(Catalog.layer),
   Layer.provideMerge(FileIdentities.layer),

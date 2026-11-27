@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 import { Rpc, RpcGroup } from "effect/rpc";
-import { AgentProvider, AgentProviderUsage, ModelChoice } from "./agent.ts";
+import { AgentProvider, AgentProviderId, AgentProviderUsage, ModelChoice } from "./agent.ts";
 import { Chat, ChatBusy, ChatDetail, ChatEvent, ChatId, ChatNotFound, ModelUnavailable } from "./chat.ts";
 import { DiskUsage } from "./disk.ts";
 import { EntryLocation } from "./reference.ts";
@@ -102,6 +102,10 @@ export class HostRpcs extends RpcGroup.make(
   Rpc.make("PrepareAgentProviders"),
   Rpc.make("GetAgentUsage", {
     success: Schema.Array(AgentProviderUsage),
+  }),
+  Rpc.make("WatchAgentUsage", {
+    success: AgentProviderId,
+    stream: true,
   }),
   Rpc.make("ListChats", {
     payload: { projectId: Schema.NullOr(ProjectId) },

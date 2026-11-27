@@ -30,6 +30,7 @@ const HandlersLive = HostRpcs.toLayer(
       ListAgentProviders: () => agentProviders.list,
       PrepareAgentProviders: () => agentProviders.prepare,
       GetAgentUsage: () => agentProviders.usage,
+      WatchAgentUsage: () => agentProviders.usageChanges,
       ListChats: ({ projectId }) => chats.list(projectId),
       GetChat: ({ chatId }) => chats.get(chatId),
       StartChat: ({ projectId, text, model }) => chats.start(projectId, text, model),
