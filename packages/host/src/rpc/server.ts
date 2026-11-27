@@ -13,6 +13,7 @@ const HandlersLive = HostRpcs.toLayer(
       ListRecentWorkspaces: () => workspaces.recent,
       GetWorkspace: ({ workspaceId }) => workspaces.get(workspaceId),
       ListEntries: ({ workspaceId, path }) => entries.list(workspaceId, path),
+      WatchEntries: ({ workspaceId }) => entries.watch(workspaceId),
       GetSettings: () => settings.get,
       UpdateSettings: (patch) => settings.update(patch),
     });

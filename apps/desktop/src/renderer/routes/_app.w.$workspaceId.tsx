@@ -1,5 +1,6 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, type ErrorComponentProps, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { Breadcrumbs } from "../features/browser/breadcrumbs.tsx";
 import { EntryList } from "../features/browser/entry-list.tsx";
 import { PageHeader } from "../features/shell/page-header.tsx";
@@ -27,7 +28,8 @@ function Browser() {
   const { workspaceId } = Route.useParams();
   const { path } = Route.useSearch();
   const navigate = Route.useNavigate();
-  const { queries } = useStarlight();
+  const { queries, subscriptions } = useStarlight();
+  useEffect(() => subscriptions.entries(workspaceId), [subscriptions, workspaceId]);
   const { data: workspace } = useSuspenseQuery(queries.workspace(workspaceId));
   const { data: entries } = useSuspenseQuery(queries.entries(workspaceId, path));
 

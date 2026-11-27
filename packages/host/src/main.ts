@@ -3,6 +3,7 @@ import { ConnectRequest } from "@starlight/contracts";
 import { CoreLive } from "@starlight/core";
 import { Effect, Layer, Queue, Schema } from "effect";
 import { NodeFileSystemLive } from "./adapters/node-file-system.ts";
+import { ParcelFileWatcherLive } from "./adapters/parcel-file-watcher.ts";
 import { SqliteLive } from "./adapters/sqlite/index.ts";
 import { HostServerLive } from "./rpc/server.ts";
 import { type MainPortLike, serve } from "./rpc/transport.ts";
@@ -28,7 +29,9 @@ if (!dataDir) throw new Error("STARLIGHT_DATA_DIR is not set");
 const decodeConnect = Schema.decodeUnknownEffect(ConnectRequest);
 
 const HostLive = CoreLive.pipe(
-  Layer.provide(Layer.mergeAll(NodeFileSystemLive, SqliteLive(dataDir), NodePath.layer)),
+  Layer.provide(
+    Layer.mergeAll(NodeFileSystemLive, ParcelFileWatcherLive, SqliteLive(dataDir), NodePath.layer),
+  ),
 );
 
 const accept = ({ data, port }: Connection) =>

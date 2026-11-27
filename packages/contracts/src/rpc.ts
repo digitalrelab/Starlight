@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 import { Rpc, RpcGroup } from "effect/rpc";
-import { Entry } from "./entry.ts";
+import { Entry, EntryChange } from "./entry.ts";
 import { FileSystemError, NotADirectory, PathOutsideWorkspace, WorkspaceNotFound } from "./errors.ts";
 import { RelativePath, WorkspaceId } from "./ids.ts";
 import { Settings, SettingsPatch } from "./settings.ts";
@@ -24,6 +24,12 @@ export class HostRpcs extends RpcGroup.make(
     payload: { workspaceId: WorkspaceId, path: RelativePath },
     success: Schema.Array(Entry),
     error: Schema.Union([WorkspaceNotFound, PathOutsideWorkspace, NotADirectory, FileSystemError]),
+  }),
+  Rpc.make("WatchEntries", {
+    payload: { workspaceId: WorkspaceId },
+    success: EntryChange,
+    error: Schema.Union([WorkspaceNotFound, FileSystemError]),
+    stream: true,
   }),
   Rpc.make("GetSettings", {
     success: Settings,
