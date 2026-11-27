@@ -2,14 +2,6 @@ import { useRender } from "@base-ui/react/use-render";
 import { cn } from "cn";
 import type { ComponentProps } from "react";
 
-const Group = ({ className, ...props }: ComponentProps<"section">) => (
-  <section className={cn("flex flex-col gap-3", className)} {...props} />
-);
-
-const GroupLabel = ({ className, ...props }: ComponentProps<"h2">) => (
-  <h2 className={cn("text-lg", className)} {...props} />
-);
-
 const List = ({ className, ...props }: ComponentProps<"div">) => (
   <div
     className={cn(
@@ -27,6 +19,10 @@ const Root = ({ render, className, ...props }: useRender.ComponentProps<"div">) 
     props: { ...props, className: cn("flex min-h-16 items-center justify-between gap-6 py-3", className) },
   });
 
+const Main = ({ className, ...props }: ComponentProps<"div">) => (
+  <div className={cn("mr-auto flex min-w-0 items-center gap-3", className)} {...props} />
+);
+
 const Media = ({ className, ...props }: ComponentProps<"div">) => (
   <div className={cn("flex shrink-0 items-center", className)} {...props} />
 );
@@ -42,8 +38,4 @@ const Description = ({ className, ...props }: ComponentProps<"p">) => (
   <p className={cn("text-sm text-subtle", className)} {...props} />
 );
 
-const Actions = ({ className, ...props }: ComponentProps<"div">) => (
-  <div className={cn("flex shrink-0 items-center gap-2", className)} {...props} />
-);
-
-export const Item = { Group, GroupLabel, List, Root, Media, Content, Title, Description, Actions };
+export const Item = { List, Root, Main, Media, Content, Title, Description };
