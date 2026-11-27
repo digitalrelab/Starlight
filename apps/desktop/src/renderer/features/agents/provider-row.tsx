@@ -1,19 +1,7 @@
 import { InformationCircleIcon } from "@hugeicons-pro/core-stroke-rounded";
 import type { AgentProvider } from "@starlight/client";
-import { Badge, cn, Icon, Item } from "@starlight/ui";
+import { Badge, cn, Icon, Item, StatusPill } from "@starlight/ui";
 import { providerAppearance } from "./provider-appearance.ts";
-
-const StatusPill = ({ ready }: { readonly ready: boolean }) => (
-  <span
-    className={cn(
-      "inline-flex h-5 items-center gap-1.5 rounded-full px-2 text-xs",
-      ready ? "bg-success text-success" : "bg-warning text-warning",
-    )}
-  >
-    <span className="size-1.5 rounded-full bg-current" />
-    {ready ? "Connected" : "Not set up"}
-  </span>
-);
 
 export const ProviderRow = ({ provider: { id, name, status } }: { readonly provider: AgentProvider }) => {
   const appearance = providerAppearance(id);
@@ -27,7 +15,11 @@ export const ProviderRow = ({ provider: { id, name, status } }: { readonly provi
         <Item.Content>
           <div className="flex items-center gap-2">
             <Item.Title>{name}</Item.Title>
-            <StatusPill ready={status._tag === "Ready"} />
+            {status._tag === "Ready" ? (
+              <StatusPill tone="success">Connected</StatusPill>
+            ) : (
+              <StatusPill tone="warning">Not set up</StatusPill>
+            )}
           </div>
           {status._tag === "Ready" ? (
             <Item.Description className="flex min-w-0 items-center gap-2">

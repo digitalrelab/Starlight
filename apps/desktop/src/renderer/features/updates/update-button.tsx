@@ -11,12 +11,17 @@ import {
 } from "@starlight/ui";
 import { useQuery } from "@tanstack/react-query";
 import { useStarlight } from "../../lib/context.ts";
-import { FAILURES, UpdateAction } from "./update-action.tsx";
+import { UpdateAction } from "./update-action.tsx";
 
 const LABELS = {
   available: "Update available",
   downloading: "Downloading update",
   downloaded: "Restart to update",
+} as const;
+
+const FAILURES = {
+  download: "Couldn't download the update.",
+  install: "Couldn't install the update.",
 } as const;
 
 export const UpdateButton = ({ className }: { readonly className?: string }) => {

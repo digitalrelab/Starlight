@@ -1,30 +1,26 @@
+import { RefreshDotIcon } from "@hugeicons-pro/core-stroke-rounded";
 import type { UpdaterState } from "@starlight/client";
-import { Button, cn, Item } from "@starlight/ui";
+import { Button, cn, Icon, Item, Prose, StatusPill, type StatusTone } from "@starlight/ui";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { SettingsPage } from "../features/settings/settings-page.tsx";
-import { FAILURES, UpdateAction } from "../features/updates/update-action.tsx";
+import { UpdateAction } from "../features/updates/update-action.tsx";
 import { useStarlight } from "../lib/context.ts";
-import { formatDate } from "../lib/format.ts";
 
 export const Route = createFileRoute("/settings/updates")({
   component: Updates,
 });
 
-const describe = ({ enabled, checking, checkedAt, checkFailed, update }: UpdaterState) => {
-  if (!enabled) return "Updates are only available in released builds.";
-  if (update?.failure) return FAILURES[update.failure];
-  switch (update?.status) {
-    case "available":
-      return `Version ${update.version} is available.`;
-    case "downloading":
-      return `Downloading version ${update.version}…`;
-    case "downloaded":
-      return `Version ${update.version} is ready to install.`;
-  }
-  if (checking) return "Checking for updates…";
-  if (checkFailed) return "Couldn't check for updates.";
-  return checkedAt ? `Up to date. Last checked ${formatDate(checkedAt)}.` : "Up to date.";
+const status = ({ enabled, checking, checkFailed, update }: UpdaterState): [StatusTone, string] => {
+  if (!enabled) return ["neutral", "Development build"];
+  if (update?.failure === "download") return ["danger", "Download failed"];
+  if (update?.failure === "install") return ["danger", "Install failed"];
+  if (update?.status === "available") return ["brand", `${update.version} available`];
+  if (update?.status === "downloading") return ["brand", `Downloading ${update.version}`];
+  if (update?.status === "downloaded") return ["brand", "Ready to restart"];
+  if (checking) return ["neutral", "Checking…"];
+  if (checkFailed) return ["danger", "Couldn't check"];
+  return ["success", "Up to date"];
 };
 
 function Updates() {
@@ -33,25 +29,36 @@ function Updates() {
   const check = useMutation(mutations.checkForUpdates());
   if (!updater) return null;
 
-  const failed = Boolean(updater.update?.failure) || (updater.checkFailed && !updater.update);
+  const [tone, label] = status(updater);
 
   return (
     <SettingsPage title="Updates">
       <Item.List>
-        <Item.Root>
-          <Item.Content>
-            <Item.Title>Starlight {updater.version}</Item.Title>
-            <Item.Description className={cn(failed && "text-danger")}>{describe(updater)}</Item.Description>
+        <Item.Root className="min-h-20">
+          <Item.Content className="gap-1.5">
+            <Item.Title className="text-lg font-medium">Starlight</Item.Title>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-subtle tabular-nums">{updater.version}</span>
+              <StatusPill tone={tone} pulse={updater.checking}>
+                {label}
+              </StatusPill>
+            </div>
           </Item.Content>
           {updater.update ? (
             <UpdateAction update={updater.update} />
           ) : (
             <Button onClick={() => check.mutate()} disabled={!updater.enabled || updater.checking}>
+              <Icon icon={RefreshDotIcon} className={cn(updater.checking && "animate-spin")} />
               Check for updates
             </Button>
           )}
         </Item.Root>
       </Item.List>
+      {updater.update?.releaseNotes ? (
+        <Item.List className="py-4">
+          <Prose html={updater.update.releaseNotes} />
+        </Item.List>
+      ) : null}
     </SettingsPage>
   );
 }

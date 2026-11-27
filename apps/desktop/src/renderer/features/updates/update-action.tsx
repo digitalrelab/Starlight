@@ -3,11 +3,6 @@ import { Button } from "@starlight/ui";
 import { useMutation } from "@tanstack/react-query";
 import { useStarlight } from "../../lib/context.ts";
 
-export const FAILURES = {
-  download: "Couldn't download the update.",
-  install: "Couldn't install the update.",
-} as const;
-
 export const UpdateAction = ({ update }: { readonly update: Update }) => {
   const { mutations } = useStarlight();
   const download = useMutation(mutations.downloadUpdate());

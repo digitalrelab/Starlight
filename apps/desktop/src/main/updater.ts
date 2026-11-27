@@ -19,7 +19,6 @@ export const startUpdater = () => {
       version: app.getVersion(),
       enabled: app.isPackaged,
       checking: false,
-      checkedAt: null,
       checkFailed: false,
       update: null,
     }),
@@ -41,7 +40,7 @@ export const startUpdater = () => {
     patch({ checking: true, checkFailed: false });
     electronUpdater.autoUpdater
       .checkForUpdates()
-      .then(() => patch({ checking: false, checkedAt: Date.now() }))
+      .then(() => patch({ checking: false }))
       .catch(() => patch({ checking: false, checkFailed: true }));
   };
 
