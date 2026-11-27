@@ -6,33 +6,44 @@
 @theme {
   --spacing-titlebar: calc(2.75rem / var(--interface-zoom, 1));
   --spacing-traffic-lights: calc(5rem / var(--interface-zoom, 1));
-  --font-chat: var(--font-sans);
-  --text-chat: 0.9375rem;
+}
+
+@theme inline {
+  --font-chat: var(--chat-font);
+  --text-chat: var(--chat-text-size);
   --text-chat--line-height: 1.6;
 }
 
-:root[data-chat-font="serif"] {
-  --font-chat: var(--font-serif);
+[data-chat-font="sans"] {
+  --chat-font: var(--font-sans);
 }
 
-:root[data-chat-font="mono"] {
-  --font-chat: var(--font-mono);
+[data-chat-font="serif"] {
+  --chat-font: var(--font-serif);
 }
 
-:root[data-chat-text-size="smaller"] {
-  --text-chat: 0.8125rem;
+[data-chat-font="mono"] {
+  --chat-font: var(--font-mono);
 }
 
-:root[data-chat-text-size="small"] {
-  --text-chat: 0.875rem;
+[data-chat-text-size="smaller"] {
+  --chat-text-size: 0.8125rem;
 }
 
-:root[data-chat-text-size="large"] {
-  --text-chat: 1rem;
+[data-chat-text-size="small"] {
+  --chat-text-size: 0.875rem;
 }
 
-:root[data-chat-text-size="larger"] {
-  --text-chat: 1.0625rem;
+[data-chat-text-size="default"] {
+  --chat-text-size: 0.9375rem;
+}
+
+[data-chat-text-size="large"] {
+  --chat-text-size: 1rem;
+}
+
+[data-chat-text-size="larger"] {
+  --chat-text-size: 1.0625rem;
 }
 
 @layer base {

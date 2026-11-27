@@ -17,10 +17,3 @@ export const SettingsPage = ({ title, children }: Props) => (
     </ScrollArea>
   </>
 );
-
-export const SettingsSection = ({ title, children }: Props) => (
-  <section className="flex flex-col gap-2">
-    <h2 className="px-1 font-medium text-subtle">{title}</h2>
-    {children}
-  </section>
-);

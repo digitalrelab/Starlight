@@ -11,7 +11,7 @@ import {
   SIZES,
   type Size,
 } from "#renderer/features/settings/appearance.ts";
-import { SettingsPage, SettingsSection } from "#renderer/features/settings/settings-page.tsx";
+import { SettingsPage } from "#renderer/features/settings/settings-page.tsx";
 import { SettingsSelect } from "#renderer/features/settings/settings-select.tsx";
 import { useStored } from "#renderer/lib/storage.ts";
 
@@ -35,6 +35,16 @@ const CHAT_FONT_LABELS: Record<ChatFont, string> = {
   mono: "Mono",
 };
 
+const ChatSwatch = ({ font, textSize }: { readonly font?: ChatFont; readonly textSize?: Size }) => (
+  <span
+    data-chat-font={font}
+    data-chat-text-size={textSize}
+    className="mr-2 w-6 text-center font-chat text-chat leading-none"
+  >
+    Aa
+  </span>
+);
+
 export const Route = createFileRoute("/settings/appearance")({
   component: Appearance,
 });
@@ -42,7 +52,7 @@ export const Route = createFileRoute("/settings/appearance")({
 function Appearance() {
   return (
     <SettingsPage title="Appearance">
-      <SettingsSection title="General">
+      <Item.Group title="General">
         <Item.List>
           <Item.Root>
             <Item.Content>
@@ -83,8 +93,8 @@ function Appearance() {
             />
           </Item.Root>
         </Item.List>
-      </SettingsSection>
-      <SettingsSection title="Chat">
+      </Item.Group>
+      <Item.Group title="Chat">
         <Item.List>
           <Item.Root>
             <Item.Content>
@@ -95,6 +105,7 @@ function Appearance() {
               id="chat-font"
               values={CHAT_FONTS}
               labels={CHAT_FONT_LABELS}
+              swatch={(font) => <ChatSwatch font={font} />}
               value={useStored(chatFont)}
               onValueChange={chatFont.set}
             />
@@ -108,12 +119,13 @@ function Appearance() {
               id="chat-text-size"
               values={SIZES}
               labels={SIZE_LABELS}
+              swatch={(textSize) => <ChatSwatch textSize={textSize} />}
               value={useStored(chatTextSize)}
               onValueChange={chatTextSize.set}
             />
           </Item.Root>
         </Item.List>
-      </SettingsSection>
+      </Item.Group>
     </SettingsPage>
   );
 }
