@@ -1,9 +1,8 @@
 import type { AgentUsage, UsageWindow } from "@starlight/contracts";
-import type { Effect } from "effect";
+import { Duration, type Effect } from "effect";
 import { readUsage } from "#adapters/agent.ts";
 import type { Connection } from "./connection.ts";
 
-const MINUTE_MS = 60 * 1000;
 const HOUR_MINS = 60;
 const DAY_MINS = 24 * HOUR_MINS;
 const WEEK_MINS = 7 * DAY_MINS;
@@ -45,8 +44,11 @@ const windowsOf = ({ limitId, limitName, primary, secondary }: Snapshot) => {
       {
         label: scope ? `${span} · ${scope}` : span,
         usedPercent: window.usedPercent,
-        resetsAt: window.resetsAt === null ? null : window.resetsAt * 1000,
-        durationMs: window.windowDurationMins === null ? null : window.windowDurationMins * MINUTE_MS,
+        resetsAt: window.resetsAt === null ? null : Duration.toMillis(Duration.seconds(window.resetsAt)),
+        durationMs:
+          window.windowDurationMins === null
+            ? null
+            : Duration.toMillis(Duration.minutes(window.windowDurationMins)),
       },
     ];
   });

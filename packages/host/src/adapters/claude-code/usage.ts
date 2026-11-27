@@ -1,11 +1,11 @@
 import type { SDKControlGetUsageResponse } from "@anthropic-ai/claude-agent-sdk";
 import type { AgentUsage, UsageWindow } from "@starlight/contracts";
-import type { Effect } from "effect";
+import { Duration, type Effect } from "effect";
 import { readUsage, unavailable } from "#adapters/agent.ts";
 import type { Pool } from "./pool.ts";
 
-const HOUR_MS = 60 * 60 * 1000;
-const WEEK_MS = 7 * 24 * HOUR_MS;
+const FIVE_HOURS_MS = Duration.toMillis(Duration.hours(5));
+const WEEK_MS = Duration.toMillis(Duration.weeks(1));
 
 interface Window {
   readonly utilization: number | null;
@@ -33,7 +33,7 @@ const toUsage = ({ subscription_type, rate_limits }: SDKControlGetUsageResponse)
     );
   }
   const windows = [
-    ...windowOf("5-hour", 5 * HOUR_MS, rate_limits.five_hour),
+    ...windowOf("5-hour", FIVE_HOURS_MS, rate_limits.five_hour),
     ...windowOf("Weekly", WEEK_MS, rate_limits.seven_day),
     ...windowOf("Weekly · Opus", WEEK_MS, rate_limits.seven_day_opus),
     ...windowOf("Weekly · Sonnet", WEEK_MS, rate_limits.seven_day_sonnet),

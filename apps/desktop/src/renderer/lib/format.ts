@@ -14,7 +14,9 @@ export const formatSize = (bytes: number) => {
 
 export const formatDate = (epochMs: number) => dateFormat.format(epochMs);
 
-const DAY_MS = 24 * 60 * 60 * 1000;
+const MINUTE_MS = 60 * 1000;
+const HOUR_MS = 60 * MINUTE_MS;
+const DAY_MS = 24 * HOUR_MS;
 
 const recencies = [
   [0, "Today"],
@@ -31,19 +33,21 @@ export const formatRecency = (epochMs: number) => {
 };
 
 const SPAN_UNITS = [
-  ["d", DAY_MS],
-  ["h", 60 * 60 * 1000],
-  ["m", 60 * 1000],
+  { suffix: "d", size: DAY_MS, within: Infinity },
+  { suffix: "h", size: HOUR_MS, within: 24 },
+  { suffix: "m", size: MINUTE_MS, within: 60 },
 ] as const;
 
 export const formatSpan = (ms: number, precision = 2) => {
-  const pieces: Array<string> = [];
-  let rest = ms;
-  for (const [suffix, size] of SPAN_UNITS) {
-    const count = Math.floor(rest / size);
-    rest -= count * size;
-    if (count > 0 || pieces.length > 0) pieces.push(`${count}${suffix}`);
-  }
-  const shown = pieces.slice(0, precision).filter((piece) => !piece.startsWith("0"));
-  return shown.length > 0 ? shown.join(" ") : "<1m";
+  const counts = SPAN_UNITS.map(({ suffix, size, within }) => ({
+    suffix,
+    count: Math.floor(ms / size) % within,
+  }));
+  const first = counts.findIndex(({ count }) => count > 0);
+  if (first === -1) return "<1m";
+  return counts
+    .slice(first, first + precision)
+    .filter(({ count }) => count > 0)
+    .map(({ suffix, count }) => `${count}${suffix}`)
+    .join(" ");
 };

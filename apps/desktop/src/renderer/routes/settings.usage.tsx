@@ -2,10 +2,10 @@ import { RefreshIcon } from "@hugeicons-pro/core-stroke-rounded";
 import { cn, IconButton } from "@starlight/ui";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
 import { ProviderUsage } from "#renderer/features/providers/provider-usage.tsx";
 import { SettingsPage } from "#renderer/features/settings/settings-page.tsx";
 import { useStarlight } from "#renderer/lib/context.ts";
+import { useNow } from "#renderer/lib/use-now.ts";
 
 const TICK_MS = 60 * 1000;
 
@@ -18,20 +18,11 @@ export const Route = createFileRoute("/settings/usage")({
   component: Usage,
 });
 
-const useNow = () => {
-  const [now, setNow] = useState(Date.now);
-  useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), TICK_MS);
-    return () => clearInterval(timer);
-  }, []);
-  return now;
-};
-
 function Usage() {
   const { queries } = useStarlight();
   const { data: providers } = useSuspenseQuery(queries.agentProviders());
   const { data: usage, refetch, isFetching } = useSuspenseQuery(queries.agentUsage());
-  const now = useNow();
+  const now = useNow(TICK_MS);
 
   return (
     <SettingsPage
