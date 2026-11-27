@@ -85,7 +85,7 @@ const Charts = ({ provider, history, now }: Props) => {
   const current = history.current.filter((series) => series.provider === provider.id);
   const past = history.past.filter((peak) => peak.provider === provider.id);
   if (current.length === 0 && past.length === 0) {
-    return <UsageMessage>No history yet. Starlight records usage while it’s open.</UsageMessage>;
+    return <UsageMessage>No history yet. Starlight records usage while it's open.</UsageMessage>;
   }
 
   const labels = [...new Set([...current, ...past].map(({ label }) => label))];
