@@ -34,9 +34,12 @@ export class EntrySearch extends Context.Service<
             kind: found.kind,
             project: project.id,
             directory: found.kind === "directory" ? ref : { source: found.source, id: found.parent },
+            token:
+              found.kind === "file" && found.fileId
+                ? tokens.issue(ref, { ...found, fileId: found.fileId })
+                : null,
           },
           folders: [mount.name, ...driver.trail(mount.root.id, found.parent).map(({ name }) => name)],
-          token: found.fileId ? tokens.issue(ref, { ...found, fileId: found.fileId }) : null,
         });
       };
 

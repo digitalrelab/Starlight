@@ -7,6 +7,8 @@ const REPLACEMENT = "\uFFFD";
 
 export const unescape = (text: string) => text.replace(ESCAPED, "$1");
 
+export const destinationOf = (raw: string) => unescape(raw.startsWith("<") ? raw.slice(1, -1) : raw);
+
 export const decodeEntity = (entity: string) => {
   const body = entity.slice(1, -1);
   if (!body.startsWith("#")) return decodeNamedCharacterReference(body) || entity;

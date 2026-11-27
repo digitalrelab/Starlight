@@ -279,3 +279,11 @@
 .markdown-editor[data-variant="message"] .cm-editor .cm-scroller {
   font: inherit;
 }
+
+.markdown-editor .md-mention[data-selected] > * {
+  @apply ring-2 ring-selected;
+}
+
+body .cm-tooltip.md-trigger {
+  @apply border-none bg-transparent;
+}

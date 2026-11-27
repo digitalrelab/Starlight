@@ -2,6 +2,7 @@ import { ArrowUp02Icon } from "@hugeicons-pro/core-stroke-rounded";
 import { MarkdownEditor } from "@starlight/markdown/editor";
 import { IconButton, ScrollArea } from "@starlight/ui";
 import { type ReactNode, useState } from "react";
+import { useMentions } from "#renderer/features/references/use-mentions.tsx";
 
 interface Props {
   readonly placeholder: string;
@@ -16,6 +17,7 @@ export const Composer = ({ placeholder, disabled = false, autoFocus = false, act
   const [sent, setSent] = useState(0);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const mentions = useMentions();
   const ready = text.trim() !== "" && !disabled && !pending;
 
   const submit = () => {
@@ -51,10 +53,12 @@ export const Composer = ({ placeholder, disabled = false, autoFocus = false, act
             className="min-h-12 chat-text"
             placeholder={placeholder}
             autoFocus={autoFocus || sent > 0}
+            extensions={mentions.extension}
             onChange={(read) => setText(read())}
             onSubmit={submit}
           />
         </ScrollArea>
+        {mentions.element}
         <div className="flex items-center justify-end gap-1">
           {actions}
           <IconButton

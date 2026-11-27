@@ -74,8 +74,10 @@ export const createClient = (ports: PortSources) => {
       watch: (projectId: string, onChange: (change: EntryChange) => void) =>
         watch("Entries", (c) => c.WatchEntries({ projectId: id(projectId) }), onChange),
       locate: (ref: EntryRef) => host((c) => c.LocateEntry({ ref })),
+    },
+    references: {
       search: (query: string, projectId: string | null, includeHidden: boolean) =>
-        host((c) => c.SearchEntries({ query, projectId: optionalId(projectId), includeHidden })),
+        host((c) => c.SearchReferences({ query, projectId: optionalId(projectId), includeHidden })),
     },
     media: {
       list: (projectId: string, directory: EntryRef | null) =>

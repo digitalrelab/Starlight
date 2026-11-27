@@ -1,6 +1,6 @@
 import { EntryId, EntryKind, FileId, SourceId } from "@starlight/contracts";
 import { EntryStore, type StoredEntry } from "@starlight/core";
-import { Array as Arr, Effect, Layer, Schema } from "effect";
+import { Array as Arr, Effect, Layer, Option, Schema } from "effect";
 import { SqlClient, SqlSchema } from "effect/sql";
 import { BATCH_SIZE, batched } from "./batched.ts";
 import { wordsOf } from "./entry-words.ts";
@@ -54,6 +54,13 @@ export const SqliteEntryStoreLive = Layer.effect(EntryStore)(
         SELECT source, parent AS id FROM (SELECT DISTINCT source, parent FROM entries) AS parents
         WHERE NOT EXISTS (SELECT 1 FROM entries WHERE entries.source = parents.source AND entries.id = parents.parent)
       `,
+    });
+
+    const find = SqlSchema.findOneOption({
+      Request: Schema.Struct({ source: Schema.String, id: Schema.String }),
+      Result: Row,
+      execute: ({ source, id }) =>
+        sql`SELECT ${sql.literal(COLUMNS)} FROM entries WHERE source = ${source} AND id = ${id}`,
     });
 
     const children = SqlSchema.findAll({
@@ -121,6 +128,7 @@ export const SqliteEntryStoreLive = Layer.effect(EntryStore)(
 
     return EntryStore.of({
       roots: Effect.orDie(roots(undefined)),
+      find: (source, id) => find({ source, id }).pipe(Effect.map(Option.map(toEntry)), Effect.orDie),
       children: (source, directory) =>
         children({ source, directory }).pipe(
           Effect.map((rows) => rows.map(toEntry)),

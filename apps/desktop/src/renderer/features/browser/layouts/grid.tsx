@@ -12,7 +12,7 @@ import { KindIcon } from "#renderer/features/files/kind-icon.tsx";
 import { DraftChip, FolderChip, TILE_CHROME, TILE_INSET, Tile, tilePreviewUrl } from "./tile.tsx";
 import { draftOf, fieldFor } from "./naming-slot.ts";
 import type { LayoutProps } from "./types.ts";
-import { usePreviewsAhead } from "./use-preview.ts";
+import { usePreviewsAhead } from "#renderer/features/files/use-preview.ts";
 
 const TARGET_ROW_HEIGHT = 200;
 const MAX_ROW_HEIGHT = 320;
