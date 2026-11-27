@@ -3,6 +3,7 @@ import { Markdown } from "@starlight/markdown";
 import { ScrollArea } from "@starlight/ui";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { type Ref, useEffect, useImperativeHandle, useRef } from "react";
+import { renderReference } from "#renderer/features/references/reference-link.tsx";
 import { useRevealedText } from "./use-revealed-text.ts";
 
 const ESTIMATED_MESSAGE_HEIGHT = 120;
@@ -27,7 +28,7 @@ const Reply = ({ text, pending }: { readonly text: string; readonly pending: boo
   return pending && shown === "" ? (
     <p className="w-fit chat-text shimmer-text">Thinking…</p>
   ) : (
-    <Markdown value={shown} className="chat-text whitespace-pre-line" />
+    <Markdown value={shown} renderLink={renderReference} className="chat-text whitespace-pre-line" />
   );
 };
 
@@ -39,6 +40,7 @@ export const Message = ({
   role === "user" ? (
     <Markdown
       value={text}
+      renderLink={renderReference}
       className="max-w-[80%] self-end rounded-lg bg-neutral px-3 py-2 chat-text whitespace-pre-line"
     />
   ) : (

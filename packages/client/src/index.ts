@@ -8,6 +8,7 @@ export type {
   DiskUsage,
   Draft,
   Entry,
+  EntryLocation,
   EntryRef,
   FileDetails,
   FileKind,
@@ -17,6 +18,7 @@ export type {
   ModelChoice,
   Project,
   Property,
+  Reference,
   Swatch,
   Update,
   UpdaterState,
@@ -28,6 +30,8 @@ export {
   DirectoryMissing,
   fileKindOf,
   mediaTypeOf,
+  referenceOf,
+  referenceUrl,
 } from "@starlight/contracts";
 export * from "./client.ts";
 export * from "./codecs.ts";
