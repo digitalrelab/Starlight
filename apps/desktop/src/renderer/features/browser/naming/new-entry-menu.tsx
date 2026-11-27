@@ -7,14 +7,14 @@ import { BLUEPRINTS, type Blueprint, freeName } from "./blueprints.ts";
 import { startCreating } from "./session.ts";
 import { useNamingMenu } from "./use-naming-menu.ts";
 
-interface Props {
+export interface NewEntryOptions {
   readonly projectId: string;
   readonly directory: EntryRef;
   readonly entries: ReadonlyArray<Entry>;
   readonly onOpen: (entry: Pick<Entry, "ref" | "kind">) => void;
 }
 
-export const useNewEntry = ({ projectId, directory, entries, onOpen }: Props) => {
+export const useNewEntry = ({ projectId, directory, entries, onOpen }: NewEntryOptions) => {
   const { mutations } = useStarlight();
   const create = useMutation(mutations.nameEntry(projectId, directory));
   return (blueprint: Blueprint) => {
@@ -44,7 +44,7 @@ export const NewEntryItems = ({
     </Menu.Item>
   ));
 
-export const NewEntryMenu = (props: Props) => {
+export const NewEntryMenu = (props: NewEntryOptions) => {
   const { onOpenChange, finalFocus, start } = useNamingMenu();
   const pick = useNewEntry(props);
   return (
