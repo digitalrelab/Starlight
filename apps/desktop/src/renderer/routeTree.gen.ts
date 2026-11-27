@@ -15,6 +15,7 @@ import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as SettingsIndexRouteImport } from './routes/settings.index'
 import { Route as SettingsAppearanceRouteImport } from './routes/settings.appearance'
 import { Route as SettingsConnectionsRouteImport } from './routes/settings.connections'
+import { Route as SettingsUpdatesRouteImport } from './routes/settings.updates'
 import { Route as AppWWorkspaceIdRouteImport } from './routes/_app.w.$workspaceId'
 
 const AppRoute = AppRouteImport.update({
@@ -46,6 +47,11 @@ const SettingsConnectionsRoute = SettingsConnectionsRouteImport.update({
   path: '/connections',
   getParentRoute: () => SettingsRoute,
 } as any)
+const SettingsUpdatesRoute = SettingsUpdatesRouteImport.update({
+  id: '/updates',
+  path: '/updates',
+  getParentRoute: () => SettingsRoute,
+} as any)
 const AppWWorkspaceIdRoute = AppWWorkspaceIdRouteImport.update({
   id: '/w/$workspaceId',
   path: '/w/$workspaceId',
@@ -57,12 +63,14 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRouteWithChildren
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/connections': typeof SettingsConnectionsRoute
+  '/settings/updates': typeof SettingsUpdatesRoute
   '/settings/': typeof SettingsIndexRoute
   '/w/$workspaceId': typeof AppWWorkspaceIdRoute
 }
 export interface FileRoutesByTo {
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/connections': typeof SettingsConnectionsRoute
+  '/settings/updates': typeof SettingsUpdatesRoute
   '/': typeof AppIndexRoute
   '/settings': typeof SettingsIndexRoute
   '/w/$workspaceId': typeof AppWWorkspaceIdRoute
@@ -73,6 +81,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRouteWithChildren
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/connections': typeof SettingsConnectionsRoute
+  '/settings/updates': typeof SettingsUpdatesRoute
   '/_app/': typeof AppIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/_app/w/$workspaceId': typeof AppWWorkspaceIdRoute
@@ -84,12 +93,14 @@ export interface FileRouteTypes {
     | '/settings'
     | '/settings/appearance'
     | '/settings/connections'
+    | '/settings/updates'
     | '/settings/'
     | '/w/$workspaceId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/settings/appearance'
     | '/settings/connections'
+    | '/settings/updates'
     | '/'
     | '/settings'
     | '/w/$workspaceId'
@@ -99,6 +110,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/settings/appearance'
     | '/settings/connections'
+    | '/settings/updates'
     | '/_app/'
     | '/settings/'
     | '/_app/w/$workspaceId'
@@ -153,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsConnectionsRouteImport
       parentRoute: typeof SettingsRoute
     }
+    '/settings/updates': {
+      id: '/settings/updates'
+      path: '/updates'
+      fullPath: '/settings/updates'
+      preLoaderRoute: typeof SettingsUpdatesRouteImport
+      parentRoute: typeof SettingsRoute
+    }
     '/_app/w/$workspaceId': {
       id: '/_app/w/$workspaceId'
       path: '/w/$workspaceId'
@@ -178,12 +197,14 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 interface SettingsRouteChildren {
   SettingsAppearanceRoute: typeof SettingsAppearanceRoute
   SettingsConnectionsRoute: typeof SettingsConnectionsRoute
+  SettingsUpdatesRoute: typeof SettingsUpdatesRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
 }
 
 const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsAppearanceRoute: SettingsAppearanceRoute,
   SettingsConnectionsRoute: SettingsConnectionsRoute,
+  SettingsUpdatesRoute: SettingsUpdatesRoute,
   SettingsIndexRoute: SettingsIndexRoute,
 }
 

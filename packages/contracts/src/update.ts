@@ -14,3 +14,13 @@ export const Update = Schema.Struct({
   failure: Schema.NullOr(UpdateFailure),
 });
 export type Update = typeof Update.Type;
+
+export const UpdaterState = Schema.Struct({
+  version: Schema.String,
+  enabled: Schema.Boolean,
+  checking: Schema.Boolean,
+  checkedAt: Schema.NullOr(Schema.Number),
+  checkFailed: Schema.Boolean,
+  update: Schema.NullOr(Update),
+});
+export type UpdaterState = typeof UpdaterState.Type;
