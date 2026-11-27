@@ -3,6 +3,7 @@ import type {
   Entry,
   EntryChange,
   EntryRef,
+  FileId,
   Listing,
   Mount,
   SourceError,
@@ -12,6 +13,7 @@ import type {
   WorkspaceNotFound,
 } from "@starlight/contracts";
 import { Array as Arr, Context, Effect, Layer, Result, Stream } from "effect";
+import { FileIdentities } from "./file-identities.ts";
 import type { SourceChange, SourceDriver, SourceEntry } from "./ports.ts";
 import { Workspaces } from "./workspaces.ts";
 
@@ -25,9 +27,14 @@ const byKindThenName = (a: Entry, b: Entry) => {
   return aDir - bDir || collator.compare(a.name, b.name);
 };
 
-const toEntry = (source: SourceId, { id, ...entry }: SourceEntry): Entry => ({
+const toEntry = (
+  source: SourceId,
+  { id, key: _key, ...entry }: SourceEntry,
+  fileId: FileId | null,
+): Entry => ({
   ...entry,
   ref: { source, id },
+  fileId,
 });
 
 const resync: EntryChange = { _tag: "Resync" };
@@ -60,13 +67,14 @@ export class Entries extends Context.Service<
   static readonly layer = Layer.effect(Entries)(
     Effect.gen(function* () {
       const workspaces = yield* Workspaces;
+      const identities = yield* FileIdentities;
 
       const listMounts = Effect.fn("Entries.listMounts")(function* (workspaceId: WorkspaceId) {
         const { mounts } = yield* workspaces.get(workspaceId);
         const entries = yield* Effect.forEach(mounts, (mount) =>
           workspaces.driverFor(mount.root.source).pipe(
             Effect.flatMap((driver) => driver.stat(mount.root.id)),
-            Effect.map((entry) => toEntry(mount.root.source, { ...entry, name: mount.name })),
+            Effect.map((entry) => toEntry(mount.root.source, { ...entry, name: mount.name }, null)),
             Effect.option,
           ),
         );
@@ -78,12 +86,20 @@ export class Entries extends Context.Service<
           if (!requested) return yield* listMounts(workspaceId);
           const { mount, driver, directory } = yield* workspaces.locateDirectory(workspaceId, requested);
           const children = yield* driver.list(directory.id);
+          const files = yield* identities.bind(
+            driver,
+            directory,
+            children.filter((child) => child.kind === "file"),
+          );
+          const fileIds = new Map(files.map((file) => [file.id, file.fileId]));
           const below = driver
             .trail(mount.root.id, directory.id)
             .map(({ id, name }) => ({ ref: { source: directory.source, id }, name }));
           return {
             trail: [{ ref: mount.root, name: mount.name }, ...below],
-            entries: children.map((child) => toEntry(directory.source, child)).sort(byKindThenName),
+            entries: children
+              .map((child) => toEntry(directory.source, child, fileIds.get(child.id) ?? null))
+              .sort(byKindThenName),
           };
         }),
 
