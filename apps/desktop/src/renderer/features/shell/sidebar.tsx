@@ -1,5 +1,6 @@
 import { FolderOpenIcon } from "@hugeicons-pro/core-stroke-rounded";
 import { Icon, NavItem } from "@starlight/ui";
+import { UpdateNotice } from "../updates/update-notice.tsx";
 import { RecentWorkspaces } from "../workspaces/recent-workspaces.tsx";
 import { useOpenWorkspace } from "../workspaces/use-open-workspace.ts";
 
@@ -21,6 +22,9 @@ export const Sidebar = () => {
         </div>
         <RecentWorkspaces />
       </nav>
+      <footer className="shrink-0 px-2 pb-2 empty:hidden">
+        <UpdateNotice />
+      </footer>
     </aside>
   );
 };

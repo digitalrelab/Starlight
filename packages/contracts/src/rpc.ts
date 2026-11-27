@@ -3,6 +3,7 @@ import { Rpc, RpcGroup } from "effect/rpc";
 import { Entry } from "./entry.ts";
 import { FileSystemError, NotADirectory, PathOutsideWorkspace, WorkspaceNotFound } from "./errors.ts";
 import { RelativePath, WorkspaceId } from "./ids.ts";
+import { Update } from "./update.ts";
 import { Workspace } from "./workspace.ts";
 
 export class WorkspaceRpcs extends RpcGroup.make(
@@ -30,4 +31,9 @@ export class ShellRpcs extends RpcGroup.make(
   Rpc.make("PickDirectory", {
     success: Schema.NullOr(Schema.String),
   }),
+  Rpc.make("WatchUpdates", {
+    success: Update,
+    stream: true,
+  }),
+  Rpc.make("InstallUpdate"),
 ) {}

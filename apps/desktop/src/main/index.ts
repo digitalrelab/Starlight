@@ -13,6 +13,7 @@ const main = async () => {
   const host = superviseHost(() => {
     for (const window of BrowserWindow.getAllWindows()) window.webContents.reload();
   });
+  const updater = startUpdater();
 
   ipcMain.on(Channel.connect, (event) => {
     const window = BrowserWindow.fromWebContents(event.sender);
@@ -21,12 +22,11 @@ const main = async () => {
     const toHost = new MessageChannelMain();
     host.connect({ actor: { _tag: "User" } }, toHost.port1);
     const toShell = new MessageChannelMain();
-    serveShell(toShell.port1, window);
+    serveShell(toShell.port1, window, updater);
     event.sender.postMessage(Channel.ports, null, [toHost.port2, toShell.port2]);
   });
 
   createWindow();
-  startUpdater();
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

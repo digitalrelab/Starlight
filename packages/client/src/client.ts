@@ -1,5 +1,5 @@
 import { ShellRpcs, type WorkspaceId, WorkspaceRpcs } from "@starlight/contracts";
-import { Context, type Effect, Layer, ManagedRuntime } from "effect";
+import { Context, type Effect, Layer, ManagedRuntime, Stream } from "effect";
 import { RpcClient, type RpcClientError } from "effect/rpc";
 import { layerProtocolPort } from "./transport.ts";
 
@@ -37,6 +37,10 @@ export const createClient = (ports: PortSources) => {
     },
     shell: {
       pickDirectory: () => shell((c) => c.PickDirectory()),
+    },
+    updates: {
+      watch: () => shell((c) => Stream.toAsyncIterableEffect(c.WatchUpdates())),
+      install: () => shell((c) => c.InstallUpdate()),
     },
   };
 };
