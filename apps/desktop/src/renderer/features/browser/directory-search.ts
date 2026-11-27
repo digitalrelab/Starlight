@@ -1,4 +1,4 @@
-import { type EntryRef, entryRef } from "@starlight/client";
+import { type EntryRef, entryKey, entryRef } from "@starlight/client";
 
 export interface DirectorySearch {
   readonly source?: string;
@@ -11,6 +11,8 @@ export const parseDirectorySearch = (search: Record<string, unknown>): Directory
   if (typeof source !== "string" || typeof entry !== "string") return {};
   return typeof file === "string" ? { source, entry, file } : { source, entry };
 };
+
+export const directoryKey = (directory: EntryRef | null) => (directory ? entryKey(directory) : "");
 
 export const toDirectory = ({ source, entry }: DirectorySearch): EntryRef | null =>
   source !== undefined && entry !== undefined ? entryRef(source, entry) : null;

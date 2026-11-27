@@ -1,4 +1,4 @@
-import { GridViewIcon, ListViewIcon } from "@hugeicons-pro/core-stroke-rounded";
+import { GridViewIcon, LayoutThreeColumnIcon, ListViewIcon } from "@hugeicons-pro/core-stroke-rounded";
 import type { EntryRef } from "@starlight/client";
 import type { IconProps } from "@starlight/ui";
 import type { ComponentType } from "react";
@@ -10,7 +10,7 @@ import type { LayoutProps } from "./types.ts";
 export interface LayoutDefinition {
   readonly label: string;
   readonly icon: IconProps["icon"];
-  readonly component: ComponentType<LayoutProps>;
+  readonly component: ComponentType<LayoutProps> | null;
   readonly preload?: (
     context: RouterContext,
     projectId: string,
@@ -27,6 +27,7 @@ const definitions = {
     preload: ({ queryClient, queries }, projectId, directory) =>
       queryClient.ensureQueryData(queries.media(projectId, directory)),
   },
+  panel: { label: "Panel", icon: LayoutThreeColumnIcon, component: null },
 } satisfies Record<string, LayoutDefinition>;
 
 export type LayoutId = keyof typeof definitions;

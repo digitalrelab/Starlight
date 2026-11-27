@@ -1,8 +1,12 @@
+import type { Listing } from "@starlight/client";
 import { useEffect } from "react";
 import { Channel } from "#shared/channels.ts";
 import { defineStored, oneOf } from "#renderer/lib/storage.ts";
 
 export const hiddenFiles = defineStored("hidden-files", oneOf(["hide", "show"]), "hide");
+
+export const visibleEntries = ({ entries }: Listing, showHidden: boolean) =>
+  showHidden ? entries : entries.filter((entry) => !entry.hidden);
 
 export const useHiddenFilesToggle = () =>
   useEffect(() => {

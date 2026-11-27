@@ -1,5 +1,5 @@
-import { type Entry, entryKey } from "@starlight/client";
-import { useEffect, useEffectEvent, useSyncExternalStore } from "react";
+import { type Entry, type EntryRef, entryKey } from "@starlight/client";
+import { useEffect, useEffectEvent, useLayoutEffect, useSyncExternalStore } from "react";
 
 export const selectionId = (entry: Entry) => entry.fileId ?? entryKey(entry.ref);
 
@@ -77,6 +77,7 @@ export const createSelection = () => {
       commit(state.ids.has(id) ? { ...state, focus: id } : only(id));
     },
     has: (id: string) => state.ids.has(id),
+    sole: () => (state.ids.size === 1 ? state.ids.values().next().value : undefined),
     selectedCount: () => state.ids.size,
     itemCount: () => items.length,
     focusIndex: () => (state.focus === undefined ? -1 : (positions.get(state.focus) ?? -1)),
@@ -99,4 +100,17 @@ export const useRevealFocus = (selection: SelectionStore, reveal: (index: number
     if (index >= 0) onFocus(index);
     return selection.subscribeFocus((focused) => onFocus(focused));
   }, [selection, ready]);
+};
+
+export const useFollow = (
+  selection: SelectionStore,
+  entries: ReadonlyArray<Entry> | undefined,
+  ref: EntryRef | null,
+) => {
+  const key = ref && entryKey(ref);
+  const entry = key ? entries?.find((candidate) => entryKey(candidate.ref) === key) : undefined;
+  const id = entry && selectionId(entry);
+  useLayoutEffect(() => {
+    if (id) selection.follow(id);
+  }, [selection, id]);
 };
