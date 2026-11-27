@@ -1,6 +1,7 @@
 import { FolderOpenIcon, Settings01Icon } from "@hugeicons-pro/core-stroke-rounded";
 import { Icon, IconButton, NavItem } from "@starlight/ui";
 import { Link } from "@tanstack/react-router";
+import { UpdateButton } from "../updates/update-button.tsx";
 import { RecentWorkspaces } from "../workspaces/recent-workspaces.tsx";
 import { useOpenWorkspace } from "../workspaces/use-open-workspace.ts";
 
@@ -24,5 +25,8 @@ export const MainSidebar = () => {
 };
 
 export const MainSidebarFooter = () => (
-  <IconButton icon={Settings01Icon} label="Settings" render={<Link to="/settings" />} />
+  <>
+    <IconButton icon={Settings01Icon} label="Settings" render={<Link to="/settings" />} />
+    <UpdateButton className="ml-auto" />
+  </>
 );

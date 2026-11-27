@@ -1,9 +1,13 @@
-import { mutationOptions, queryOptions, type QueryClient } from "@tanstack/react-query";
+import {
+  experimental_streamedQuery as streamedQuery,
+  mutationOptions,
+  queryOptions,
+  type QueryClient,
+} from "@tanstack/react-query";
+import { parentOf, type Update } from "@starlight/contracts";
 import type { StarlightClient } from "./client.ts";
 
 const directoryKey = (workspaceId: string) => ["directory", workspaceId] as const;
-
-const parentOf = (path: string) => path.slice(0, Math.max(0, path.lastIndexOf("/")));
 
 const listingsAffectedBy = (paths: ReadonlyArray<string>) => {
   const changed = new Set(paths);
@@ -35,10 +39,25 @@ const createQueries = (client: StarlightClient) => ({
       queryKey: [...directoryKey(workspaceId), path, "media"],
       queryFn: () => client.media.list(workspaceId, path),
     }),
+
+  update: () =>
+    queryOptions({
+      queryKey: ["update"],
+      queryFn: streamedQuery<Update, Update | null>({
+        streamFn: () => client.updates.watch(),
+        reducer: (_, update) => update,
+        initialValue: null,
+      }),
+      staleTime: Infinity,
+    }),
 });
 
 const createMutations = (client: StarlightClient, queryClient: QueryClient, queries: Queries) => ({
   pickDirectory: () => mutationOptions({ mutationFn: () => client.shell.pickDirectory() }),
+
+  downloadUpdate: () => mutationOptions({ mutationFn: () => client.updates.download() }),
+
+  installUpdate: () => mutationOptions({ mutationFn: () => client.updates.install() }),
 
   openWorkspace: () =>
     mutationOptions({

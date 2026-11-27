@@ -4,6 +4,7 @@ import { Entry, EntryChange } from "./entry.ts";
 import { DirectoryError, FileSystemError, NotADirectory, WorkspaceNotFound } from "./errors.ts";
 import { RelativePath, WorkspaceId } from "./ids.ts";
 import { Media } from "./media.ts";
+import { Update } from "./update.ts";
 import { Workspace } from "./workspace.ts";
 
 export class HostRpcs extends RpcGroup.make(
@@ -42,4 +43,10 @@ export class ShellRpcs extends RpcGroup.make(
   Rpc.make("PickDirectory", {
     success: Schema.NullOr(Schema.String),
   }),
+  Rpc.make("WatchUpdates", {
+    success: Update,
+    stream: true,
+  }),
+  Rpc.make("DownloadUpdate"),
+  Rpc.make("InstallUpdate"),
 ) {}

@@ -4,5 +4,7 @@ export * from "./entry.ts";
 export * from "./errors.ts";
 export * from "./ids.ts";
 export * from "./media.ts";
+export * from "./relative-path.ts";
 export * from "./rpc.ts";
+export * from "./update.ts";
 export * from "./workspace.ts";

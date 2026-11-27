@@ -2,7 +2,12 @@
 @import "./appearance.css";
 @source "./";
 
-@custom-variant popup-open (&[aria-haspopup][aria-expanded="true"]);
+@custom-variant highlighted {
+  &:hover:not(:disabled, [data-disabled]),
+  &[data-popup-open] {
+    @slot;
+  }
+}
 
 @utility focus-ring {
   @apply outline-none focus-visible:ring-2 focus-visible:ring-selected;

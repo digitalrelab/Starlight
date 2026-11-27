@@ -3,9 +3,9 @@ import type { ComponentProps } from "react";
 import { cn } from "cn";
 
 const intents = {
-  ghost: "text-default hover:bg-neutral-subtle-hovered popup-open:bg-neutral-subtle-hovered",
+  ghost: "text-default highlighted:bg-neutral-subtle-hovered",
   secondary:
-    "border border-input bg-surface-raised text-default shadow-xs hover:wash-neutral-subtle-hovered popup-open:wash-neutral-subtle-hovered",
+    "border border-input bg-surface-raised text-default shadow-xs highlighted:wash-neutral-subtle-hovered",
 } as const;
 
 export interface ButtonProps extends Omit<ComponentProps<typeof BaseButton>, "className"> {
