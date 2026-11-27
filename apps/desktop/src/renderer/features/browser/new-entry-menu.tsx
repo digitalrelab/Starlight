@@ -15,11 +15,6 @@ const BLUEPRINTS = [
 
 type Blueprint = (typeof BLUEPRINTS)[number];
 
-interface Draft {
-  readonly blueprint: Blueprint;
-  readonly name: string;
-}
-
 const freeName = ({ extension }: Blueprint, entries: ReadonlyArray<Entry>) => {
   const taken = new Set(entries.map(({ name }) => name.toLowerCase()));
   for (let n = 1; ; n++) {
@@ -47,23 +42,25 @@ export const NewEntryMenu = ({ projectId, directory, directoryName, entries, onC
   const { mutations } = useStarlight();
   const create = useMutation(mutations.createEntry(projectId, directory));
   const [open, setOpen] = useState(false);
-  const [draft, setDraft] = useState<Draft>({ blueprint: BLUEPRINTS[0], name: "" });
+  const [blueprint, setBlueprint] = useState<Blueprint>(BLUEPRINTS[0]);
+  const [name, setName] = useState("");
 
-  const start = (blueprint: Blueprint) => {
+  const start = (next: Blueprint) => {
     create.reset();
-    setDraft({ blueprint, name: freeName(blueprint, entries) });
+    setBlueprint(next);
+    setName(freeName(next, entries));
     setOpen(true);
   };
 
-  const edit = (name: string) => {
-    create.reset();
-    setDraft({ ...draft, name });
+  const edit = (next: string) => {
+    if (create.isError) create.reset();
+    setName(next);
   };
 
   const submit = () => {
-    const { kind } = draft.blueprint;
+    const { kind } = blueprint;
     create.mutate(
-      { name: draft.name.trim(), kind },
+      { name: name.trim(), kind },
       {
         onSuccess: (ref) => {
           setOpen(false);
@@ -88,10 +85,10 @@ export const NewEntryMenu = ({ projectId, directory, directoryName, entries, onC
       <NameDialog
         open={open}
         onOpenChange={setOpen}
-        action={draft.blueprint.action}
+        action={blueprint.action}
         subject={directoryName}
-        icon={draft.blueprint.icon}
-        value={draft.name}
+        icon={blueprint.icon}
+        value={name}
         onValueChange={edit}
         error={create.error && describe(create.error)}
         pending={create.isPending}
