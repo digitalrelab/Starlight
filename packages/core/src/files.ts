@@ -66,7 +66,7 @@ export class Files extends Context.Service<
           ]);
           return {
             fileId: entry.fileId,
-            folder: { ref: folder, name: parent.name },
+            folderName: parent.name,
             size: entry.size,
             createdAt: entry.createdAt,
             modifiedAt: entry.modifiedAt,

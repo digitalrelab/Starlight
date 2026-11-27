@@ -1,5 +1,4 @@
 import { Schema } from "effect";
-import { Crumb } from "./entry.ts";
 import { EntryRef, FileId } from "./ids.ts";
 import { Property } from "./property.ts";
 
@@ -53,7 +52,7 @@ export type FileSource = typeof FileSource.Type;
 
 export const FileDetails = Schema.Struct({
   fileId: FileId,
-  folder: Crumb,
+  folderName: Schema.String,
   size: Schema.Number,
   createdAt: Schema.Number,
   modifiedAt: Schema.Number,

@@ -39,10 +39,10 @@ const Palette = ({ palette }: Pick<FileDetails, "palette">) => (
 );
 
 const Properties = ({ properties }: Pick<FileDetails, "properties">) =>
-  Object.entries(Object.groupBy(properties, (property) => property.namespace)).map(([namespace, group]) => (
-    <Row key={namespace} label={NAMESPACE_LABELS[namespace as Property["namespace"]]}>
+  [...Map.groupBy(properties, (property) => property.namespace)].map(([namespace, group]) => (
+    <Row key={namespace} label={NAMESPACE_LABELS[namespace]}>
       <div className="flex flex-wrap gap-1">
-        {group?.map((property) => (
+        {group.map((property) => (
           <Badge key={propertyName(property)}>
             {PROPERTY_LABELS[propertyName(property)] ?? property.key}
             {property.value === true ? null : `: ${String(property.value)}`}
@@ -61,7 +61,7 @@ const FileDetailsList = ({ details }: { readonly details: FileDetails }) => (
         {numberFormat.format(details.dimensions.width)} × {numberFormat.format(details.dimensions.height)}
       </Row>
     ) : null}
-    <Row label="Folder">{details.folder.name}</Row>
+    <Row label="Folder">{details.folderName}</Row>
     <Row label="Created">{formatDate(details.createdAt)}</Row>
     <Row label="Modified">{formatDate(details.modifiedAt)}</Row>
     {details.palette.length > 0 ? (
