@@ -1,18 +1,19 @@
 import { randomUUID } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { NodeRuntime } from "@effect/platform-node";
-import { ClaudeCodeProvider, ConnectRequest, LocalSource } from "@starlight/contracts";
+import { type Actor, ClaudeCodeProvider, HostChannel, LocalSource } from "@starlight/contracts";
 import { AgentProviderDrivers, CoreLive, IdGenerator, SourceDrivers } from "@starlight/core";
-import { Effect, Layer, Queue, Schema } from "effect";
+import { Effect, Layer, Option, Queue, Schema } from "effect";
 import { makeClaudeCodeDriver } from "./adapters/claude-code/index.ts";
 import { FileTokensLive } from "./adapters/file-tokens.ts";
+import { Imaging, ImagingLive } from "./adapters/imaging.ts";
 import { makeLocalSource } from "./adapters/local-source/index.ts";
 import { SqliteLive } from "./adapters/sqlite/index.ts";
 import { HostServerLive } from "./rpc/server.ts";
 import { type MainPortLike, serve } from "./rpc/transport.ts";
 
 interface Connection {
-  readonly data: unknown;
+  readonly actor: Actor;
   readonly port: MainPortLike;
 }
 
@@ -37,9 +38,22 @@ const agentDir = requireEnv("STARLIGHT_AGENT_PATH");
 mkdirSync(agentDir, { recursive: true });
 const fileKey = Buffer.from(requireEnv("STARLIGHT_FILE_KEY"), "hex");
 
-const decodeConnect = Schema.decodeUnknownEffect(ConnectRequest);
+const decodeChannel = Schema.decodeUnknownOption(HostChannel);
+const imagingPort = Promise.withResolvers<MainPortLike>();
+const connections = Effect.runSync(Queue.unbounded<Connection>());
 
-const SourceDriversLive = Layer.sync(SourceDrivers)(() => new Map([[LocalSource, makeLocalSource()]]));
+parentPort.on("message", ({ data, ports: [port] }) => {
+  const channel = decodeChannel(data);
+  if (!port || Option.isNone(channel)) return;
+  if (channel.value._tag === "Imaging") imagingPort.resolve(port);
+  else Queue.offerUnsafe(connections, { actor: channel.value.actor, port });
+});
+
+const SourceDriversLive = Layer.effect(SourceDrivers)(
+  Effect.gen(function* () {
+    return new Map([[LocalSource, makeLocalSource(yield* Imaging)]]);
+  }),
+).pipe(Layer.provide(ImagingLive(() => imagingPort.promise)));
 
 const AgentProviderDriversLive = Layer.succeed(AgentProviderDrivers)(
   new Map([[ClaudeCodeProvider, makeClaudeCodeDriver(agentDir)]]),
@@ -59,17 +73,10 @@ const HostLive = CoreLive.pipe(
   ),
 );
 
-const accept = ({ data, port }: Connection) =>
-  serve(port, Layer.unwrap(decodeConnect(data).pipe(Effect.map(({ actor }) => HostServerLive(actor))))).pipe(
-    Effect.ignoreCause({ log: true }),
-    Effect.forkChild,
-  );
+const accept = ({ actor, port }: Connection) =>
+  serve(port, HostServerLive(actor)).pipe(Effect.ignoreCause({ log: true }), Effect.forkChild);
 
 const program = Effect.gen(function* () {
-  const connections = yield* Queue.unbounded<Connection>();
-  parentPort.on("message", ({ data, ports: [port] }) => {
-    if (port) Queue.offerUnsafe(connections, { data, port });
-  });
   yield* Effect.logInfo("host ready");
   return yield* Queue.take(connections).pipe(Effect.flatMap(accept), Effect.forever);
 }).pipe(Effect.provide(HostLive));

@@ -1,11 +1,12 @@
 import { Image01Icon } from "@hugeicons-pro/core-stroke-rounded";
-import { type Entry, entryKey, type Media } from "@starlight/client";
+import { type Entry, type EntryRef, entryKey, type Media } from "@starlight/client";
 import { cn, Icon, ScrollArea } from "@starlight/ui";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { type KeyboardEvent, memo, useEffect, useEffectEvent, useLayoutEffect, useMemo, useRef } from "react";
+import { type KeyboardEvent, memo, useEffect, useEffectEvent, useLayoutEffect, useRef } from "react";
 import { previewUrl } from "#shared/previews.ts";
 import { useStarlight } from "#renderer/lib/context.ts";
+import { placeholderUrl } from "#renderer/lib/placeholder.ts";
 import { reveal } from "#renderer/lib/reveal.ts";
 import { useElementWidth } from "#renderer/lib/use-element-width.ts";
 import { KindIcon, itemKindOf } from "#renderer/features/files/kind-icon.tsx";
@@ -29,6 +30,39 @@ const tilePreviewUrl = (media: Media, width: number, height: number) =>
 const aspectOf = (media: Media | undefined) =>
   media ? Math.min(MAX_ASPECT, Math.max(MIN_ASPECT, media.width / media.height)) : ICON_TILE_ASPECT;
 
+const useMedia = (workspaceId: string, directory: EntryRef | null, entries: ReadonlyArray<Entry>) => {
+  const { queries, subscriptions } = useStarlight();
+  const { data } = useSuspenseQuery(queries.media(workspaceId, directory));
+  useEffect(
+    () => (directory ? subscriptions.media(workspaceId, directory) : undefined),
+    [subscriptions, workspaceId, directory, entries],
+  );
+  const byKey = indexByKey(data);
+  return { byKey, aspects: Float64Array.from(entries, (entry) => aspectOf(byKey.get(entryKey(entry.ref)))) };
+};
+
+const useGridLayout = (
+  entries: ReadonlyArray<Entry>,
+  { byKey, aspects }: ReturnType<typeof useMedia>,
+  width: number,
+) => {
+  const layout = justify(aspects, {
+    width: width - PADDING * 2,
+    targetHeight: TARGET_ROW_HEIGHT,
+    maxHeight: MAX_ROW_HEIGHT,
+    gap: GAP,
+  });
+  usePreviewsAhead(
+    layout.rows.flatMap((row) =>
+      entries.slice(row.start, row.end).flatMap((entry, offset) => {
+        const found = byKey.get(entryKey(entry.ref));
+        return found ? [tilePreviewUrl(found, layout.width[row.start + offset] ?? 0, row.height)] : [];
+      }),
+    ),
+  );
+  return layout;
+};
+
 export const GridLayout = ({
   workspaceId,
   directory,
@@ -38,38 +72,10 @@ export const GridLayout = ({
   onHover,
   onOpen,
 }: LayoutProps) => {
-  const { queries } = useStarlight();
-  const { data } = useSuspenseQuery(queries.media(workspaceId, directory));
-  const media = useMemo(() => indexByKey(data), [data]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const width = useElementWidth(scrollRef);
-
-  const aspects = useMemo(
-    () => Float64Array.from(entries, (entry) => aspectOf(media.get(entryKey(entry.ref)))),
-    [entries, media],
-  );
-  const layout = useMemo(
-    () =>
-      justify(aspects, {
-        width: width - PADDING * 2,
-        targetHeight: TARGET_ROW_HEIGHT,
-        maxHeight: MAX_ROW_HEIGHT,
-        gap: GAP,
-      }),
-    [aspects, width],
-  );
-
-  const ahead = useMemo(
-    () =>
-      layout.rows.flatMap((row) =>
-        entries.slice(row.start, row.end).flatMap((entry, offset) => {
-          const found = media.get(entryKey(entry.ref));
-          return found ? [tilePreviewUrl(found, layout.width[row.start + offset] ?? 0, row.height)] : [];
-        }),
-      ),
-    [layout, entries, media],
-  );
-  usePreviewsAhead(ahead);
+  const media = useMedia(workspaceId, directory, entries);
+  const layout = useGridLayout(entries, media, width);
 
   const virtualizer = useVirtualizer({
     count: layout.rows.length,
@@ -135,7 +141,7 @@ export const GridLayout = ({
                     key={key}
                     index={index}
                     entry={entry}
-                    media={media.get(key)}
+                    media={media.byKey.get(key)}
                     left={PADDING + (layout.left[index] ?? 0)}
                     width={layout.width[index] ?? 0}
                     height={row.height}
@@ -186,7 +192,11 @@ const Tile = memo(
         style={{ left, width, height }}
       >
         {media ? (
-          <Preview url={tilePreviewUrl(media, width, height)} visible={visible} />
+          <Preview
+            url={tilePreviewUrl(media, width, height)}
+            placeholder={media.placeholder}
+            visible={visible}
+          />
         ) : (
           <div className="flex size-full flex-col items-center justify-center gap-2 p-3">
             <KindIcon kind={itemKindOf(entry)} size={40} />
@@ -198,11 +208,28 @@ const Tile = memo(
   },
 );
 
-const Preview = ({ url, visible }: { readonly url: string; readonly visible: boolean }) => {
+interface PreviewProps {
+  readonly url: string;
+  readonly placeholder: string | null;
+  readonly visible: boolean;
+}
+
+const Preview = ({ url, placeholder, visible }: PreviewProps) => {
   const src = usePreview(url, visible);
   return (
     <>
-      <Icon icon={Image01Icon} size={24} className="absolute top-1/2 left-1/2 -translate-1/2 text-subtlest" />
+      {placeholder ? (
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${placeholderUrl(placeholder)})` }}
+        />
+      ) : (
+        <Icon
+          icon={Image01Icon}
+          size={24}
+          className="absolute top-1/2 left-1/2 -translate-1/2 text-subtlest"
+        />
+      )}
       {src && (
         <img
           src={src}

@@ -1,6 +1,6 @@
 import { Effect, Layer, Queue, Schema } from "effect";
-import { RpcServer } from "effect/rpc";
-import type { FromClientEncoded } from "effect/rpc/RpcMessage";
+import { RpcClient, RpcServer } from "effect/rpc";
+import type { FromClientEncoded, FromServerEncoded } from "effect/rpc/RpcMessage";
 
 export interface MainPortLike {
   on(event: "message", listener: (event: { data: unknown }) => void): unknown;
@@ -50,3 +50,32 @@ export const serve = <E, R>(port: MainPortLike, server: Layer.Layer<never, E, R 
       port.on("close", () => resume(Effect.void));
     }),
   ).pipe(Effect.ensuring(Effect.sync(() => port.close())));
+
+export const layerClientProtocol = (acquire: () => Promise<MainPortLike>) =>
+  Layer.effect(RpcClient.Protocol)(
+    RpcClient.Protocol.make(
+      Effect.fnUntraced(function* (writeResponse, clientIds) {
+        const port = yield* Effect.promise(acquire);
+        const inbox = yield* Queue.unbounded<FromServerEncoded>();
+        port.on("message", (event) => {
+          Queue.offerUnsafe(inbox, event.data as FromServerEncoded);
+        });
+        port.start();
+        yield* Effect.addFinalizer(() => Effect.sync(() => port.close()));
+        yield* Queue.take(inbox).pipe(
+          Effect.flatMap((response) =>
+            Effect.forEach(clientIds, (id) => writeResponse(id, response), { discard: true }),
+          ),
+          Effect.forever,
+          Effect.forkScoped,
+        );
+
+        return {
+          send: (_clientId, request) => Effect.sync(() => port.postMessage(request)),
+          supportsAck: true,
+          supportsTransferables: false,
+          codecFor: Schema.toCodecJson,
+        };
+      }),
+    ),
+  );

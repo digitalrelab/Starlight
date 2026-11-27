@@ -4,11 +4,42 @@ import type { OxlintOverride } from "vite-plus/lint";
 const baseUiSubpaths = { group: ["@base-ui/react/*"], message: "Import from @base-ui/react." };
 const parentPaths = { regex: "^\\.\\./", message: "Import through the package's # alias." };
 const restrictedEverywhere = [baseUiSubpaths, parentPaths];
+const manualMemoization = {
+  name: "react",
+  importNames: ["useMemo", "useCallback"],
+  message: "The React Compiler memoizes.",
+};
+
+const reactRules: OxlintOverride["rules"] = {
+  "react/capitalized-calls": "error",
+  "react/error-boundaries": "error",
+  "react/globals": "error",
+  "react/hooks": "error",
+  "react/immutability": "error",
+  "react/invariant": "error",
+  "react/memo-dependencies": "error",
+  "react/preserve-manual-memoization": "error",
+  "react/purity": "error",
+  "react/refs": "error",
+  "react/rule-suppression": "error",
+  "react/set-state-in-effect": "error",
+  "react/set-state-in-render": "error",
+  "react/static-components": "error",
+  "react/syntax": "error",
+  "react/todo": "error",
+  "react/unsupported-syntax": "error",
+  "react/use-memo": "error",
+  "react/void-use-memo": "error",
+  "react/incompatible-library": "off",
+};
 
 const forbid = (...groups: string[]): OxlintOverride["rules"] => ({
   "no-restricted-imports": [
     "error",
-    { patterns: [{ group: groups, message: "Crosses a package boundary." }, ...restrictedEverywhere] },
+    {
+      paths: [manualMemoization],
+      patterns: [{ group: groups, message: "Crosses a package boundary." }, ...restrictedEverywhere],
+    },
   ],
 });
 
@@ -24,7 +55,7 @@ export default defineConfig({
     rules: {
       "typescript/no-floating-promises": "error",
       "typescript/consistent-type-imports": "error",
-      "no-restricted-imports": ["error", { patterns: restrictedEverywhere }],
+      "no-restricted-imports": ["error", { paths: [manualMemoization], patterns: restrictedEverywhere }],
     },
     overrides: [
       {
@@ -61,13 +92,7 @@ export default defineConfig({
         ),
       },
       {
-        files: ["packages/ui/**"],
-        plugins: ["react"],
-        rules: forbid("@starlight/*", "effect", "effect/*", "@effect/*", "@tanstack/*", "node:*", "electron"),
-      },
-      {
-        files: ["packages/markdown/**"],
-        plugins: ["react"],
+        files: ["packages/ui/**", "packages/markdown/**"],
         rules: forbid("@starlight/*", "effect", "effect/*", "@effect/*", "@tanstack/*", "node:*", "electron"),
       },
       {
@@ -83,21 +108,22 @@ export default defineConfig({
       },
       {
         files: ["apps/desktop/src/renderer/**"],
+        rules: forbid(
+          "@starlight/contracts",
+          "@starlight/core",
+          "@starlight/host",
+          "@starlight/host/*",
+          "effect",
+          "effect/*",
+          "@effect/*",
+          "node:*",
+          "electron",
+        ),
+      },
+      {
+        files: ["apps/desktop/src/renderer/**", "packages/ui/**", "packages/markdown/**"],
         plugins: ["react"],
-        rules: {
-          "react/incompatible-library": "off",
-          ...forbid(
-            "@starlight/contracts",
-            "@starlight/core",
-            "@starlight/host",
-            "@starlight/host/*",
-            "effect",
-            "effect/*",
-            "@effect/*",
-            "node:*",
-            "electron",
-          ),
-        },
+        rules: reactRules,
       },
     ],
   },

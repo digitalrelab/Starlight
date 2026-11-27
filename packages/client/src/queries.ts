@@ -213,6 +213,16 @@ const createSubscriptions = (client: StarlightClient, queryClient: QueryClient, 
       }
     });
   },
+  media: (workspaceId: string, directory: EntryRef) =>
+    client.media.process(workspaceId, directory, (updates) => {
+      const byKey = new Map(updates.map((update) => [entryKey(update.ref), update]));
+      queryClient.setQueryData(queries.media(workspaceId, directory).queryKey, (media) =>
+        media?.map((item) => {
+          const update = byKey.get(entryKey(item.ref));
+          return update ? { ...item, ...update } : item;
+        }),
+      );
+    }),
   entries: (workspaceId: string) =>
     client.entries.watch(workspaceId, (change) => {
       if (change._tag === "Resync") {

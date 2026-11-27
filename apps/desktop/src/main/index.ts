@@ -30,7 +30,7 @@ const main = async () => {
     if (!window || event.senderFrame !== event.sender.mainFrame) return;
 
     const toHost = new MessageChannelMain();
-    host.connect({ actor: { _tag: "User" } }, toHost.port1);
+    host.connect({ _tag: "User" }, toHost.port1);
     const toShell = new MessageChannelMain();
     serveShell(toShell.port1, window, updater, previews);
     event.sender.postMessage(Channel.ports, null, [toHost.port2, toShell.port2]);
