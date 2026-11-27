@@ -21,6 +21,7 @@
     "@starlight/client": "workspace:*",
     "@starlight/contracts": "workspace:*",
     "@starlight/host": "workspace:*",
+    "@starlight/markdown": "workspace:*",
     "@starlight/ui": "workspace:*",
     "@tailwindcss/vite": "catalog:",
     "@tanstack/react-query": "catalog:",

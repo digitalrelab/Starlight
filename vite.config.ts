@@ -63,6 +63,11 @@ export default defineConfig({
         rules: forbid("@starlight/*", "effect", "effect/*", "@effect/*", "@tanstack/*", "node:*", "electron"),
       },
       {
+        files: ["packages/markdown/**"],
+        plugins: ["react"],
+        rules: forbid("@starlight/*", "effect", "effect/*", "@effect/*", "@tanstack/*", "node:*", "electron"),
+      },
+      {
         files: ["apps/desktop/src/main/**", "apps/desktop/src/preload/**"],
         rules: forbid(
           "@starlight/core",

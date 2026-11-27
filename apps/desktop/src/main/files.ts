@@ -10,7 +10,7 @@ const RANGE = /^bytes=(\d*)-(\d*)$/;
 
 export const fileScheme: CustomScheme = {
   scheme: FILE_SCHEME,
-  privileges: { standard: true, secure: true, stream: true },
+  privileges: { standard: true, secure: true, stream: true, supportFetchAPI: true, corsEnabled: true },
 };
 
 const byteRange = (header: string | null, size: number) => {

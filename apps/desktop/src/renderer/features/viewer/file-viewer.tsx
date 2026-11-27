@@ -5,6 +5,7 @@ import { type KeyboardEvent, useEffect, useEffectEvent, useMemo, useRef } from "
 import { useStarlight } from "../../lib/context.ts";
 import { FileStage } from "./file-stage.tsx";
 import { KindIcon, itemKindOf } from "../files/kind-icon.tsx";
+import { loadEditor, markdownText } from "./markdown-file.ts";
 import { pictureUrl, presentationOf } from "./presentation.ts";
 
 interface Props {
@@ -38,10 +39,14 @@ const usePrefetch = (
   useEffect(() => {
     for (const entry of [next, previous]) {
       if (!entry) continue;
-      const presentation = presentationOf(entry.name);
+      const presentation = presentationOf(entry);
       if (presentation === "none") continue;
       void queryClient.query(queries.fileSource(workspaceId, directory, entry.ref)).then(
         (source) => {
+          if (presentation === "markdown") {
+            void loadEditor();
+            return queryClient.prefetchQuery(markdownText(source));
+          }
           if (presentation !== "video") new Image().src = pictureUrl(source, presentation);
         },
         () => undefined,

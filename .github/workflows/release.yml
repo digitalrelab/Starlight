@@ -12,6 +12,7 @@ jobs:
       pull-requests: write
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
+      release_notes: ${{ steps.release.outputs.body }}
       pr: ${{ steps.release.outputs.pr }}
     steps:
       - id: release
@@ -67,6 +68,10 @@ jobs:
           HUGEICONS_LICENSE_KEY: ${{ secrets.HUGEICONS_LICENSE_KEY }}
 
       - run: sudo security add-trusted-cert -d -r trustRoot -p codeSign -k /Library/Keychains/System.keychain apps/desktop/build/certificate.pem
+
+      - run: printf '%s\n' "$RELEASE_NOTES" > apps/desktop/build/release-notes.md
+        env:
+          RELEASE_NOTES: ${{ needs.release-please.outputs.release_notes }}
 
       - run: bun run package --publish always -c.forceCodeSigning=true
         env:

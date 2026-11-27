@@ -1,12 +1,13 @@
 import type { Entry, EntryRef, FileSource } from "@starlight/client";
-import { cn } from "@starlight/ui";
-import { useQuery } from "@tanstack/react-query";
-import { type ReactNode, useState } from "react";
+import { cn, ScrollArea } from "@starlight/ui";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { type ReactNode, Suspense, useState } from "react";
 import { fileUrl } from "../../../shared/files.ts";
 import { previewUrl } from "../../../shared/previews.ts";
 import { useStarlight } from "../../lib/context.ts";
 import { reveal } from "../../lib/reveal.ts";
 import { type ItemKind, KindIcon, itemKindOf } from "../files/kind-icon.tsx";
+import { MarkdownEditor, markdownText } from "./markdown-file.ts";
 import { pictureUrl, presentationOf } from "./presentation.ts";
 
 const PLACEHOLDER_PIXELS = 512;
@@ -75,6 +76,19 @@ const Video = ({ source }: { readonly source: FileSource }) => {
   );
 };
 
+const MarkdownFile = ({ name, source }: { readonly name: string; readonly source: FileSource }) => {
+  const text = useQuery({ ...markdownText(source), placeholderData: keepPreviousData });
+  if (text.isError) return <Notice kind="markdown">Can’t open this file</Notice>;
+  if (text.data === undefined) return null;
+  return (
+    <ScrollArea className="h-full">
+      <Suspense fallback={null}>
+        <MarkdownEditor value={text.data} label={name} className="pt-[12vh] pb-[40vh]" />
+      </Suspense>
+    </ScrollArea>
+  );
+};
+
 interface Props {
   readonly workspaceId: string;
   readonly directory: EntryRef;
@@ -83,7 +97,7 @@ interface Props {
 
 export const FileStage = ({ workspaceId, directory, entry }: Props) => {
   const { queries } = useStarlight();
-  const presentation = presentationOf(entry.name);
+  const presentation = presentationOf(entry);
   const source = useQuery({
     ...queries.fileSource(workspaceId, directory, entry.ref),
     enabled: presentation !== "none",
@@ -92,5 +106,6 @@ export const FileStage = ({ workspaceId, directory, entry }: Props) => {
   if (source.isError) return <Notice kind={itemKindOf(entry)}>Can’t open this file</Notice>;
   if (!source.data) return null;
   if (presentation === "video") return <Video source={source.data} />;
+  if (presentation === "markdown") return <MarkdownFile name={entry.name} source={source.data} />;
   return <Picture name={entry.name} source={source.data} presentation={presentation} />;
 };

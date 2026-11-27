@@ -1,5 +1,6 @@
 import type { ChatMessage, Draft } from "@starlight/client";
-import { cn, Markdown, ScrollArea } from "@starlight/ui";
+import { Markdown } from "@starlight/markdown";
+import { cn, ScrollArea } from "@starlight/ui";
 import { useRevealedText } from "./use-revealed-text.ts";
 import { useStickToBottom } from "./use-stick-to-bottom.ts";
 
@@ -15,7 +16,7 @@ const Reply = ({ text, pending }: { readonly text: string; readonly pending: boo
   return pending && shown === "" ? (
     <p className="w-fit shimmer-text">Thinking…</p>
   ) : (
-    <Markdown source={shown} />
+    <Markdown value={shown} className="whitespace-pre-line" />
   );
 };
 

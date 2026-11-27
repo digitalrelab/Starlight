@@ -9,10 +9,10 @@
   "dependencies": {
     "@base-ui/react": "catalog:",
     "@fontsource-variable/geist": "catalog:",
+    "@fontsource-variable/geist-mono": "catalog:",
     "@hugeicons-pro/core-stroke-rounded": "catalog:",
     "@hugeicons/react": "catalog:",
-    "cn": "catalog:",
-    "marked": "catalog:"
+    "cn": "catalog:"
   },
   "devDependencies": {
     "@types/react": "catalog:"

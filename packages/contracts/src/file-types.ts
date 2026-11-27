@@ -106,6 +106,8 @@ const MEDIA_TYPES: Readonly<Record<string, string>> = {
   heif: "image/heif",
   jpeg: "image/jpeg",
   jpg: "image/jpeg",
+  markdown: "text/markdown",
+  md: "text/markdown",
   png: "image/png",
   tif: "image/tiff",
   tiff: "image/tiff",

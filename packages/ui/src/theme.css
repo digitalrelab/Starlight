@@ -1,4 +1,5 @@
 @import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist-mono";
 
 @theme {
   --shadow-xs: 0 1px 2px color-mix(in srgb, var(--shadow-ambient) 50%, transparent);
@@ -36,6 +37,7 @@
   --radius-xl: 1rem;
 
   --font-sans: "Geist Variable", system-ui, sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, monospace;
 
   --font-weight-*: initial;
   --font-weight-normal: 400;

@@ -1,5 +1,6 @@
 import { RefreshDotIcon } from "@hugeicons-pro/core-stroke-rounded";
-import { Button, cn, Icon, Item, Prose, StatusPill } from "@starlight/ui";
+import { Markdown } from "@starlight/markdown";
+import { Button, cn, Icon, Item, StatusPill } from "@starlight/ui";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useStarlight } from "../../lib/context.ts";
 import { UpdateAction } from "./update-action.tsx";
@@ -38,9 +39,7 @@ export const UpdateSettings = () => {
       </Item.List>
       {updater.update?.releaseNotes ? (
         <Item.List className="py-4">
-          <Prose.Root>
-            <Prose.Html html={updater.update.releaseNotes} />
-          </Prose.Root>
+          <Markdown value={updater.update.releaseNotes} />
         </Item.List>
       ) : null}
     </>

@@ -1,0 +1,263 @@
+@layer components {
+  .markdown {
+    @apply select-text;
+    line-height: 1.6;
+    overflow-wrap: break-word;
+  }
+
+  .markdown > :first-child {
+    margin-top: 0;
+  }
+
+  .markdown > :last-child {
+    margin-bottom: 0;
+  }
+
+  .markdown :where(p, ul, ol, blockquote, pre, [data-table]) {
+    margin-block: 0.75em;
+  }
+
+  .markdown p {
+    text-wrap: pretty;
+  }
+
+  .markdown :where(h1, h2, h3, h4, h5, h6) {
+    @apply font-semibold;
+    margin-block: 1.5em 0.5em;
+    line-height: 1.3;
+    text-wrap: balance;
+  }
+
+  .markdown h1 {
+    font-size: 1.5em;
+  }
+
+  .markdown h2 {
+    font-size: 1.25em;
+  }
+
+  .markdown h3 {
+    font-size: 1.075em;
+  }
+
+  .markdown h6 {
+    @apply text-subtle;
+  }
+
+  .markdown :where(strong) {
+    @apply font-semibold;
+  }
+
+  .markdown :where(del) {
+    @apply text-subtle;
+  }
+
+  .markdown :where(a) {
+    @apply text-link underline decoration-1;
+    text-decoration-color: color-mix(in oklab, currentColor 35%, transparent);
+    text-underline-offset: 0.2em;
+  }
+
+  .markdown :where(a):hover {
+    text-decoration-color: currentColor;
+  }
+
+  .markdown :where(ul, ol) {
+    padding-inline-start: 1.5em;
+  }
+
+  .markdown ul {
+    list-style-type: disc;
+  }
+
+  .markdown :where(ul ul) {
+    list-style-type: circle;
+  }
+
+  .markdown ol {
+    list-style-type: decimal;
+  }
+
+  .markdown li::marker {
+    @apply text-subtlest;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .markdown li + li,
+  .markdown li > :where(ul, ol) {
+    margin-top: 0.25em;
+  }
+
+  .markdown li > :where(ul, ol) {
+    margin-bottom: 0;
+  }
+
+  .markdown li[data-task] {
+    list-style-type: none;
+  }
+
+  .markdown li[data-task] input {
+    @apply accent-(--background-color-brand-bold);
+    margin-inline: -1.5em 0.5em;
+    width: 1em;
+    height: 1em;
+    vertical-align: -0.125em;
+  }
+
+  .markdown blockquote {
+    @apply border-l-2 border-input text-subtle;
+    padding-inline-start: 1em;
+  }
+
+  .markdown :where(code) {
+    @apply rounded-xs bg-neutral font-mono;
+    padding: 0.1em 0.3em;
+    font-size: 0.875em;
+  }
+
+  .markdown pre {
+    @apply overflow-x-auto rounded-md bg-neutral;
+    padding: 0.75em 1em;
+    font-size: 0.875em;
+    line-height: 1.5;
+  }
+
+  .markdown pre code {
+    @apply bg-transparent;
+    padding: 0;
+    font-size: 1em;
+  }
+
+  .markdown hr {
+    @apply border-default;
+    margin-block: 1.5em;
+  }
+
+  .markdown [data-table] {
+    @apply overflow-x-auto;
+  }
+
+  .markdown table {
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .markdown :where(th, td) {
+    @apply border-b border-default text-left;
+    padding: 0.375em 0.75em;
+  }
+
+  .markdown :where(th, td):first-child {
+    padding-inline-start: 0;
+  }
+
+  .markdown th {
+    @apply font-semibold;
+  }
+
+  .tok-keyword {
+    @apply text-accent-purple;
+  }
+
+  .tok-string,
+  .tok-inserted {
+    @apply text-accent-green;
+  }
+
+  .tok-number,
+  .tok-bool,
+  .tok-atom,
+  .tok-literal {
+    @apply text-accent-orange;
+  }
+
+  .tok-typeName,
+  .tok-className,
+  .tok-namespace {
+    @apply text-accent-cyan;
+  }
+
+  .tok-propertyName,
+  .tok-macroName {
+    @apply text-accent-blue;
+  }
+
+  .tok-variableName.tok-definition,
+  .tok-labelName {
+    @apply text-accent-indigo;
+  }
+
+  .md-link {
+    @apply text-link;
+  }
+
+  .tok-comment,
+  .tok-meta,
+  .tok-punctuation,
+  .md-mark,
+  .md-meta,
+  .md-url {
+    @apply text-subtlest;
+  }
+
+  .tok-comment {
+    font-style: italic;
+  }
+
+  .tok-deleted,
+  .tok-invalid {
+    @apply text-danger;
+  }
+
+  .tok-heading,
+  .tok-strong,
+  .md-heading,
+  .md-strong {
+    @apply font-semibold;
+  }
+
+  .tok-emphasis,
+  .md-emphasis {
+    font-style: italic;
+  }
+
+  .tok-link {
+    @apply underline;
+  }
+
+  .md-strikethrough {
+    text-decoration: line-through;
+  }
+
+  .md-code,
+  .md-quote {
+    @apply text-subtle;
+  }
+}
+
+.markdown-editor .cm-editor.cm-focused {
+  outline: none;
+}
+
+.markdown-editor .cm-editor .cm-scroller {
+  @apply font-mono;
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.markdown-editor .cm-editor .cm-content {
+  @apply caret-(--text-color-brand) select-text;
+  box-sizing: content-box;
+  max-width: 64ch;
+  margin-inline: auto;
+  padding-inline: 8ch;
+  cursor: text;
+}
+
+.markdown-editor .cm-editor .cm-line {
+  padding: 0;
+}
+
+.markdown-editor .cm-editor .cm-content ::selection {
+  @apply bg-selection;
+}

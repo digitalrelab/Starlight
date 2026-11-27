@@ -1,4 +1,5 @@
 import { RefreshDotIcon } from "@hugeicons-pro/core-stroke-rounded";
+import { Markdown } from "@starlight/markdown";
 import {
   cn,
   IconButton,
@@ -6,7 +7,6 @@ import {
   PopoverContent,
   PopoverTrigger,
   ProgressRing,
-  Prose,
   ScrollArea,
 } from "@starlight/ui";
 import { useQuery } from "@tanstack/react-query";
@@ -51,9 +51,7 @@ export const UpdateButton = ({ className }: { readonly className?: string }) => 
         className="max-h-[min(28rem,var(--available-height))] w-80 gap-3"
       >
         <ScrollArea className="-mx-3" contentClassName="px-3">
-          <Prose.Root>
-            <Prose.Html html={update.releaseNotes} />
-          </Prose.Root>
+          <Markdown value={update.releaseNotes} />
         </ScrollArea>
         <div className="flex items-center justify-end gap-3">
           {update.failure ? <p className="mr-auto text-sm text-danger">{label}</p> : null}
