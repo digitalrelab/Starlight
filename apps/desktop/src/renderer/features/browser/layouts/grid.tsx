@@ -8,7 +8,7 @@ import { useElementWidth } from "#renderer/lib/use-element-width.ts";
 import { useRevealFocus } from "#renderer/features/browser/selection.ts";
 import { listProps, type Step } from "./events.ts";
 import { justify, nearestInRow, shelve, stack } from "./rows.ts";
-import { FolderChip, TILE_CHROME, TILE_INSET, Tile, tilePreviewUrl } from "./tile.tsx";
+import { DraftChip, FolderChip, TILE_CHROME, TILE_INSET, Tile, tilePreviewUrl } from "./tile.tsx";
 import type { LayoutProps } from "./types.ts";
 import { usePreviewsAhead } from "./use-preview.ts";
 
@@ -53,12 +53,8 @@ const useGridLayout = (
 ) => {
   const folderCount = leadingFolders(entries);
   const inner = Math.max(0, width - GUTTER * 2);
-  const shelf = shelve(folderCount, {
-    width: inner,
-    minWidth: CHIP_MIN_WIDTH,
-    height: CHIP_HEIGHT,
-    gap: CHIP_GAP,
-  });
+  const chips = { width: inner, minWidth: CHIP_MIN_WIDTH, height: CHIP_HEIGHT, gap: CHIP_GAP };
+  const shelf = shelve(folderCount, chips);
   const tiles = justify(aspects.subarray(folderCount), {
     width: inner + TILE_INSET * 2,
     targetHeight: TARGET_ROW_HEIGHT,
@@ -69,6 +65,7 @@ const useGridLayout = (
   const layout = {
     ...stack(shelf, GUTTER, tiles, GUTTER - TILE_INSET, SECTION_GAP - TILE_INSET),
     folderCount,
+    chipWidth: shelve(1, chips).width[0] ?? 0,
     paddingStart: shelf.rows.length > 0 ? GUTTER : GUTTER - TILE_INSET,
     paddingEnd: tiles.rows.length > 0 ? GUTTER - TILE_INSET : GUTTER,
   };
@@ -83,7 +80,15 @@ const useGridLayout = (
   return layout;
 };
 
-export const GridLayout = ({ projectId, directory, entries, selection, onHover, onOpen }: LayoutProps) => {
+export const GridLayout = ({
+  projectId,
+  directory,
+  entries,
+  selection,
+  draft,
+  onHover,
+  onOpen,
+}: LayoutProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const width = useElementWidth(scrollRef);
   const media = useMedia(projectId, directory, entries);
@@ -96,7 +101,8 @@ export const GridLayout = ({ projectId, directory, entries, selection, onHover, 
       const row = layout.rows[index];
       return row ? row.height + (index < layout.rows.length - 1 ? row.gap : 0) : 0;
     },
-    paddingStart: layout.paddingStart,
+    paddingStart:
+      layout.paddingStart + (draft ? CHIP_HEIGHT + (layout.folderCount > 0 ? CHIP_GAP : SECTION_GAP) : 0),
     paddingEnd: layout.paddingEnd,
     overscan: 3,
   });
@@ -130,6 +136,11 @@ export const GridLayout = ({ projectId, directory, entries, selection, onHover, 
   return (
     <ScrollArea ref={scrollRef} {...listProps({ entries, selection, onOpen }, step)} className="flex-1">
       <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
+        {draft ? (
+          <DraftChip top={GUTTER} left={GUTTER} width={layout.chipWidth} height={CHIP_HEIGHT}>
+            {draft}
+          </DraftChip>
+        ) : null}
         {virtualizer.getVirtualItems().map((item) => {
           const row = layout.rows[item.index];
           if (!row) return null;

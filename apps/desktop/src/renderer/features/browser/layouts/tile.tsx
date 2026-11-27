@@ -2,7 +2,7 @@ import { Image01Icon, Tick02Icon } from "@hugeicons-pro/core-stroke-rounded";
 import type { Entry, Media } from "@starlight/client";
 import { formatDuration } from "@starlight/media-player";
 import { cn, Icon } from "@starlight/ui";
-import { memo } from "react";
+import { memo, type ReactNode } from "react";
 import { previewUrl } from "#shared/previews.ts";
 import { placeholderUrl } from "#renderer/lib/placeholder.ts";
 import { reveal } from "#renderer/lib/reveal.ts";
@@ -28,6 +28,26 @@ interface CellProps extends ItemHandlers {
   readonly height: number;
 }
 
+const CHIP = "absolute flex items-center gap-2.5 rounded-md px-3";
+
+export const DraftChip = ({
+  top,
+  left,
+  width,
+  height,
+  children,
+}: {
+  readonly top: number;
+  readonly left: number;
+  readonly width: number;
+  readonly height: number;
+  readonly children: ReactNode;
+}) => (
+  <div className={cn(CHIP, "bg-surface-sunken")} style={{ top, left, width, height }}>
+    {children}
+  </div>
+);
+
 export const FolderChip = memo(({ index, entry, left, width, height, ...handlers }: CellProps) => {
   const { selected, props } = useItem(index, entry, handlers);
   return (
@@ -35,7 +55,8 @@ export const FolderChip = memo(({ index, entry, left, width, height, ...handlers
       {...props}
       title={entry.name}
       className={cn(
-        "absolute top-0 flex cursor-interactive items-center gap-2.5 rounded-md px-3",
+        CHIP,
+        "top-0 cursor-interactive",
         selected
           ? "bg-selected text-selected hover:bg-selected-hovered"
           : "bg-surface-sunken hover:bg-neutral-subtle-hovered",

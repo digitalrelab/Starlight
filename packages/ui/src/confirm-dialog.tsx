@@ -3,7 +3,6 @@ import { ArrowLeft01Icon } from "@hugeicons-pro/core-stroke-rounded";
 import { AlertDialog } from "@base-ui/react";
 import { cn } from "cn";
 import { dialogBackdrop, dialogPopup, dialogRow, dialogRows, dialogViewport } from "./dialog.ts";
-import { DialogSubject } from "./dialog-subject.tsx";
 import { HoldButton } from "./hold-button.tsx";
 import { Icon } from "./icon.tsx";
 
@@ -32,7 +31,11 @@ export const ConfirmDialog = ({
       <AlertDialog.Viewport className={dialogViewport}>
         <AlertDialog.Popup className={cn(dialogPopup, "w-120")}>
           <AlertDialog.Title className="sr-only">{action}</AlertDialog.Title>
-          <DialogSubject>{subject}</DialogSubject>
+          <div className="flex px-dialog pt-4">
+            <span className="inline-flex h-6 max-w-full items-center truncate rounded-full bg-neutral px-2 text-sm text-default">
+              {subject}
+            </span>
+          </div>
           <AlertDialog.Description className="flex min-h-14 items-center px-dialog text-lg">
             {message}
           </AlertDialog.Description>

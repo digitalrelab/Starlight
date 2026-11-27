@@ -14,7 +14,7 @@ import { DirectoryView } from "#renderer/features/browser/directory-view.tsx";
 import { layoutPreference } from "#renderer/features/browser/layout-preference.ts";
 import { LayoutSwitcher } from "#renderer/features/browser/layout-switcher.tsx";
 import { layouts } from "#renderer/features/browser/layouts/registry.ts";
-import { NewEntryMenu } from "#renderer/features/browser/new-entry-menu.tsx";
+import { NewEntryMenu } from "#renderer/features/browser/new-entry/new-entry-menu.tsx";
 import { useFoldersAhead } from "#renderer/features/browser/use-folders-ahead.ts";
 import { hiddenFiles } from "#renderer/features/settings/files.ts";
 import { PageError } from "#renderer/features/shell/page-error.tsx";
@@ -51,7 +51,6 @@ function Browser() {
   const layout = useStore(preference);
   const showHidden = useStore(hiddenFiles) === "show";
   const entries = showHidden ? listing.entries : listing.entries.filter((entry) => !entry.hidden);
-  const directoryName = listing.trail.at(-1)?.name ?? project.name;
   useEffect(() => subscriptions.entries(projectId), [subscriptions, projectId]);
 
   const directoryKey = directory ? entryKey(directory) : "";
@@ -86,15 +85,7 @@ function Browser() {
       <PageHeader
         actions={
           <>
-            {directory ? (
-              <NewEntryMenu
-                projectId={projectId}
-                directory={directory}
-                directoryName={directoryName}
-                entries={listing.entries}
-                onCreated={onOpen}
-              />
-            ) : null}
+            {directory ? <NewEntryMenu directory={directory} entries={listing.entries} /> : null}
             <AddMountButton projectId={projectId} />
             <LayoutSwitcher value={layout} onChange={preference.set} />
           </>
@@ -116,7 +107,7 @@ function Browser() {
         <FileViewer
           projectId={projectId}
           directory={directory}
-          directoryName={directoryName}
+          directoryName={listing.trail.at(-1)?.name ?? project.name}
           entries={entries}
           file={file}
           onShow={showFile}

@@ -10,11 +10,12 @@ interface Props {
   readonly label: string;
   readonly shortcut?: Shortcut | undefined;
   readonly side?: "top" | "right" | "bottom" | "left";
+  readonly open?: boolean;
   readonly children: ReactElement;
 }
 
-export const Tooltip = ({ label, shortcut, side = "top", children }: Props) => (
-  <BaseTooltip.Root>
+export const Tooltip = ({ label, shortcut, side = "top", open, children }: Props) => (
+  <BaseTooltip.Root open={open}>
     <BaseTooltip.Trigger render={children} />
     <BaseTooltip.Portal>
       <BaseTooltip.Positioner side={side} sideOffset={6} className="z-tooltip">
