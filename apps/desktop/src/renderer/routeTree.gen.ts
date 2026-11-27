@@ -9,68 +9,166 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as WWorkspaceIdRouteImport } from './routes/w.$workspaceId'
+import { Route as AppRouteImport } from './routes/_app'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as AppIndexRouteImport } from './routes/_app.index'
+import { Route as SettingsIndexRouteImport } from './routes/settings.index'
+import { Route as SettingsAppearanceRouteImport } from './routes/settings.appearance'
+import { Route as AppWWorkspaceIdRouteImport } from './routes/_app.w.$workspaceId'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
   getParentRoute: () => rootRouteImport,
 } as any)
-const WWorkspaceIdRoute = WWorkspaceIdRouteImport.update({
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const SettingsIndexRoute = SettingsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsAppearanceRoute = SettingsAppearanceRouteImport.update({
+  id: '/appearance',
+  path: '/appearance',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const AppWWorkspaceIdRoute = AppWWorkspaceIdRouteImport.update({
   id: '/w/$workspaceId',
   path: '/w/$workspaceId',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AppRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/w/$workspaceId': typeof WWorkspaceIdRoute
+  '/': typeof AppIndexRoute
+  '/settings': typeof SettingsRouteWithChildren
+  '/settings/appearance': typeof SettingsAppearanceRoute
+  '/settings/': typeof SettingsIndexRoute
+  '/w/$workspaceId': typeof AppWWorkspaceIdRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/w/$workspaceId': typeof WWorkspaceIdRoute
+  '/settings/appearance': typeof SettingsAppearanceRoute
+  '/': typeof AppIndexRoute
+  '/settings': typeof SettingsIndexRoute
+  '/w/$workspaceId': typeof AppWWorkspaceIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/w/$workspaceId': typeof WWorkspaceIdRoute
+  '/_app': typeof AppRouteWithChildren
+  '/settings': typeof SettingsRouteWithChildren
+  '/settings/appearance': typeof SettingsAppearanceRoute
+  '/_app/': typeof AppIndexRoute
+  '/settings/': typeof SettingsIndexRoute
+  '/_app/w/$workspaceId': typeof AppWWorkspaceIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/w/$workspaceId'
+  fullPaths:
+    | '/'
+    | '/settings'
+    | '/settings/appearance'
+    | '/settings/'
+    | '/w/$workspaceId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/w/$workspaceId'
-  id: '__root__' | '/' | '/w/$workspaceId'
+  to: '/settings/appearance' | '/' | '/settings' | '/w/$workspaceId'
+  id:
+    | '__root__'
+    | '/_app'
+    | '/settings'
+    | '/settings/appearance'
+    | '/_app/'
+    | '/settings/'
+    | '/_app/w/$workspaceId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  WWorkspaceIdRoute: typeof WWorkspaceIdRoute
+  AppRoute: typeof AppRouteWithChildren
+  SettingsRoute: typeof SettingsRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
+    '/_app': {
+      id: '/_app'
+      path: ''
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+      preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/w/$workspaceId': {
-      id: '/w/$workspaceId'
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app/': {
+      id: '/_app/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/settings/': {
+      id: '/settings/'
+      path: '/'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof SettingsIndexRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/appearance': {
+      id: '/settings/appearance'
+      path: '/appearance'
+      fullPath: '/settings/appearance'
+      preLoaderRoute: typeof SettingsAppearanceRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/_app/w/$workspaceId': {
+      id: '/_app/w/$workspaceId'
       path: '/w/$workspaceId'
       fullPath: '/w/$workspaceId'
-      preLoaderRoute: typeof WWorkspaceIdRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AppWWorkspaceIdRouteImport
+      parentRoute: typeof AppRoute
     }
   }
 }
 
+interface AppRouteChildren {
+  AppIndexRoute: typeof AppIndexRoute
+  AppWWorkspaceIdRoute: typeof AppWWorkspaceIdRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppIndexRoute: AppIndexRoute,
+  AppWWorkspaceIdRoute: AppWWorkspaceIdRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
+interface SettingsRouteChildren {
+  SettingsAppearanceRoute: typeof SettingsAppearanceRoute
+  SettingsIndexRoute: typeof SettingsIndexRoute
+}
+
+const SettingsRouteChildren: SettingsRouteChildren = {
+  SettingsAppearanceRoute: SettingsAppearanceRoute,
+  SettingsIndexRoute: SettingsIndexRoute,
+}
+
+const SettingsRouteWithChildren = SettingsRoute._addFileChildren(
+  SettingsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  WWorkspaceIdRoute: WWorkspaceIdRoute,
+  AppRoute: AppRouteWithChildren,
+  SettingsRoute: SettingsRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

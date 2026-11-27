@@ -1,25 +1,28 @@
-import { type Actor, WorkspaceRpcs } from "@starlight/contracts";
-import { CurrentActor, Entries, MediaLibrary, Workspaces } from "@starlight/core";
+import { type Actor, HostRpcs } from "@starlight/contracts";
+import { CurrentActor, Entries, MediaLibrary, Settings, Workspaces } from "@starlight/core";
 import { Effect, Layer } from "effect";
 import { RpcServer } from "effect/rpc";
 
-const HandlersLive = WorkspaceRpcs.toLayer(
+const HandlersLive = HostRpcs.toLayer(
   Effect.gen(function* () {
     const workspaces = yield* Workspaces;
     const entries = yield* Entries;
     const media = yield* MediaLibrary;
-    return WorkspaceRpcs.of({
+    const settings = yield* Settings;
+    return HostRpcs.of({
       OpenWorkspace: ({ path }) => workspaces.open(path),
       ListRecentWorkspaces: () => workspaces.recent,
       GetWorkspace: ({ workspaceId }) => workspaces.get(workspaceId),
       ListEntries: ({ workspaceId, path }) => entries.list(workspaceId, path),
       ListMedia: ({ workspaceId, path }) => media.list(workspaceId, path),
+      GetSettings: () => settings.get,
+      UpdateSettings: (patch) => settings.update(patch),
     });
   }),
 );
 
-export const WorkspaceServerLive = (actor: Actor) =>
-  RpcServer.layer(WorkspaceRpcs).pipe(
+export const HostServerLive = (actor: Actor) =>
+  RpcServer.layer(HostRpcs).pipe(
     Layer.provide(HandlersLive),
     Layer.provide(Layer.succeed(CurrentActor)(actor)),
   );

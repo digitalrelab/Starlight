@@ -14,7 +14,7 @@ interface Search {
   readonly path: string;
 }
 
-export const Route = createFileRoute("/w/$workspaceId")({
+export const Route = createFileRoute("/_app/w/$workspaceId")({
   validateSearch: (search: Record<string, unknown>): Search => ({
     path: typeof search["path"] === "string" ? search["path"] : "",
   }),
