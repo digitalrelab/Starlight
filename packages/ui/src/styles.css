@@ -2,8 +2,8 @@
 
 :root {
   color-scheme: light dark;
-  --sl-canvas: oklch(0.985 0.002 260);
-  --sl-surface: oklch(0.965 0.003 260);
+  --sl-chrome: oklch(0.97 0.003 260);
+  --sl-panel: oklch(0.995 0.001 260);
   --sl-fg: oklch(0.22 0.01 260);
   --sl-muted: oklch(0.55 0.01 260);
   --sl-border: oklch(0.9 0.004 260);
@@ -16,8 +16,8 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --sl-canvas: oklch(0.17 0.005 260);
-    --sl-surface: oklch(0.2 0.006 260);
+    --sl-chrome: oklch(0.15 0.004 260);
+    --sl-panel: oklch(0.185 0.005 260);
     --sl-fg: oklch(0.93 0.005 260);
     --sl-muted: oklch(0.62 0.01 260);
     --sl-border: oklch(0.27 0.006 260);
@@ -32,8 +32,8 @@
 @theme inline {
   --font-sans: ui-sans-serif, system-ui, -apple-system, "SF Pro Text", sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
-  --color-canvas: var(--sl-canvas);
-  --color-surface: var(--sl-surface);
+  --color-chrome: var(--sl-chrome);
+  --color-panel: var(--sl-panel);
   --color-fg: var(--sl-fg);
   --color-muted: var(--sl-muted);
   --color-border: var(--sl-border);
@@ -42,4 +42,8 @@
   --color-accent: var(--sl-accent);
   --color-accent-fg: var(--sl-accent-fg);
   --color-danger: var(--sl-danger);
+}
+
+@utility focus-ring {
+  @apply outline-none focus-visible:ring-2 focus-visible:ring-accent/60;
 }
