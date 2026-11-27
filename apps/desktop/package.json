@@ -1,5 +1,6 @@
 {
   "name": "@starlight/desktop",
+  "version": "0.0.0",
   "private": true,
   "type": "module",
   "main": "./out/main/index.js",
@@ -27,6 +28,7 @@
     "effect": "catalog:",
     "electron": "catalog:",
     "electron-builder": "catalog:",
+    "electron-updater": "catalog:",
     "electron-vite": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",

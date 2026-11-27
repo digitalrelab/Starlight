@@ -15,6 +15,10 @@
 - Commits and PR titles follow Conventional Commits: `type(scope): summary`.
 - Don't add yourself as co-author.
 
+## Releases
+
+- Never replace the macOS signing certificate: installed apps reject updates signed by any other.
+
 ## Pull Requests
 
 Body follows this structure, in lean language, nothing more:
