@@ -19,9 +19,10 @@ export const MainSidebar = () => {
         ) : null}
       </div>
       <RecentWorkspaces />
-      <footer className="mt-auto flex items-center gap-1">
-        <IconButton icon={Settings01Icon} label="Settings" render={<Link to="/settings" />} />
-      </footer>
     </>
   );
 };
+
+export const MainSidebarFooter = () => (
+  <IconButton icon={Settings01Icon} label="Settings" render={<Link to="/settings" />} />
+);
