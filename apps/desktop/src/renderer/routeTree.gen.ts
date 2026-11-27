@@ -14,8 +14,8 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as SettingsIndexRouteImport } from './routes/settings.index'
 import { Route as SettingsAppearanceRouteImport } from './routes/settings.appearance'
-import { Route as SettingsConnectionsRouteImport } from './routes/settings.connections'
 import { Route as SettingsDiskRouteImport } from './routes/settings.disk'
+import { Route as SettingsProvidersRouteImport } from './routes/settings.providers'
 import { Route as SettingsUpdatesRouteImport } from './routes/settings.updates'
 import { Route as AppAgentIndexRouteImport } from './routes/_app.agent.index'
 import { Route as AppAgentConversationIdRouteImport } from './routes/_app.agent.$conversationId'
@@ -45,14 +45,14 @@ const SettingsAppearanceRoute = SettingsAppearanceRouteImport.update({
   path: '/appearance',
   getParentRoute: () => SettingsRoute,
 } as any)
-const SettingsConnectionsRoute = SettingsConnectionsRouteImport.update({
-  id: '/connections',
-  path: '/connections',
-  getParentRoute: () => SettingsRoute,
-} as any)
 const SettingsDiskRoute = SettingsDiskRouteImport.update({
   id: '/disk',
   path: '/disk',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsProvidersRoute = SettingsProvidersRouteImport.update({
+  id: '/providers',
+  path: '/providers',
   getParentRoute: () => SettingsRoute,
 } as any)
 const SettingsUpdatesRoute = SettingsUpdatesRouteImport.update({
@@ -80,8 +80,8 @@ export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/settings': typeof SettingsRouteWithChildren
   '/settings/appearance': typeof SettingsAppearanceRoute
-  '/settings/connections': typeof SettingsConnectionsRoute
   '/settings/disk': typeof SettingsDiskRoute
+  '/settings/providers': typeof SettingsProvidersRoute
   '/settings/updates': typeof SettingsUpdatesRoute
   '/settings/': typeof SettingsIndexRoute
   '/agent/$conversationId': typeof AppAgentConversationIdRoute
@@ -90,8 +90,8 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/settings/appearance': typeof SettingsAppearanceRoute
-  '/settings/connections': typeof SettingsConnectionsRoute
   '/settings/disk': typeof SettingsDiskRoute
+  '/settings/providers': typeof SettingsProvidersRoute
   '/settings/updates': typeof SettingsUpdatesRoute
   '/': typeof AppIndexRoute
   '/settings': typeof SettingsIndexRoute
@@ -104,8 +104,8 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/settings/appearance': typeof SettingsAppearanceRoute
-  '/settings/connections': typeof SettingsConnectionsRoute
   '/settings/disk': typeof SettingsDiskRoute
+  '/settings/providers': typeof SettingsProvidersRoute
   '/settings/updates': typeof SettingsUpdatesRoute
   '/_app/': typeof AppIndexRoute
   '/settings/': typeof SettingsIndexRoute
@@ -119,8 +119,8 @@ export interface FileRouteTypes {
     | '/'
     | '/settings'
     | '/settings/appearance'
-    | '/settings/connections'
     | '/settings/disk'
+    | '/settings/providers'
     | '/settings/updates'
     | '/settings/'
     | '/agent/$conversationId'
@@ -129,8 +129,8 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/settings/appearance'
-    | '/settings/connections'
     | '/settings/disk'
+    | '/settings/providers'
     | '/settings/updates'
     | '/'
     | '/settings'
@@ -142,8 +142,8 @@ export interface FileRouteTypes {
     | '/_app'
     | '/settings'
     | '/settings/appearance'
-    | '/settings/connections'
     | '/settings/disk'
+    | '/settings/providers'
     | '/settings/updates'
     | '/_app/'
     | '/settings/'
@@ -194,18 +194,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsAppearanceRouteImport
       parentRoute: typeof SettingsRoute
     }
-    '/settings/connections': {
-      id: '/settings/connections'
-      path: '/connections'
-      fullPath: '/settings/connections'
-      preLoaderRoute: typeof SettingsConnectionsRouteImport
-      parentRoute: typeof SettingsRoute
-    }
     '/settings/disk': {
       id: '/settings/disk'
       path: '/disk'
       fullPath: '/settings/disk'
       preLoaderRoute: typeof SettingsDiskRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/providers': {
+      id: '/settings/providers'
+      path: '/providers'
+      fullPath: '/settings/providers'
+      preLoaderRoute: typeof SettingsProvidersRouteImport
       parentRoute: typeof SettingsRoute
     }
     '/settings/updates': {
@@ -257,16 +257,16 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 interface SettingsRouteChildren {
   SettingsAppearanceRoute: typeof SettingsAppearanceRoute
-  SettingsConnectionsRoute: typeof SettingsConnectionsRoute
   SettingsDiskRoute: typeof SettingsDiskRoute
+  SettingsProvidersRoute: typeof SettingsProvidersRoute
   SettingsUpdatesRoute: typeof SettingsUpdatesRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
 }
 
 const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsAppearanceRoute: SettingsAppearanceRoute,
-  SettingsConnectionsRoute: SettingsConnectionsRoute,
   SettingsDiskRoute: SettingsDiskRoute,
+  SettingsProvidersRoute: SettingsProvidersRoute,
   SettingsUpdatesRoute: SettingsUpdatesRoute,
   SettingsIndexRoute: SettingsIndexRoute,
 }

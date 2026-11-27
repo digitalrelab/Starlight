@@ -4,13 +4,19 @@ import { createFileRoute, type ErrorComponentProps, Navigate } from "@tanstack/r
 import { useEffect } from "react";
 import { Composer } from "../features/agent/composer.tsx";
 import { Transcript } from "../features/agent/transcript.tsx";
+import { useModelChoice } from "../features/providers/model-choice.ts";
+import { ModelPicker } from "../features/providers/model-picker.tsx";
+import { NoProvider } from "../features/providers/no-provider.tsx";
 import { PageError } from "../features/shell/page-error.tsx";
 import { PageHeader } from "../features/shell/page-header.tsx";
 import { useStarlight } from "../lib/context.ts";
 
 export const Route = createFileRoute("/_app/agent/$conversationId")({
   loader: ({ context: { queryClient, queries }, params }) =>
-    queryClient.ensureQueryData(queries.conversation(params.conversationId)),
+    Promise.all([
+      queryClient.ensureQueryData(queries.conversation(params.conversationId)),
+      queryClient.ensureQueryData(queries.agentProviders()),
+    ]),
   component: ConversationPage,
   errorComponent: ConversationError,
 });
@@ -21,6 +27,7 @@ function ConversationPage() {
   useEffect(() => subscriptions.conversation(conversationId), [subscriptions, conversationId]);
   const { data: detail } = useSuspenseQuery(queries.conversation(conversationId));
   const send = useMutation(mutations.sendMessage());
+  const { providers, choice, choose } = useModelChoice(detail.conversation);
 
   return (
     <>
@@ -34,12 +41,17 @@ function ConversationPage() {
         className="mx-auto w-full max-w-2xl px-6 py-8"
       />
       <div className="mx-auto w-full max-w-2xl px-6 pb-6">
-        <Composer
-          placeholder="Reply…"
-          autoFocus
-          disabled={detail.draft !== null}
-          onSubmit={(text) => send.mutateAsync({ conversationId, text })}
-        />
+        {choice ? (
+          <Composer
+            placeholder="Reply…"
+            autoFocus
+            disabled={detail.draft !== null}
+            actions={<ModelPicker providers={providers} choice={choice} onChoose={choose} />}
+            onSubmit={(text) => send.mutateAsync({ conversationId, text, model: choice })}
+          />
+        ) : (
+          <NoProvider />
+        )}
       </div>
     </>
   );

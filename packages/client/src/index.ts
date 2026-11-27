@@ -1,5 +1,8 @@
 export type {
+  AgentEffort,
+  AgentModel,
   AgentProvider,
+  ModelChoice,
   ChatMessage,
   Conversation,
   Draft,

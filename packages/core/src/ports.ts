@@ -1,6 +1,7 @@
 import type {
   Actor,
   AgentProviderId,
+  AgentModel,
   AgentProviderStatus,
   ChatMessage,
   Conversation,
@@ -8,6 +9,7 @@ import type {
   Dimensions,
   EntryId,
   EntryKind,
+  ModelChoice,
   EntryRef,
   Mount,
   SourceError,
@@ -36,14 +38,29 @@ export type SourceChange =
   | { readonly _tag: "Changed"; readonly directories: ReadonlyArray<EntryId> }
   | { readonly _tag: "Resync" };
 
+export interface Facts {
+  readonly dimensions: Dimensions;
+}
+
+export type FactName = keyof Facts;
+
+export interface Extractor<A> {
+  readonly version: number;
+  readonly accepts: (entry: SourceEntry) => boolean;
+  readonly extract: (entry: SourceEntry) => Effect.Effect<Option.Option<A>>;
+}
+
+export type Extractors = { readonly [F in FactName]: Extractor<Facts[F]> };
+
 export interface SourceDriver {
   readonly canonicalize: (id: EntryId) => Effect.Effect<EntryId, SourceError>;
   readonly contains: (root: EntryId, id: EntryId) => boolean;
+  readonly parent: (id: EntryId) => EntryId;
   readonly trail: (root: EntryId, id: EntryId) => ReadonlyArray<SourceCrumb>;
   readonly stat: (id: EntryId) => Effect.Effect<SourceEntry, SourceError>;
   readonly list: (id: EntryId) => Effect.Effect<ReadonlyArray<SourceEntry>, SourceError>;
   readonly watch: (root: EntryId) => Stream.Stream<SourceChange, SourceError>;
-  readonly dimensions: (entry: SourceEntry) => Effect.Effect<Option.Option<Dimensions>>;
+  readonly extractors: Extractors;
 }
 
 export class SourceDrivers extends Context.Service<SourceDrivers, ReadonlyMap<SourceId, SourceDriver>>()(
@@ -54,6 +71,33 @@ export class FileTokens extends Context.Service<
   FileTokens,
   { readonly issue: (ref: EntryRef, version: number) => FileToken }
 >()("@starlight/core/FileTokens") {}
+
+export interface StoredFact {
+  readonly entry: EntryId;
+  readonly size: number;
+  readonly modifiedAt: number;
+  readonly version: number;
+  readonly value: string | null;
+}
+
+export interface FactScope {
+  readonly source: SourceId;
+  readonly fact: FactName;
+}
+
+export class FactStore extends Context.Service<
+  FactStore,
+  {
+    readonly inDirectory: (scope: FactScope, directory: EntryId) => Effect.Effect<ReadonlyArray<StoredFact>>;
+    readonly find: (scope: FactScope, entry: EntryId) => Effect.Effect<Option.Option<StoredFact>>;
+    readonly save: (
+      scope: FactScope,
+      directory: EntryId,
+      facts: ReadonlyArray<StoredFact>,
+    ) => Effect.Effect<void>;
+    readonly forget: (scope: FactScope, entries: ReadonlyArray<EntryId>) => Effect.Effect<void>;
+  }
+>()("@starlight/core/FactStore") {}
 
 export class WorkspaceStore extends Context.Service<
   WorkspaceStore,
@@ -87,6 +131,7 @@ export interface AgentTurnInput {
   readonly prompt: string;
   readonly history: ReadonlyArray<ChatMessage>;
   readonly session: Option.Option<string>;
+  readonly model: ModelChoice;
 }
 
 export type AgentTurnEvent =
@@ -98,6 +143,7 @@ export class AgentTurnFailed extends Data.TaggedError("AgentTurnFailed")<{ reado
 export interface AgentProviderDriver {
   readonly name: string;
   readonly status: Effect.Effect<AgentProviderStatus>;
+  readonly models: Effect.Effect<ReadonlyArray<AgentModel>>;
   readonly respond: (input: AgentTurnInput) => Stream.Stream<AgentTurnEvent, AgentTurnFailed>;
 }
 
@@ -117,9 +163,13 @@ export class ConversationStore extends Context.Service<
   {
     readonly list: Effect.Effect<ReadonlyArray<Conversation>>;
     readonly find: (id: ConversationId) => Effect.Effect<Option.Option<StoredConversation>>;
-    readonly create: (input: Pick<Conversation, "provider" | "title">) => Effect.Effect<Conversation>;
+    readonly create: (input: {
+      readonly model: ModelChoice;
+      readonly title: string;
+    }) => Effect.Effect<Conversation>;
     readonly append: (id: ConversationId, message: ChatMessage) => Effect.Effect<void>;
     readonly saveSession: (id: ConversationId, session: string) => Effect.Effect<void>;
+    readonly saveModel: (id: ConversationId, model: ModelChoice) => Effect.Effect<void>;
   }
 >()("@starlight/core/ConversationStore") {}
 

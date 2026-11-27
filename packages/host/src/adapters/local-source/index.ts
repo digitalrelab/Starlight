@@ -5,7 +5,7 @@ import { subscribe } from "@parcel/watcher";
 import { EntryId, type EntryKind, type SourceError } from "@starlight/contracts";
 import type { SourceChange, SourceCrumb, SourceDriver, SourceEntry } from "@starlight/core";
 import { Effect, Queue, Stream } from "effect";
-import { createImageProbe } from "./image-probe/index.ts";
+import { dimensionsExtractor } from "./dimensions/index.ts";
 import { toSourceError } from "./source-error.ts";
 
 const resync: SourceChange = { _tag: "Resync" };
@@ -65,13 +65,13 @@ const watch = (root: EntryId) =>
   );
 
 export const makeLocalSource = (): SourceDriver => {
-  const probe = createImageProbe();
   return {
     canonicalize: (id) =>
       Effect.tryPromise({ try: () => realpath(id), catch: toSourceError(id) }).pipe(
         Effect.map((path) => EntryId.make(path)),
       ),
     contains: isWithin,
+    parent: (id) => EntryId.make(dirname(id)),
     trail,
     stat: (id) =>
       Effect.tryPromise({ try: () => stat(id), catch: toSourceError(id) }).pipe(
@@ -95,6 +95,6 @@ export const makeLocalSource = (): SourceDriver => {
         catch: toSourceError(id),
       }),
     watch,
-    dimensions: (entry) => probe({ absolute: entry.id, size: entry.size, modifiedAt: entry.modifiedAt }),
+    extractors: { dimensions: dimensionsExtractor },
   };
 };

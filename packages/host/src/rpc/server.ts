@@ -29,7 +29,7 @@ const HandlersLive = HostRpcs.toLayer(
       ListAgentProviders: () => agentProviders.list,
       ListConversations: () => conversations.list,
       GetConversation: ({ conversationId }) => conversations.get(conversationId),
-      SendMessage: ({ conversationId, text }) => conversations.send(conversationId, text),
+      SendMessage: ({ conversationId, text, model }) => conversations.send(conversationId, text, model),
       WatchConversation: ({ conversationId }) => conversations.watch(conversationId),
     });
   }),

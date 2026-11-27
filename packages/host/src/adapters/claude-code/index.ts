@@ -2,6 +2,7 @@ import type { AgentProviderStatus } from "@starlight/contracts";
 import type { AgentProviderDriver } from "@starlight/core";
 import { Effect, Option, Schema } from "effect";
 import { findExecutable, output } from "./executable.ts";
+import { makeModels } from "./models.ts";
 import { respond } from "./respond.ts";
 
 const AuthStatus = Schema.fromJsonString(
@@ -42,5 +43,6 @@ const status: Effect.Effect<AgentProviderStatus> = Effect.gen(function* () {
 export const makeClaudeCodeDriver = (workingDirectory: string): AgentProviderDriver => ({
   name: "Claude Code",
   status,
+  models: makeModels(workingDirectory),
   respond: respond(workingDirectory),
 });
