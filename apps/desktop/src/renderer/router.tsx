@@ -15,7 +15,6 @@ export const router = createRouter({
   // Production loads from file://.
   history: createHashHistory(),
   context: {
-    client,
     queries: createQueries(client),
     mutations: createMutations(client, queryClient),
     queryClient,

@@ -1,11 +1,11 @@
 import { defineConfig } from "vite-plus";
 import type { OxlintOverride } from "vite-plus/lint";
 
-/** Import boundaries. Each package may only reach downward. See AGENTS.md. */
+/** Import boundaries. Each package may only reach downward. */
 const forbid = (...groups: string[]): OxlintOverride["rules"] => ({
   "no-restricted-imports": [
     "error",
-    { patterns: [{ group: groups, message: "Crosses a package boundary. See AGENTS.md." }] },
+    { patterns: [{ group: groups, message: "Crosses a package boundary." }] },
   ],
 });
 

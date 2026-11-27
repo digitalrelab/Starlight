@@ -48,17 +48,13 @@ function Browser() {
 }
 
 function BrowserError({ error }: ErrorComponentProps) {
-  const tag =
-    typeof error === "object" && error !== null && "_tag" in error && typeof error._tag === "string"
-      ? error._tag
-      : "Error";
-  const message = error instanceof Error ? error.message : String(error);
   return (
     <>
       <TitleBar />
       <div className="flex flex-1 flex-col items-center justify-center gap-2">
-        <p className="font-medium">{tag}</p>
-        <p className="max-w-md text-center text-muted">{message}</p>
+        <p className="max-w-md text-center text-muted">
+          {error instanceof Error ? error.message : String(error)}
+        </p>
         <Link to="/" className="text-accent hover:underline">
           Back
         </Link>

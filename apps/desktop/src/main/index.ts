@@ -1,24 +1,24 @@
-import type { ConnectRequest } from "@starlight/contracts";
 import { app, BrowserWindow, ipcMain, MessageChannelMain } from "electron";
-import { startHost } from "./host.ts";
+import { Channel } from "../shared/channels.ts";
+import { superviseHost } from "./host.ts";
 import { serveShell } from "./shell.ts";
 import { createWindow } from "./window.ts";
 
 const main = async () => {
   await app.whenReady();
-  const host = startHost();
+  const host = superviseHost(() => {
+    for (const window of BrowserWindow.getAllWindows()) window.webContents.reload();
+  });
 
-  ipcMain.on("starlight:connect", (event) => {
+  ipcMain.on(Channel.connect, (event) => {
     const window = BrowserWindow.fromWebContents(event.sender);
     if (!window || event.senderFrame !== event.sender.mainFrame) return;
 
     const toHost = new MessageChannelMain();
-    host.postMessage({ actor: { _tag: "User" } } satisfies ConnectRequest, [toHost.port1]);
-
+    host.connect({ actor: { _tag: "User" } }, toHost.port1);
     const toShell = new MessageChannelMain();
     serveShell(toShell.port1, window);
-
-    event.sender.postMessage("starlight:ports", null, [toHost.port2, toShell.port2]);
+    event.sender.postMessage(Channel.ports, null, [toHost.port2, toShell.port2]);
   });
 
   createWindow();
@@ -29,9 +29,7 @@ const main = async () => {
   app.on("window-all-closed", () => {
     if (process.platform !== "darwin") app.quit();
   });
-  app.on("will-quit", () => {
-    host.kill();
-  });
+  app.on("will-quit", host.stop);
 };
 
 void main();

@@ -23,7 +23,6 @@ const layerProtocol = (port: MainPortLike) =>
           Queue.offerUnsafe(inbox, event.data as FromClientEncoded);
         });
         port.start();
-        yield* Effect.addFinalizer(() => Effect.sync(() => port.close()));
         yield* Queue.take(inbox).pipe(
           Effect.flatMap((message) => writeRequest(CLIENT_ID, message)),
           Effect.forever,
@@ -46,11 +45,11 @@ const layerProtocol = (port: MainPortLike) =>
     ),
   );
 
-/** Runs an RPC server over `port` until the port closes. */
+/** Runs an RPC server over `port` until either side closes it. */
 export const serve = <E, R>(port: MainPortLike, server: Layer.Layer<never, E, R | RpcServer.Protocol>) =>
   Effect.raceFirst(
     Layer.launch(server.pipe(Layer.provide(layerProtocol(port)))),
     Effect.callback<void>((resume) => {
       port.on("close", () => resume(Effect.void));
     }),
-  );
+  ).pipe(Effect.ensuring(Effect.sync(() => port.close())));

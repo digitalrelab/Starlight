@@ -39,14 +39,14 @@ export class Entries extends Context.Service<
 
       return Entries.of({
         list: Effect.fn("Entries.list")(function* (workspaceId, path) {
-          const { absolute } = yield* workspaces.resolve(workspaceId, path);
+          const { absolute, relative } = yield* workspaces.resolve(workspaceId, path);
           const info = yield* fs.stat(absolute);
-          if (info.kind !== "directory") return yield* new NotADirectory({ path });
-          const raw = yield* fs.readDirectory(absolute);
-          return raw
+          if (info.kind !== "directory") return yield* new NotADirectory({ path: relative });
+          const entries = yield* fs.readDirectory(absolute);
+          return entries
             .map((entry): Entry => ({
               ...entry,
-              path: join(path, entry.name),
+              path: join(relative, entry.name),
               hidden: entry.name.startsWith("."),
             }))
             .sort(byKindThenName);

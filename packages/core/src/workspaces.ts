@@ -17,12 +17,12 @@ export class Workspaces extends Context.Service<
     readonly open: (path: string) => Effect.Effect<Workspace, NotADirectory | FileSystemError, CurrentActor>;
     readonly recent: Effect.Effect<ReadonlyArray<Workspace>>;
     readonly get: (id: WorkspaceId) => Effect.Effect<Workspace, WorkspaceNotFound>;
-    /** Resolves a workspace-relative path to a symlink-free absolute path inside the root. */
+    /** Resolves a workspace-relative path to its symlink-free absolute and canonical relative forms. */
     readonly resolve: (
       id: WorkspaceId,
       relative: string,
     ) => Effect.Effect<
-      { readonly workspace: Workspace; readonly absolute: string },
+      { readonly workspace: Workspace; readonly absolute: string; readonly relative: string },
       WorkspaceNotFound | PathOutsideWorkspace | FileSystemError
     >;
   }
@@ -66,7 +66,11 @@ export class Workspaces extends Context.Service<
           const absolute = yield* fs.realPath(lexical);
           if (!isWithin(workspace.rootPath, absolute))
             return yield* new PathOutsideWorkspace({ path: relative });
-          return { workspace, absolute };
+          return {
+            workspace,
+            absolute,
+            relative: path.relative(workspace.rootPath, absolute).split(path.sep).join("/"),
+          };
         }),
       });
     }),

@@ -10,7 +10,8 @@ export const createWindow = () => {
     show: false,
     titleBarStyle: "hiddenInset",
     trafficLightPosition: { x: 14, y: 13 },
-    backgroundColor: nativeTheme.shouldUseDarkColors ? "#17181c" : "#fafafb",
+    // `--sl-canvas` from @starlight/ui, so the window does not flash before CSS loads.
+    backgroundColor: nativeTheme.shouldUseDarkColors ? "#0e0f12" : "#f9fafb",
     webPreferences: {
       preload: join(import.meta.dirname, "../preload/index.cjs"),
       sandbox: true,

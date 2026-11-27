@@ -2,9 +2,8 @@ import { mutationOptions, queryOptions, type QueryClient } from "@tanstack/react
 import type { StarlightClient } from "./client.ts";
 
 export const queryKeys = {
-  workspaces: ["workspaces"] as const,
-  recentWorkspaces: () => [...queryKeys.workspaces, "recent"] as const,
-  workspace: (id: string) => [...queryKeys.workspaces, id] as const,
+  recentWorkspaces: () => ["recentWorkspaces"] as const,
+  workspace: (id: string) => ["workspace", id] as const,
   entries: (workspaceId: string, path: string) => ["entries", workspaceId, path] as const,
 };
 
