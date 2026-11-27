@@ -4,7 +4,7 @@ import { cn } from "cn";
 
 const intents = {
   ghost: "text-default hover:bg-neutral-subtle-hovered",
-  secondary: "border border-input bg-surface-raised text-default shadow-xs hover:bg-neutral-subtle-hovered",
+  secondary: "border border-input bg-surface-raised text-default shadow-xs hover:wash-neutral-subtle-hovered",
 } as const;
 
 export interface ButtonProps extends Omit<ComponentProps<typeof BaseButton>, "className"> {

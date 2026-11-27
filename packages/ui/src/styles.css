@@ -5,3 +5,7 @@
 @utility focus-ring {
   @apply outline-none focus-visible:ring-2 focus-visible:ring-selected;
 }
+
+@utility wash-* {
+  background-image: linear-gradient(--value(--background-color-*), --value(--background-color-*));
+}
