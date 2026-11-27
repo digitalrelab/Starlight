@@ -1,5 +1,6 @@
 import { syntaxTree } from "@codemirror/language";
-import { type EditorState, RangeSetBuilder } from "@codemirror/state";
+import type { Tree } from "@lezer/common";
+import { type Line, RangeSetBuilder } from "@codemirror/state";
 import {
   Decoration,
   type DecorationSet,
@@ -8,9 +9,8 @@ import {
   type ViewUpdate,
 } from "@codemirror/view";
 
-const VERBATIM = new Set(["FencedCode", "CodeBlock", "HTMLBlock", "CommentBlock"]);
-const HEADING = /^(#{1,6})[ \t]/;
-const PREFIX = /^(?:[ \t]*>)*[ \t]*(?:(?:[-*+]|\d{1,9}[.)])[ \t]+(?:\[[ xX]\][ \t]+)?)?/;
+const MARKS = new Set(["HeaderMark", "ListMark", "QuoteMark", "TaskMarker"]);
+const SPACE = /[ \t]/;
 
 const decorations = new Map<string, Decoration>();
 
@@ -29,31 +29,33 @@ const widthOf = (text: string, tabSize: number) => {
   return width;
 };
 
-const styleOf = (text: string, tabSize: number) => {
-  const heading = HEADING.exec(text);
-  if (heading?.[1]) return `text-indent: -${heading[1].length + 1}ch`;
-  const prefix = PREFIX.exec(text)?.[0] ?? "";
-  if (prefix === "") return undefined;
-  const width = widthOf(prefix, tabSize);
-  return `padding-inline-start: ${width}ch; text-indent: -${width}ch`;
-};
-
-const isVerbatim = (state: EditorState, position: number) => {
-  for (let node = syntaxTree(state).resolveInner(position, 1); node.parent; node = node.parent) {
-    if (VERBATIM.has(node.name)) return true;
+const styleOf = (tree: Tree, line: Line, tabSize: number) => {
+  let end = line.from;
+  let isHeading = false;
+  for (;;) {
+    while (end < line.to && SPACE.test(line.text.charAt(end - line.from))) end++;
+    const mark = tree.resolveInner(end, 1);
+    if (end === line.to || mark.from !== end || !MARKS.has(mark.name)) break;
+    isHeading ||= mark.name === "HeaderMark" && end === line.from;
+    end = mark.to;
   }
-  return false;
+  if (end === line.from) return undefined;
+  const width = widthOf(line.text.slice(0, end - line.from), tabSize);
+  return isHeading
+    ? `text-indent: -${width}ch`
+    : `padding-inline-start: ${width}ch; text-indent: -${width}ch`;
 };
 
 const decorate = (view: EditorView) => {
   const builder = new RangeSetBuilder<Decoration>();
   const { state } = view;
+  const tree = syntaxTree(state);
   let previous = -1;
   for (const { from, to } of view.visibleRanges) {
     for (let position = from; position <= to;) {
       const line = state.doc.lineAt(position);
-      if (line.from > previous && line.length > 0 && !isVerbatim(state, line.from)) {
-        const style = styleOf(line.text, state.tabSize);
+      if (line.from > previous) {
+        const style = styleOf(tree, line, state.tabSize);
         if (style) builder.add(line.from, line.from, lineDecoration(style));
       }
       previous = line.from;

@@ -1,12 +1,12 @@
 import type { Entry, EntryRef, FileSource } from "@starlight/client";
 import { cn, Icon, type IconProps } from "@starlight/ui";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { lazy, type ReactNode, Suspense, useState } from "react";
 import { fileUrl } from "../../../shared/files.ts";
 import { thumbnailUrl } from "../../../shared/thumbnails.ts";
 import { useStarlight } from "../../lib/context.ts";
 import { reveal } from "../../lib/reveal.ts";
-import { isTooLarge, loadEditor, markdownText } from "./markdown-file.ts";
+import { loadEditor, markdownText } from "./markdown-file.ts";
 import { pictureUrl, presentationIcons, presentationOf } from "./presentation.ts";
 
 const MarkdownEditor = lazy(() => loadEditor().then(({ MarkdownEditor }) => ({ default: MarkdownEditor })));
@@ -78,7 +78,7 @@ const Video = ({ source }: { readonly source: FileSource }) => {
 };
 
 const MarkdownFile = ({ name, source }: { readonly name: string; readonly source: FileSource }) => {
-  const text = useQuery({ ...markdownText(source), placeholderData: (previous) => previous });
+  const text = useQuery({ ...markdownText(source), placeholderData: keepPreviousData });
   if (text.isError) return <Notice icon={presentationIcons.markdown}>Can’t open this file</Notice>;
   if (text.data === undefined) return null;
   return (
@@ -96,14 +96,12 @@ interface Props {
 
 export const FileStage = ({ workspaceId, directory, entry }: Props) => {
   const { queries } = useStarlight();
-  const presentation = presentationOf(entry.name);
-  const isOversized = presentation === "markdown" && isTooLarge(entry);
+  const presentation = presentationOf(entry);
   const source = useQuery({
     ...queries.fileSource(workspaceId, directory, entry.ref),
-    enabled: presentation !== "none" && !isOversized,
+    enabled: presentation !== "none",
   });
   if (presentation === "none") return <Notice icon={presentationIcons.none}>No preview available</Notice>;
-  if (isOversized) return <Notice icon={presentationIcons.markdown}>Too large to preview</Notice>;
   if (source.isError) return <Notice icon={presentationIcons[presentation]}>Can’t open this file</Notice>;
   if (!source.data) return null;
   if (presentation === "video") return <Video source={source.data} />;

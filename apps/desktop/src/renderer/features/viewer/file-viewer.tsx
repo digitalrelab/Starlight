@@ -3,7 +3,7 @@ import type { Entry, EntryRef } from "@starlight/client";
 import { Button, Icon, IconButton, Theater } from "@starlight/ui";
 import { type KeyboardEvent, useEffect, useEffectEvent, useMemo, useRef } from "react";
 import { useStarlight } from "../../lib/context.ts";
-import { isTooLarge, loadEditor, markdownText } from "./markdown-file.ts";
+import { loadEditor, markdownText } from "./markdown-file.ts";
 import { FileStage } from "./file-stage.tsx";
 import { pictureUrl, presentationIcons, presentationOf } from "./presentation.ts";
 
@@ -38,9 +38,8 @@ const usePrefetch = (
   useEffect(() => {
     for (const entry of [next, previous]) {
       if (!entry) continue;
-      const presentation = presentationOf(entry.name);
+      const presentation = presentationOf(entry);
       if (presentation === "none") continue;
-      if (presentation === "markdown" && isTooLarge(entry)) continue;
       void queryClient.query(queries.fileSource(workspaceId, directory, entry.ref)).then(
         (source) => {
           if (presentation === "markdown") {
@@ -108,7 +107,7 @@ export const FileViewer = ({
         <Theater.Title>
           {current ? (
             <>
-              <Icon icon={presentationIcons[presentationOf(current.name)]} className="text-subtle" />
+              <Icon icon={presentationIcons[presentationOf(current)]} className="text-subtle" />
               <span className="truncate">{current.name}</span>
             </>
           ) : null}

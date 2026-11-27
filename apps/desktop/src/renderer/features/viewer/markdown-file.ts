@@ -1,10 +1,6 @@
-import type { Entry, FileSource } from "@starlight/client";
+import type { FileSource } from "@starlight/client";
 import { queryOptions } from "@tanstack/react-query";
 import { fileUrl } from "../../../shared/files.ts";
-
-const MAX_PREVIEW_BYTES = 16 * 1024 ** 2;
-
-export const isTooLarge = (entry: Entry) => entry.size > MAX_PREVIEW_BYTES;
 
 export const loadEditor = () => import("@starlight/markdown/editor");
 

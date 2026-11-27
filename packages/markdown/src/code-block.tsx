@@ -53,7 +53,7 @@ export const CodeBlock = memo(({ code, language }: Props) => {
 
   return (
     <pre>
-      <code data-language={language}>{tokens ? spansOf(code, tokens) : code}</code>
+      <code>{tokens ? spansOf(code, tokens) : code}</code>
     </pre>
   );
 });
