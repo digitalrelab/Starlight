@@ -13,7 +13,8 @@
     "@fontsource-variable/literata": "catalog:",
     "@hugeicons-pro/core-stroke-rounded": "catalog:",
     "@hugeicons/react": "catalog:",
-    "cn": "catalog:"
+    "cn": "catalog:",
+    "match-sorter": "catalog:"
   },
   "devDependencies": {
     "@types/react": "catalog:"

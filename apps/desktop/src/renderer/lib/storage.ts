@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from "react";
+import { defineStore, type Store } from "./store.ts";
 
 const PREFIX = "starlight.";
 
@@ -25,48 +25,34 @@ const write = (key: string, value: string) => {
   } catch {}
 };
 
-export const defineStored = <Value extends string>(name: string, guard: Guard<Value>, fallback: Value) => {
+export const defineStored = <Value extends string>(
+  name: string,
+  guard: Guard<Value>,
+  fallback: Value,
+): Store<Value> => {
   const key = PREFIX + name;
   const parse = (raw: string | null) => (raw !== null && guard(raw) ? raw : fallback);
-  const listeners = new Set<() => void>();
-  let current = parse(read(key));
-
-  const update = (next: Value) => {
-    current = next;
-    for (const listener of listeners) listener();
-  };
+  const store = defineStore(parse(read(key)));
 
   window.addEventListener("storage", (event) => {
-    if (event.key === key) update(parse(event.newValue));
+    if (event.key === key) store.set(parse(event.newValue));
   });
 
-  const subscribe = (listener: () => void) => {
-    listeners.add(listener);
-    return () => listeners.delete(listener);
-  };
-  const get = () => current;
-
   return {
-    get,
-    set: (next: Value) => {
+    ...store,
+    set: (next) => {
       write(key, next);
-      update(next);
+      store.set(next);
     },
-    subscribe,
   };
 };
-
-type Stored<Value extends string> = ReturnType<typeof defineStored<Value>>;
-
-export const useStored = <Value extends string>({ subscribe, get }: Stored<Value>) =>
-  useSyncExternalStore(subscribe, get);
 
 export const defineStoredFamily = <Value extends string>(
   nameOf: (id: string) => string,
   guard: Guard<Value>,
   fallback: Value,
 ) => {
-  const members = new Map<string, Stored<Value>>();
+  const members = new Map<string, Store<Value>>();
   return (id: string) => {
     const existing = members.get(id);
     if (existing) return existing;

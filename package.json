@@ -38,6 +38,7 @@
       "@hugeicons-pro/core-solid-rounded": "4.4.0",
       "@hugeicons-pro/core-stroke-rounded": "4.4.0",
       "cn": "0.5.2",
+      "match-sorter": "8.3.1",
       "image-size": "2.2.0",
       "@fontsource-variable/geist": "5.3.0",
       "@anthropic-ai/claude-agent-sdk": "0.3.332",

@@ -1,38 +1,22 @@
-import {
-  ArrowLeft01Icon,
-  Folder01Icon,
-  HardDriveIcon,
-  PaintBoardIcon,
-  Plug01Icon,
-  RefreshDotIcon,
-} from "@hugeicons-pro/core-stroke-rounded";
+import { ArrowLeft01Icon } from "@hugeicons-pro/core-stroke-rounded";
 import { IconButton, NavItem, NavSection } from "@starlight/ui";
 import { Link } from "@tanstack/react-router";
+import { SETTINGS_SECTIONS } from "./settings-pages.ts";
 
 export const SettingsSidebar = () => (
   <>
     <NavItem icon={ArrowLeft01Icon} render={<Link to="/" />}>
       Back to app
     </NavItem>
-    <NavSection title="General">
-      <NavItem icon={PaintBoardIcon} render={<Link to="/settings/appearance" />}>
-        Appearance
-      </NavItem>
-      <NavItem icon={Folder01Icon} render={<Link to="/settings/files" />}>
-        Files
-      </NavItem>
-      <NavItem icon={HardDriveIcon} render={<Link to="/settings/disk" />}>
-        Disk
-      </NavItem>
-      <NavItem icon={RefreshDotIcon} render={<Link to="/settings/updates" />}>
-        Updates
-      </NavItem>
-    </NavSection>
-    <NavSection title="AI">
-      <NavItem icon={Plug01Icon} render={<Link to="/settings/providers" />}>
-        Providers
-      </NavItem>
-    </NavSection>
+    {SETTINGS_SECTIONS.map(({ title, pages }) => (
+      <NavSection key={title} title={title}>
+        {pages.map(({ label, icon, link }) => (
+          <NavItem key={label} icon={icon} render={<Link {...link} />}>
+            {label}
+          </NavItem>
+        ))}
+      </NavSection>
+    ))}
   </>
 );
 

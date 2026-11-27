@@ -1,6 +1,7 @@
 import { PanelRightIcon } from "@hugeicons-pro/core-stroke-rounded";
 import { IconButton } from "@starlight/ui";
-import { defineStored, oneOf, useStored } from "#renderer/lib/storage.ts";
+import { defineStored, oneOf } from "#renderer/lib/storage.ts";
+import { useStore } from "#renderer/lib/store.ts";
 
 export const inspectorPreference = defineStored("inspector", oneOf(["open", "closed"]), "closed");
 
@@ -14,7 +15,7 @@ export const InspectorToggle = () => (
     label="Details"
     icon={PanelRightIcon}
     shortcut={[INSPECTOR_KEY]}
-    aria-pressed={useStored(inspectorPreference) === "open"}
+    aria-pressed={useStore(inspectorPreference) === "open"}
     onClick={toggleInspector}
   />
 );
