@@ -1,6 +1,6 @@
 import { Layer } from "effect";
 import { AgentProviders } from "./agents.ts";
-import { Assets } from "./assets.ts";
+import { FileIdentities } from "./file-identities.ts";
 import { Catalog } from "./catalog.ts";
 import { Chats } from "./chats.ts";
 import { Entries } from "./entries.ts";
@@ -9,7 +9,7 @@ import { MediaLibrary } from "./media.ts";
 import { Workspaces } from "./workspaces.ts";
 
 export * from "./agents.ts";
-export * from "./assets.ts";
+export * from "./file-identities.ts";
 export * from "./catalog.ts";
 export * from "./chats.ts";
 export * from "./entries.ts";
@@ -26,6 +26,6 @@ export const CoreLive = Layer.mergeAll(
   Chats.layer,
 ).pipe(
   Layer.provideMerge(Catalog.layer),
-  Layer.provideMerge(Assets.layer),
+  Layer.provideMerge(FileIdentities.layer),
   Layer.provideMerge(Workspaces.layer),
 );

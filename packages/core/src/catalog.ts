@@ -1,7 +1,7 @@
 import { Dimensions, type EntryId, type EntryRef, type FileId } from "@starlight/contracts";
 import { Context, type Duration, Effect, Layer, Option, Schema, Stream } from "effect";
 import {
-  type AssetEntry,
+  type IdentifiedEntry,
   type Extractor,
   type FactName,
   type Facts,
@@ -26,18 +26,18 @@ const codecs: { readonly [F in FactName]: Schema.Codec<Facts[F], string> } = {
 type ProcessedName = keyof ProcessedFacts;
 
 export interface Processed {
-  readonly entry: AssetEntry;
+  readonly entry: IdentifiedEntry;
   readonly facts: ProcessedFacts | null;
 }
 
-const isFresh = (stored: StoredFact, entry: AssetEntry, version: number) =>
+const isFresh = (stored: StoredFact, entry: IdentifiedEntry, version: number) =>
   stored.size === entry.size && stored.modifiedAt === entry.modifiedAt && stored.version === version;
 
-const byAsset = (stored: ReadonlyArray<StoredFact>) =>
-  new Map<FileId, StoredFact>(stored.map((fact) => [fact.asset, fact]));
+const byFileId = (stored: ReadonlyArray<StoredFact>) =>
+  new Map<FileId, StoredFact>(stored.map((fact) => [fact.fileId, fact]));
 
-const storedFact = (entry: AssetEntry, version: number, value: string | null): StoredFact => ({
-  asset: entry.asset,
+const storedFact = (entry: IdentifiedEntry, version: number, value: string | null): StoredFact => ({
+  fileId: entry.fileId,
   size: entry.size,
   modifiedAt: entry.modifiedAt,
   version,
@@ -51,22 +51,22 @@ export class Catalog extends Context.Service<
       fact: F,
       driver: SourceDriver,
       directory: EntryRef,
-      entries: ReadonlyArray<AssetEntry>,
+      entries: ReadonlyArray<IdentifiedEntry>,
     ) => Effect.Effect<ReadonlyMap<EntryId, Facts[F]>>;
     readonly entry: <F extends keyof ProbedFacts>(
       fact: F,
       driver: SourceDriver,
-      entry: AssetEntry,
+      entry: IdentifiedEntry,
     ) => Effect.Effect<Option.Option<Facts[F]>>;
     readonly processed: <F extends ProcessedName>(
       fact: F,
       directory: EntryRef,
-      entries: ReadonlyArray<AssetEntry>,
+      entries: ReadonlyArray<IdentifiedEntry>,
     ) => Effect.Effect<ReadonlyMap<EntryId, ProcessedFacts[F]>>;
     readonly process: (
       driver: SourceDriver,
       directory: EntryRef,
-      entries: ReadonlyArray<AssetEntry>,
+      entries: ReadonlyArray<IdentifiedEntry>,
     ) => Stream.Stream<ReadonlyArray<Processed>>;
   }
 >()("@starlight/core/Catalog") {
@@ -78,16 +78,16 @@ export class Catalog extends Context.Service<
         fact: FactName,
         codec: Schema.Codec<A, string>,
         extractor: Extractor<A>,
-        entries: ReadonlyArray<AssetEntry>,
+        entries: ReadonlyArray<IdentifiedEntry>,
         stored: ReadonlyMap<FileId, StoredFact>,
       ) =>
         Effect.gen(function* () {
           const decode = Schema.decodeOption(codec);
           const encode = Schema.encodeSync(codec);
           const values = new Map<EntryId, A>();
-          const stale: Array<AssetEntry> = [];
+          const stale: Array<IdentifiedEntry> = [];
           for (const entry of entries) {
-            const known = stored.get(entry.asset);
+            const known = stored.get(entry.fileId);
             if (!known || !isFresh(known, entry, extractor.version)) stale.push(entry);
             else if (known.value !== null) {
               const decoded = decode(known.value);
@@ -137,30 +137,32 @@ export class Catalog extends Context.Service<
               codecs[fact],
               extractor,
               entries.filter(extractor.accepts),
-              byAsset(stored),
+              byFileId(stored),
             );
           }),
         entry: (fact, driver, entry) =>
           Effect.gen(function* () {
             const extractor = driver.extractors[fact];
             if (!extractor.accepts(entry)) return Option.none();
-            const stored = yield* store.find(fact, entry.asset);
+            const stored = yield* store.find(fact, entry.fileId);
             const values = yield* resolve(
               fact,
               codecs[fact],
               extractor,
               [entry],
-              byAsset(Option.toArray(stored)),
+              byFileId(Option.toArray(stored)),
             );
             return Option.fromNullishOr(values.get(entry.id));
           }),
         processed: (fact, directory, entries) =>
           Effect.gen(function* () {
-            const known = byAsset(yield* store.inDirectory({ source: directory.source, fact }, directory.id));
+            const known = byFileId(
+              yield* store.inDirectory({ source: directory.source, fact }, directory.id),
+            );
             const decode = Schema.decodeOption(codecs[fact]);
             const values = new Map<EntryId, ProcessedFacts[typeof fact]>();
             for (const entry of entries) {
-              const found = known.get(entry.asset);
+              const found = known.get(entry.fileId);
               if (!found || found.value === null || !isFresh(found, entry, processors[fact].version))
                 continue;
               const decoded = decode(found.value);
@@ -175,12 +177,12 @@ export class Catalog extends Context.Service<
               for (const fact of processedNames) {
                 known.set(
                   fact,
-                  byAsset(yield* store.inDirectory({ source: directory.source, fact }, directory.id)),
+                  byFileId(yield* store.inDirectory({ source: directory.source, fact }, directory.id)),
                 );
               }
               const pending = entries.filter((entry) =>
                 processedNames.some((fact) => {
-                  const found = known.get(fact)?.get(entry.asset);
+                  const found = known.get(fact)?.get(entry.fileId);
                   return !found || !isFresh(found, entry, processors[fact].version);
                 }),
               );

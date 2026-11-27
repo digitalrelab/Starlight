@@ -33,8 +33,8 @@ export interface SourceEntry {
   readonly hidden: boolean;
 }
 
-export interface AssetEntry extends SourceEntry {
-  readonly asset: FileId;
+export interface IdentifiedEntry extends SourceEntry {
+  readonly fileId: FileId;
 }
 
 export interface SourceCrumb {
@@ -94,7 +94,7 @@ export class FileTokens extends Context.Service<
 >()("@starlight/core/FileTokens") {}
 
 export interface StoredFact {
-  readonly asset: FileId;
+  readonly fileId: FileId;
   readonly size: number;
   readonly modifiedAt: number;
   readonly version: number;
@@ -110,32 +110,35 @@ export class FactStore extends Context.Service<
   FactStore,
   {
     readonly inDirectory: (scope: FactScope, directory: EntryId) => Effect.Effect<ReadonlyArray<StoredFact>>;
-    readonly find: (fact: FactName, asset: FileId) => Effect.Effect<Option.Option<StoredFact>>;
+    readonly find: (fact: FactName, fileId: FileId) => Effect.Effect<Option.Option<StoredFact>>;
     readonly save: (fact: FactName, facts: ReadonlyArray<StoredFact>) => Effect.Effect<void>;
   }
 >()("@starlight/core/FactStore") {}
 
-export interface StoredAsset {
+export interface FileIdentity {
   readonly id: FileId;
   readonly entry: EntryId;
   readonly key: string;
 }
 
-export class AssetStore extends Context.Service<
-  AssetStore,
+export class FileIdentityStore extends Context.Service<
+  FileIdentityStore,
   {
-    readonly inDirectory: (source: SourceId, directory: EntryId) => Effect.Effect<ReadonlyArray<StoredAsset>>;
+    readonly inDirectory: (
+      source: SourceId,
+      directory: EntryId,
+    ) => Effect.Effect<ReadonlyArray<FileIdentity>>;
     readonly withKeys: (
       source: SourceId,
       keys: ReadonlyArray<string>,
-    ) => Effect.Effect<ReadonlyArray<StoredAsset>>;
+    ) => Effect.Effect<ReadonlyArray<FileIdentity>>;
     readonly save: (
       source: SourceId,
       directory: EntryId,
-      assets: ReadonlyArray<StoredAsset>,
+      identities: ReadonlyArray<FileIdentity>,
     ) => Effect.Effect<void>;
   }
->()("@starlight/core/AssetStore") {}
+>()("@starlight/core/FileIdentityStore") {}
 
 export class WorkspaceStore extends Context.Service<
   WorkspaceStore,

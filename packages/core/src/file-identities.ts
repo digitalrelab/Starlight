@@ -1,41 +1,42 @@
 import { type EntryId, type EntryRef, FileId } from "@starlight/contracts";
 import { Context, Effect, Layer } from "effect";
 import {
-  type AssetEntry,
-  AssetStore,
+  type IdentifiedEntry,
+  FileIdentityStore,
   type SourceDriver,
   type SourceEntry,
-  type StoredAsset,
+  type FileIdentity,
 } from "./ports.ts";
 
-export class Assets extends Context.Service<
-  Assets,
+export class FileIdentities extends Context.Service<
+  FileIdentities,
   {
     readonly bind: (
       driver: SourceDriver,
       directory: EntryRef,
       entries: ReadonlyArray<SourceEntry>,
-    ) => Effect.Effect<ReadonlyArray<AssetEntry>>;
+    ) => Effect.Effect<ReadonlyArray<IdentifiedEntry>>;
   }
->()("@starlight/core/Assets") {
-  static readonly layer = Layer.effect(Assets)(
+>()("@starlight/core/FileIdentities") {
+  static readonly layer = Layer.effect(FileIdentities)(
     Effect.gen(function* () {
-      const store = yield* AssetStore;
+      const store = yield* FileIdentityStore;
 
-      const isStillAt = (driver: SourceDriver, asset: StoredAsset) =>
-        driver.stat(asset.entry).pipe(
-          Effect.map((entry) => entry.key === asset.key),
+      const isStillAt = (driver: SourceDriver, identity: FileIdentity) =>
+        driver.stat(identity.entry).pipe(
+          Effect.map((entry) => entry.key === identity.key),
           Effect.orElseSucceed(() => false),
         );
 
       const recorded = (directory: EntryRef) =>
         Effect.map(
           store.inDirectory(directory.source, directory.id),
-          (assets) => new Map<EntryId, StoredAsset>(assets.map((asset) => [asset.entry, asset])),
+          (identities) =>
+            new Map<EntryId, FileIdentity>(identities.map((identity) => [identity.entry, identity])),
         );
 
-      return Assets.of({
-        bind: Effect.fn("Assets.bind")(function* (driver, directory, entries) {
+      return FileIdentities.of({
+        bind: Effect.fn("FileIdentities.bind")(function* (driver, directory, entries) {
           const known = yield* recorded(directory);
           const unknown = entries.filter((entry) => !known.has(entry.id));
           const elsewhere = new Map(
@@ -44,9 +45,9 @@ export class Assets extends Context.Service<
               : (yield* store.withKeys(
                   directory.source,
                   unknown.map((entry) => entry.key),
-                )).map((asset) => [asset.key, asset]),
+                )).map((identity) => [identity.key, identity]),
           );
-          const changed: Array<StoredAsset> = [];
+          const changed: Array<FileIdentity> = [];
           for (const entry of entries) {
             const found = known.get(entry.id);
             if (found) {
@@ -60,9 +61,9 @@ export class Assets extends Context.Service<
           }
           if (changed.length > 0) yield* store.save(directory.source, directory.id, changed);
           const settled = changed.length === 0 ? known : yield* recorded(directory);
-          return entries.flatMap((entry): ReadonlyArray<AssetEntry> => {
-            const asset = settled.get(entry.id);
-            return asset ? [{ ...entry, asset: asset.id }] : [];
+          return entries.flatMap((entry): ReadonlyArray<IdentifiedEntry> => {
+            const identity = settled.get(entry.id);
+            return identity ? [{ ...entry, fileId: identity.id }] : [];
           });
         }),
       });
