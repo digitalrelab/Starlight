@@ -74,7 +74,7 @@ export class MediaLibrary extends Context.Service<
                 ...found,
                 duration: durations.get(entry.id) ?? null,
                 placeholder: placeholders.get(entry.id) ?? null,
-                token: tokens.issue(ref, entry.modifiedAt),
+                token: tokens.issue(ref, entry),
               },
             ];
           });

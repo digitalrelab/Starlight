@@ -23,6 +23,7 @@ import type {
   Project,
   ProjectId,
 } from "@starlight/contracts";
+import { FileVersion } from "@starlight/contracts";
 import { Context, Data, type Effect, type Option, type Stream } from "effect";
 
 export interface SourceEntry {
@@ -35,6 +36,8 @@ export interface SourceEntry {
   readonly modifiedAt: number;
   readonly hidden: boolean;
 }
+
+export const versionOf = ({ modifiedAt, size }: SourceEntry) => FileVersion.make(`${modifiedAt}:${size}`);
 
 export interface IdentifiedEntry extends SourceEntry {
   readonly fileId: FileId;
@@ -96,7 +99,7 @@ export class SourceDrivers extends Context.Service<SourceDrivers, ReadonlyMap<So
 
 export class FileTokens extends Context.Service<
   FileTokens,
-  { readonly issue: (ref: EntryRef, version: number) => FileToken }
+  { readonly issue: (ref: EntryRef, entry: IdentifiedEntry) => FileToken }
 >()("@starlight/core/FileTokens") {}
 
 export interface StoredFact {

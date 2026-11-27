@@ -3,8 +3,8 @@ import {
   type FileDetails,
   type FileError,
   type FileSource,
+  type FileVersion,
   mediaTypeOf,
-  FileVersion,
   type ProjectId,
   VersionConflict,
   type WriteError,
@@ -12,10 +12,8 @@ import {
 import { Context, Effect, Layer, Option } from "effect";
 import { FileIdentities } from "./file-identities.ts";
 import { Catalog } from "./catalog.ts";
-import { AuditLog, CurrentActor, FileTokens, type SourceEntry } from "./ports.ts";
+import { AuditLog, CurrentActor, FileTokens, versionOf } from "./ports.ts";
 import { Projects } from "./projects.ts";
-
-const versionOf = ({ modifiedAt, size }: SourceEntry) => FileVersion.make(`${modifiedAt}:${size}`);
 
 export class Files extends Context.Service<
   Files,
@@ -51,7 +49,7 @@ export class Files extends Context.Service<
           const { driver, file, entry } = yield* identify(projectId, requested);
           const dimensions = yield* catalog.entry("dimensions", driver, entry);
           return {
-            token: tokens.issue(file, entry.modifiedAt),
+            token: tokens.issue(file, entry),
             version: versionOf(entry),
             dimensions: Option.getOrNull(dimensions),
           };

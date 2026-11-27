@@ -33,9 +33,9 @@ export const openPreviewCache = () => {
 };
 
 export const servePreviews = (key: Buffer, cache: PreviewCache) =>
-  serveLocalFiles(PREVIEW_SCHEME, key, async ({ path, version }, request) => {
+  serveLocalFiles(PREVIEW_SCHEME, key, async ({ path, fileId, version }, request) => {
     const size = fitPreviewSize(Number(new URL(request.url).searchParams.get("size")));
-    const bytes = await cache.resolve(JSON.stringify([path, version, size]), () => render(path, size));
+    const bytes = await cache.resolve(JSON.stringify([fileId, version, size]), () => render(path, size));
     if (!bytes) return new Response(null, { status: 404 });
     return new Response(bytes, {
       headers: {
