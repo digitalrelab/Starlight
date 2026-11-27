@@ -8,6 +8,7 @@ interface Listener {
 }
 
 interface Request {
+  readonly url: string;
   readonly listeners: Set<Listener>;
   readonly order: number;
   loading: boolean;
@@ -26,21 +27,20 @@ const outranks = (a: Request, b: Request) =>
   isVisible(a) === isVisible(b) ? a.order > b.order : isVisible(a);
 
 const next = () => {
-  let best: [string, Request] | undefined;
-  for (const entry of requests) {
-    if (!entry[1].loading && (!best || outranks(entry[1], best[1]))) best = entry;
+  let best: Request | undefined;
+  for (const request of requests.values()) {
+    if (!request.loading && (!best || outranks(request, best))) best = request;
   }
   return best;
 };
 
 const pump = () => {
   while (active < CONCURRENCY) {
-    const entry = next();
-    if (!entry) return;
-    const [url, request] = entry;
+    const request = next();
+    if (!request) return;
     const settle = (loaded: boolean) => () => {
       active--;
-      requests.delete(url);
+      requests.delete(request.url);
       if (loaded) for (const listener of request.listeners) listener.onLoad();
       pump();
     };
@@ -49,12 +49,12 @@ const pump = () => {
     const image = new Image();
     image.onload = settle(true);
     image.onerror = settle(false);
-    image.src = url;
+    image.src = request.url;
   }
 };
 
 const subscribe = (url: string, listener: Listener) => {
-  const request = requests.get(url) ?? { listeners: new Set(), order: sequence++, loading: false };
+  const request = requests.get(url) ?? { url, listeners: new Set(), order: sequence++, loading: false };
   requests.set(url, request);
   request.listeners.add(listener);
   pump();

@@ -5,7 +5,6 @@ import { fitThumbnailSize, THUMBNAIL_SCHEME } from "../shared/thumbnails.ts";
 import { serveLocalFiles } from "./local-files.ts";
 import { createThumbnailCache } from "./thumbnail-cache.ts";
 
-const MAX_POINTS = 1024;
 const JPEG_QUALITY = 85;
 const CACHE_LIMIT_BYTES = 2 * 1024 ** 3;
 const OPAQUE_TYPES = new Set(["image/jpeg", "image/heic", "image/heif"]);
@@ -17,7 +16,8 @@ export const thumbnailScheme: CustomScheme = {
 
 const isOpaque = (absolute: string) => OPAQUE_TYPES.has(mediaTypeOf(absolute) ?? "");
 
-const render = async (absolute: string, points: number) => {
+const render = async (absolute: string, pixels: number) => {
+  const points = Math.ceil(pixels / screen.getPrimaryDisplay().scaleFactor);
   const image = await nativeImage.createThumbnailFromPath(absolute, { width: points, height: points });
   if (image.isEmpty()) return null;
   return new Uint8Array(isOpaque(absolute) ? image.toJPEG(JPEG_QUALITY) : image.toPNG());
@@ -28,11 +28,7 @@ export const serveThumbnails = (key: Buffer) => {
   void cache.prune();
   serveLocalFiles(THUMBNAIL_SCHEME, key, async ({ path, version }, request) => {
     const size = fitThumbnailSize(Number(new URL(request.url).searchParams.get("size")));
-    const { scaleFactor } = screen.getPrimaryDisplay();
-    const points = Math.min(MAX_POINTS, Math.ceil(size / scaleFactor));
-    const bytes = await cache.resolve(JSON.stringify([path, version, points, scaleFactor]), () =>
-      render(path, points),
-    );
+    const bytes = await cache.resolve(JSON.stringify([path, version, size]), () => render(path, size));
     if (!bytes) return new Response(null, { status: 404 });
     return new Response(bytes, {
       headers: {
