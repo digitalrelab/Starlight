@@ -4,7 +4,13 @@ import { forEachPixel, isTransparent, OPAQUE_ALPHA } from "./pixels.ts";
 const CHROMA_TOLERANCE = 6;
 const COLORED_SHARE = 0.01;
 
-const trait = (key: string): Property => ({ namespace: "pixels", key, value: true });
+const NAMESPACE = "pixels";
+const TRANSPARENT = "transparent";
+
+const trait = (key: string): Property => ({ namespace: NAMESPACE, key, value: true });
+
+export const hasTransparency = (traits: ReadonlyArray<Property>) =>
+  traits.some(({ namespace, key }) => namespace === NAMESPACE && key === TRANSPARENT);
 
 export const traitsOf = (sample: PixelSample): ReadonlyArray<Property> => {
   let opaque = 0;
@@ -16,7 +22,7 @@ export const traitsOf = (sample: PixelSample): ReadonlyArray<Property> => {
   });
   const monochrome = opaque > 0 && colored <= opaque * COLORED_SHARE;
   return [
-    ...(isTransparent(sample) ? [trait("transparent")] : []),
+    ...(isTransparent(sample) ? [trait(TRANSPARENT)] : []),
     ...(monochrome ? [trait("monochrome")] : []),
   ];
 };

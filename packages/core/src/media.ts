@@ -1,9 +1,24 @@
-import type { DirectoryError, EntryId, EntryRef, Media, MediaUpdate, ProjectId } from "@starlight/contracts";
+import type {
+  DirectoryError,
+  EntryId,
+  EntryRef,
+  Media,
+  MediaAppearance,
+  MediaUpdate,
+  ProjectId,
+  Property,
+} from "@starlight/contracts";
 import { Context, Effect, Layer, Stream } from "effect";
 import { EntryIndex } from "./entry-index.ts";
 import { Catalog } from "./catalog.ts";
 import { FileTokens, type SourceChange } from "./ports.ts";
+import { hasTransparency } from "./processors/traits.ts";
 import { Projects } from "./projects.ts";
+
+const appearanceOf = (
+  placeholder: string | null = null,
+  traits: ReadonlyArray<Property> = [],
+): MediaAppearance => ({ placeholder, transparent: hasTransparency(traits) });
 
 const touches = (directory: EntryId) => (change: SourceChange) =>
   change._tag === "Resync" || change.directories.includes(directory);
@@ -46,7 +61,12 @@ export class MediaLibrary extends Context.Service<
               Stream.map((batch) =>
                 batch.flatMap(({ entry, facts }): ReadonlyArray<MediaUpdate> =>
                   facts
-                    ? [{ ref: { source: directory.source, id: entry.id }, placeholder: facts.placeholder }]
+                    ? [
+                        {
+                          ref: { source: directory.source, id: entry.id },
+                          ...appearanceOf(facts.placeholder, facts.traits),
+                        },
+                      ]
                     : [],
                 ),
               ),
@@ -59,9 +79,10 @@ export class MediaLibrary extends Context.Service<
         list: Effect.fn("MediaLibrary.list")(function* (projectId, requested) {
           if (!requested) return [];
           const { driver, directory, dimensions, media } = yield* locate(projectId, requested);
-          const [durations, placeholders] = yield* Effect.all([
+          const [durations, placeholders, traits] = yield* Effect.all([
             catalog.directory("duration", driver, directory, media),
             catalog.processed("placeholder", directory, media),
+            catalog.processed("traits", directory, media),
           ]);
           return media.flatMap((entry): ReadonlyArray<Media> => {
             const found = dimensions.get(entry.id);
@@ -73,7 +94,7 @@ export class MediaLibrary extends Context.Service<
                 fileId: entry.fileId,
                 ...found,
                 duration: durations.get(entry.id) ?? null,
-                placeholder: placeholders.get(entry.id) ?? null,
+                ...appearanceOf(placeholders.get(entry.id), traits.get(entry.id)),
                 token: tokens.issue(ref, entry),
               },
             ];
