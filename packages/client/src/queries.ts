@@ -1,5 +1,10 @@
-import { mutationOptions, queryOptions, type QueryClient } from "@tanstack/react-query";
-import type { EntryRef, Listing, SettingsPatch } from "@starlight/contracts";
+import {
+  experimental_streamedQuery as streamedQuery,
+  mutationOptions,
+  queryOptions,
+  type QueryClient,
+} from "@tanstack/react-query";
+import type { EntryRef, Listing, SettingsPatch, Update } from "@starlight/contracts";
 import type { StarlightClient } from "./client.ts";
 import { entryKey } from "./refs.ts";
 
@@ -28,10 +33,25 @@ const createQueries = (client: StarlightClient) => ({
     }),
 
   settings: () => queryOptions({ queryKey: ["settings"], queryFn: () => client.settings.get() }),
+
+  update: () =>
+    queryOptions({
+      queryKey: ["update"],
+      queryFn: streamedQuery<Update, Update | null>({
+        streamFn: () => client.updates.watch(),
+        reducer: (_, update) => update,
+        initialValue: null,
+      }),
+      staleTime: Infinity,
+    }),
 });
 
 const createMutations = (client: StarlightClient, queryClient: QueryClient, queries: Queries) => ({
   pickDirectory: () => mutationOptions({ mutationFn: () => client.shell.pickDirectory() }),
+
+  downloadUpdate: () => mutationOptions({ mutationFn: () => client.updates.download() }),
+
+  installUpdate: () => mutationOptions({ mutationFn: () => client.updates.install() }),
 
   openWorkspace: () =>
     mutationOptions({

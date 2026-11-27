@@ -12,7 +12,7 @@ export const NavItem = ({ render, className, ...props }: NavItemProps) =>
       {
         className: cn(
           "flex h-control w-full items-center gap-2 rounded-md px-2 text-base text-subtle focus-ring",
-          "hover:bg-neutral-subtle-hovered hover:text-default",
+          "highlighted:bg-neutral-subtle-hovered highlighted:text-default",
           "disabled:opacity-50 aria-[current=page]:bg-selected aria-[current=page]:text-default",
           className,
         ),

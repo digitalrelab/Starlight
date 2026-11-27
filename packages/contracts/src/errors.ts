@@ -33,6 +33,15 @@ export class NotADirectory extends Schema.TaggedError<NotADirectory>()("NotADire
   }
 }
 
+export class DirectoryMissing extends Schema.TaggedError<DirectoryMissing>()("DirectoryMissing", {
+  entry: EntryRef,
+  nearest: Schema.NullOr(EntryRef),
+}) {
+  override get message() {
+    return `Directory not found: ${this.entry.id}`;
+  }
+}
+
 export class SourceError extends Schema.TaggedError<SourceError>()("SourceError", {
   entry: EntryRef,
   reason: Schema.Literals(["NotFound", "PermissionDenied", "Unknown"]),
@@ -46,7 +55,7 @@ export const DirectoryError = Schema.Union([
   WorkspaceNotFound,
   SourceUnavailable,
   OutsideWorkspace,
-  NotADirectory,
+  DirectoryMissing,
   SourceError,
 ]);
 export type DirectoryError = typeof DirectoryError.Type;

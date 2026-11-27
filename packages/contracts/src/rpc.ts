@@ -5,6 +5,7 @@ import { DirectoryError, MountError, SourceError, SourceUnavailable, WorkspaceNo
 import { EntryRef, WorkspaceId } from "./ids.ts";
 import { Media } from "./media.ts";
 import { Settings, SettingsPatch } from "./settings.ts";
+import { Update } from "./update.ts";
 import { Workspace } from "./workspace.ts";
 
 const DirectoryRequest = { workspaceId: WorkspaceId, directory: Schema.NullOr(EntryRef) };
@@ -57,4 +58,10 @@ export class ShellRpcs extends RpcGroup.make(
   Rpc.make("PickDirectory", {
     success: Schema.NullOr(EntryRef),
   }),
+  Rpc.make("WatchUpdates", {
+    success: Update,
+    stream: true,
+  }),
+  Rpc.make("DownloadUpdate"),
+  Rpc.make("InstallUpdate"),
 ) {}

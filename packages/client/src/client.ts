@@ -65,6 +65,11 @@ export const createClient = (ports: PortSources) => {
     shell: {
       pickDirectory: () => shell((c) => c.PickDirectory()),
     },
+    updates: {
+      watch: () => shell((c) => Stream.toAsyncIterableEffect(c.WatchUpdates())),
+      download: () => shell((c) => c.DownloadUpdate()),
+      install: () => shell((c) => c.InstallUpdate()),
+    },
   };
 };
 

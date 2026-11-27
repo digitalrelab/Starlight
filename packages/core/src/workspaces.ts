@@ -1,5 +1,6 @@
 import {
   type DirectoryError,
+  DirectoryMissing,
   type EntryRef,
   type Mount,
   type MountError,
@@ -76,6 +77,28 @@ export class Workspaces extends Context.Service<
           (mount) => mount.root.source === directory.source && driver.contains(mount.root.id, directory.id),
         );
 
+      const isDirectory = (driver: SourceDriver, ref: EntryRef) =>
+        driver.stat(ref.id).pipe(
+          Effect.map((entry) => entry.kind === "directory"),
+          Effect.orElseSucceed(() => false),
+        );
+
+      const missing = Effect.fn("Workspaces.missing")(function* (
+        mount: Mount,
+        driver: SourceDriver,
+        requested: EntryRef,
+      ) {
+        const ancestors = [
+          mount.root,
+          ...driver
+            .trail(mount.root.id, requested.id)
+            .map(({ id }) => ({ source: requested.source, id }))
+            .slice(0, -1),
+        ].reverse();
+        const nearest = yield* Effect.findFirst(ancestors, (ref) => isDirectory(driver, ref));
+        return yield* new DirectoryMissing({ entry: requested, nearest: Option.getOrNull(nearest) });
+      });
+
       return Workspaces.of({
         open: Effect.fn("Workspaces.open")(function* (root) {
           const mount = yield* prepareMount(root);
@@ -100,13 +123,13 @@ export class Workspaces extends Context.Service<
         locateDirectory: Effect.fn("Workspaces.locateDirectory")(function* (id, requested) {
           const workspace = yield* get(id);
           const driver = yield* driverFor(requested.source);
-          if (!mountOf(workspace, driver, requested))
-            return yield* new OutsideWorkspace({ entry: requested });
+          const lexicalMount = mountOf(workspace, driver, requested);
+          if (!lexicalMount) return yield* new OutsideWorkspace({ entry: requested });
+          if (!(yield* isDirectory(driver, requested)))
+            return yield* missing(lexicalMount, driver, requested);
           const directory = { source: requested.source, id: yield* driver.canonicalize(requested.id) };
           const mount = mountOf(workspace, driver, directory);
           if (!mount) return yield* new OutsideWorkspace({ entry: requested });
-          const entry = yield* driver.stat(directory.id);
-          if (entry.kind !== "directory") return yield* new NotADirectory({ entry: directory });
           return { mount, driver, directory };
         }),
       });

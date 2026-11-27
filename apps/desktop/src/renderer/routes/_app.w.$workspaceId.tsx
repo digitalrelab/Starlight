@@ -1,6 +1,6 @@
-import { type Entry, entryKey } from "@starlight/client";
+import { DirectoryMissing, type Entry, entryKey } from "@starlight/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, type ErrorComponentProps, Link } from "@tanstack/react-router";
+import { createFileRoute, type ErrorComponentProps, Link, Navigate } from "@tanstack/react-router";
 import { useCallback, useEffect } from "react";
 import { Breadcrumbs } from "../features/browser/breadcrumbs.tsx";
 import {
@@ -37,8 +37,7 @@ function Browser() {
   const navigate = Route.useNavigate();
   const { queries, subscriptions } = useStarlight();
   const { data: workspace } = useSuspenseQuery(queries.workspace(workspaceId));
-  const { data: listing, error } = useSuspenseQuery(queries.entries(workspaceId, directory));
-  if (error) throw error;
+  const { data: listing, error, isFetching } = useSuspenseQuery(queries.entries(workspaceId, directory));
   const [layout, setLayout] = useLayoutPreference(workspaceId);
   useEffect(() => subscriptions.entries(workspaceId), [subscriptions, workspaceId, workspace.mounts]);
 
@@ -48,6 +47,8 @@ function Browser() {
     },
     [navigate],
   );
+
+  if (error && !isFetching) throw error;
 
   return (
     <>
@@ -74,6 +75,9 @@ function Browser() {
 }
 
 function BrowserError({ error }: ErrorComponentProps) {
+  if (error instanceof DirectoryMissing) {
+    return <Navigate from={Route.fullPath} search={toDirectorySearch(error.nearest)} replace />;
+  }
   return (
     <>
       <PageHeader />

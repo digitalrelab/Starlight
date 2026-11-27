@@ -3,8 +3,9 @@ import { serve } from "@starlight/host/transport";
 import { type BrowserWindow, dialog, type MessagePortMain } from "electron";
 import { Effect, Layer } from "effect";
 import { RpcServer } from "effect/rpc";
+import type { Updater } from "./updater.ts";
 
-const ShellServerLive = (window: BrowserWindow) =>
+const ShellServerLive = (window: BrowserWindow, updater: Updater) =>
   RpcServer.layer(ShellRpcs).pipe(
     Layer.provide(
       ShellRpcs.toLayer({
@@ -16,9 +17,12 @@ const ShellServerLive = (window: BrowserWindow) =>
               canceled || path === undefined ? null : { source: LocalSource, id: EntryId.make(path) },
             ),
           ),
+        WatchUpdates: () => updater.updates,
+        DownloadUpdate: () => Effect.sync(updater.download),
+        InstallUpdate: () => Effect.sync(updater.install),
       }),
     ),
   );
 
-export const serveShell = (port: MessagePortMain, window: BrowserWindow) =>
-  Effect.runFork(serve(port, ShellServerLive(window)));
+export const serveShell = (port: MessagePortMain, window: BrowserWindow, updater: Updater) =>
+  Effect.runFork(serve(port, ShellServerLive(window, updater)));

@@ -33,17 +33,9 @@ export const SqliteWorkspaceStoreLive = Layer.effect(WorkspaceStore)(
       FROM workspaces w
     `;
 
-    const findById = SqlSchema.findOneOption({
-      Request: WorkspaceId,
-      Result: Row,
-      execute: (id) => sql`${select} WHERE w.id = ${id}`,
-    });
-
-    const findExisting = SqlSchema.findOne({
-      Request: WorkspaceId,
-      Result: Row,
-      execute: (id) => sql`${select} WHERE w.id = ${id}`,
-    });
+    const byId = (id: string) => sql`${select} WHERE w.id = ${id}`;
+    const findById = SqlSchema.findOneOption({ Request: WorkspaceId, Result: Row, execute: byId });
+    const findExisting = SqlSchema.findOne({ Request: WorkspaceId, Result: Row, execute: byId });
 
     const findBySoleMount = SqlSchema.findOneOption({
       Request: EntryRef,
