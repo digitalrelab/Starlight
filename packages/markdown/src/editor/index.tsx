@@ -5,7 +5,7 @@ import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { changeBetween } from "#change.ts";
 import { submitOnEnter, type Variant, variants, writing } from "./writing.ts";
 
-export { INSERTIONS, type Insertion, type InsertionName, insert, insertionsMatching } from "./insertions.ts";
+export { INSERTIONS, type Insertion, type InsertionName, insert, insertionMatches } from "./insertions.ts";
 export { insertLink, type MentionHosts, mentionChips } from "./mentions.ts";
 export { type ActiveTrigger, type TriggerSource, type TriggerStore, useTrigger } from "./trigger.ts";
 

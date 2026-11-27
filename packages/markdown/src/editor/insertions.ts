@@ -4,36 +4,18 @@ type Markup = (lineBreak: string) => readonly [before: string, after: string];
 
 type Placement = "inline" | "line" | "paragraph";
 
-export type InsertionName =
-  | "Heading 1"
-  | "Heading 2"
-  | "Heading 3"
-  | "Bulleted list"
-  | "Numbered list"
-  | "Checklist"
-  | "Quote"
-  | "Code block"
-  | "Table"
-  | "Divider"
-  | "Link";
-
 export interface Insertion {
-  readonly name: InsertionName;
+  readonly name: string;
   readonly keywords: ReadonlyArray<string>;
   readonly hint: string;
   readonly placement: Placement;
   readonly markup: Markup;
 }
 
-const prefixed = (name: InsertionName, keywords: ReadonlyArray<string>, hint: string): Insertion => ({
-  name,
-  keywords,
-  hint,
-  placement: "line",
-  markup: () => [`${hint} `, ""],
-});
+const prefixed = <Name extends string>(name: Name, keywords: ReadonlyArray<string>, hint: string) =>
+  ({ name, keywords, hint, placement: "line", markup: () => [`${hint} `, ""] }) satisfies Insertion;
 
-export const INSERTIONS: ReadonlyArray<Insertion> = [
+export const INSERTIONS = [
   prefixed("Heading 1", ["h1", "title"], "#"),
   prefixed("Heading 2", ["h2", "subtitle"], "##"),
   prefixed("Heading 3", ["h3"], "###"),
@@ -63,16 +45,15 @@ export const INSERTIONS: ReadonlyArray<Insertion> = [
     markup: (lineBreak) => [`---${lineBreak}`, ""],
   },
   { name: "Link", keywords: ["url"], hint: "[]()", placement: "inline", markup: () => ["[", "]()"] },
-];
+] as const satisfies ReadonlyArray<Insertion>;
+
+export type InsertionName = (typeof INSERTIONS)[number]["name"];
 
 const wordsOf = (text: string) => text.toLowerCase().split(/\s+/).filter(Boolean);
 
-export const insertionsMatching = (query: string) => {
-  const needles = wordsOf(query);
-  return INSERTIONS.filter(({ name, keywords }) => {
-    const words = wordsOf([name, ...keywords].join(" "));
-    return needles.every((needle) => words.some((word) => word.startsWith(needle)));
-  });
+export const insertionMatches = ({ name, keywords }: Insertion, query: string) => {
+  const words = wordsOf([name, ...keywords].join(" "));
+  return wordsOf(query).every((needle) => words.some((word) => word.startsWith(needle)));
 };
 
 const replace = (state: EditorState, from: number, to: number, before: string, after: string) => ({

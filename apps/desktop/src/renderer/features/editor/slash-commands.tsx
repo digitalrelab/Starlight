@@ -16,7 +16,7 @@ import {
   type Insertion,
   type InsertionName,
   insert,
-  insertionsMatching,
+  insertionMatches,
   type TriggerSource,
   type TriggerStore,
   useTrigger,
@@ -53,11 +53,6 @@ const CHOICES: ReadonlyArray<SlashChoice> = INSERTIONS.map((insertion) => ({
   insertion,
 }));
 
-const choicesMatching = (query: string) => {
-  const matching = new Set(insertionsMatching(query));
-  return CHOICES.filter((choice) => matching.has(choice.insertion));
-};
-
 const SOURCE: TriggerSource<SlashChoice> = {
   character: "/",
   apply: ({ insertion }, state, from, to) => insert(insertion, state, from, to),
@@ -69,7 +64,10 @@ const SlashMenu = ({ store }: { readonly store: TriggerStore<SlashChoice> }) => 
     active && (
       <TriggerMenu
         active={active}
-        resolution={{ choices: choicesMatching(active.query.trim()), settled: true }}
+        resolution={{
+          choices: CHOICES.filter(({ insertion }) => insertionMatches(insertion, active.query)),
+          settled: true,
+        }}
       />
     )
   );

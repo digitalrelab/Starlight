@@ -43,7 +43,7 @@ const toggle = (marker: string) => (view: EditorView) => {
           };
       }
     }),
-    { userEvent: "input.format", scrollIntoView: true },
+    { scrollIntoView: true },
   );
   return true;
 };
