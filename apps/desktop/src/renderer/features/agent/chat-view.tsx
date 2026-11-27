@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { PageError } from "#renderer/features/shell/page-error.tsx";
 import { PageHeader } from "#renderer/features/shell/page-header.tsx";
 import { useStarlight } from "#renderer/lib/context.ts";
-import { chatsLink } from "./chat-links.ts";
+import { newChatLink } from "./chat-links.ts";
 import { ModelComposer } from "./model-composer.tsx";
 import { Transcript } from "./transcript.tsx";
 
@@ -46,7 +46,7 @@ export const ChatError = ({
   readonly projectId: string | null;
 }) =>
   error instanceof ChatNotFound ? (
-    <Navigate {...chatsLink(projectId)} replace />
+    <Navigate {...newChatLink(projectId)} replace />
   ) : (
     <PageError error={error} />
   );

@@ -5,7 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useState } from "react";
 import { useStarlight } from "#renderer/lib/context.ts";
-import { chatLink, chatsLink } from "./chat-links.ts";
+import { chatLink, newChatLink } from "./chat-links.ts";
 
 export const ChatItem = ({ chat }: { readonly chat: Chat }) => {
   const { id, title } = chat;
@@ -54,7 +54,7 @@ export const ChatItem = ({ chat }: { readonly chat: Chat }) => {
         message="The chat and its replies are deleted for good."
         icon={Delete02Icon}
         onConfirm={async () => {
-          if (chatId === id) await navigate(chatsLink(chat.projectId));
+          if (chatId === id) await navigate(newChatLink(chat.projectId));
           remove.mutate(id);
         }}
       />
