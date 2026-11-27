@@ -11,7 +11,6 @@
     "./style.css": "./src/style.css"
   },
   "dependencies": {
-    "@codemirror/commands": "catalog:",
     "@codemirror/lang-markdown": "catalog:",
     "@codemirror/language": "catalog:",
     "@codemirror/language-data": "catalog:",
@@ -20,6 +19,7 @@
     "@lezer/common": "catalog:",
     "@lezer/highlight": "catalog:",
     "@lezer/markdown": "catalog:",
+    "@starlight/editor": "workspace:*",
     "cn": "catalog:",
     "decode-named-character-reference": "catalog:"
   },

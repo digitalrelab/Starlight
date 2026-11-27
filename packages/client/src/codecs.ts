@@ -18,6 +18,16 @@ const decodeStrictly = (bytes: Uint8Array) => {
   }
 };
 
+export const looksLikeText = (bytes: Uint8Array) => {
+  if (bytes.includes(0)) return false;
+  try {
+    new TextDecoder("utf-8", { fatal: true }).decode(bytes, { stream: true });
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 export const textCodec: Codec<string> = (bytes) => {
   const raw = decodeStrictly(bytes);
   if (raw === undefined) return { value: lenient.decode(bytes), encode: undefined };

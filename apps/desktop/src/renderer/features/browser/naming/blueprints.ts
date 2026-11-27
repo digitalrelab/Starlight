@@ -2,7 +2,7 @@ import { FolderIcon } from "@hugeicons-pro/core-stroke-rounded";
 import type { CreatableKind, Entry } from "@starlight/client";
 import type { IconProps } from "@starlight/ui";
 import { MarkdownIcon } from "#renderer/features/files/markdown-icon.ts";
-import { loadEditor } from "#renderer/features/viewer/markdown-file.ts";
+import { loadMarkdownEditor } from "#renderer/features/viewer/editors.ts";
 
 const STEM = "Untitled";
 
@@ -16,7 +16,7 @@ export interface Blueprint {
 
 export const BLUEPRINTS: ReadonlyArray<Blueprint> = [
   { label: "Folder", icon: FolderIcon, kind: "directory", extension: "" },
-  { label: "Markdown", icon: MarkdownIcon, kind: "file", extension: ".md", prepare: loadEditor },
+  { label: "Markdown", icon: MarkdownIcon, kind: "file", extension: ".md", prepare: loadMarkdownEditor },
 ];
 
 export const freeName = ({ extension }: Blueprint, entries: ReadonlyArray<Entry>) => {

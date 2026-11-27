@@ -155,74 +155,23 @@
     @apply font-semibold;
   }
 
-  .tok-keyword {
-    @apply text-accent-purple;
-  }
-
-  .tok-string,
-  .tok-inserted {
-    @apply text-accent-green;
-  }
-
-  .tok-number,
-  .tok-bool,
-  .tok-atom,
-  .tok-literal {
-    @apply text-accent-orange;
-  }
-
-  .tok-typeName,
-  .tok-className,
-  .tok-namespace {
-    @apply text-accent-cyan;
-  }
-
-  .tok-propertyName,
-  .tok-macroName {
-    @apply text-accent-blue;
-  }
-
-  .tok-variableName.tok-definition,
-  .tok-labelName {
-    @apply text-accent-indigo;
-  }
-
   .md-link {
     @apply text-link;
   }
 
-  .tok-comment,
-  .tok-meta,
-  .tok-punctuation,
   .md-mark,
   .md-meta,
   .md-url {
     @apply text-subtlest;
   }
 
-  .tok-comment {
-    font-style: italic;
-  }
-
-  .tok-deleted,
-  .tok-invalid {
-    @apply text-danger;
-  }
-
-  .tok-heading,
-  .tok-strong,
   .md-heading,
   .md-strong {
     @apply font-semibold;
   }
 
-  .tok-emphasis,
   .md-emphasis {
     font-style: italic;
-  }
-
-  .tok-link {
-    @apply underline;
   }
 
   .md-strikethrough {
@@ -235,34 +184,6 @@
   }
 }
 
-.markdown-editor .cm-editor.cm-focused {
-  outline: none;
-}
-
-.markdown-editor .cm-editor,
-.markdown-editor .cm-editor .cm-scroller,
-.markdown-editor .cm-editor .cm-content {
-  min-height: inherit;
-}
-
-.markdown-editor .cm-editor .cm-content {
-  @apply caret-(--text-color-brand) select-text;
-  padding: 0;
-  cursor: text;
-}
-
-.markdown-editor .cm-editor .cm-line {
-  padding: 0;
-}
-
-.markdown-editor .cm-editor .cm-content ::selection {
-  @apply bg-selection;
-}
-
-.markdown-editor .cm-editor .cm-placeholder {
-  @apply text-subtlest;
-}
-
 .markdown-editor[data-variant="document"] .cm-editor .cm-scroller {
   @apply font-mono;
   font-size: 1rem;
@@ -270,10 +191,7 @@
 }
 
 .markdown-editor[data-variant="document"] .cm-editor .cm-content {
-  box-sizing: content-box;
-  max-width: 64ch;
-  margin-inline: auto;
-  padding-inline: 8ch;
+  padding: 12vh max(8ch, calc((100% - 64ch) / 2)) 40vh;
 }
 
 .markdown-editor[data-variant="message"] .cm-editor .cm-scroller {

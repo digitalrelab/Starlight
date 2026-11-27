@@ -93,8 +93,22 @@ export default defineConfig({
         ),
       },
       {
-        files: ["packages/ui/**", "packages/markdown/**"],
+        files: ["packages/ui/**", "packages/editor/**"],
         rules: forbid("@starlight/*", "effect", "effect/*", "@effect/*", "@tanstack/*", "node:*", "electron"),
+      },
+      {
+        files: ["packages/markdown/**"],
+        rules: forbid(
+          "@starlight/*",
+          "!@starlight/editor",
+          "!@starlight/editor/*",
+          "effect",
+          "effect/*",
+          "@effect/*",
+          "@tanstack/*",
+          "node:*",
+          "electron",
+        ),
       },
       {
         files: ["apps/desktop/src/main/**", "apps/desktop/src/preload/**"],
@@ -122,7 +136,12 @@ export default defineConfig({
         ),
       },
       {
-        files: ["apps/desktop/src/renderer/**", "packages/ui/**", "packages/markdown/**"],
+        files: [
+          "apps/desktop/src/renderer/**",
+          "packages/ui/**",
+          "packages/editor/**",
+          "packages/markdown/**",
+        ],
         plugins: ["react"],
         rules: reactRules,
       },

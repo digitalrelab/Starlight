@@ -1,4 +1,3 @@
-import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import { insertNewlineContinueMarkup, markdown } from "@codemirror/lang-markdown";
 import { Language, LanguageSupport, languageDataProp } from "@codemirror/language";
 import { languages } from "@codemirror/language-data";
@@ -43,26 +42,13 @@ const markupHighlighter: Highlighter = {
 export const writing = [
   new LanguageSupport(language, support.support),
   highlighting(codeHighlighter, markupHighlighter),
-  history(),
-  keymap.of([...defaultKeymap, ...historyKeymap]),
   EditorView.lineWrapping,
 ];
 
-export const variants = { document: hangingIndents, message: [] };
+const continueMarkupOnShiftEnter = Prec.highest(
+  keymap.of([{ key: "Shift-Enter", run: insertNewlineContinueMarkup }]),
+);
+
+export const variants = { document: hangingIndents, message: continueMarkupOnShiftEnter };
 
 export type Variant = keyof typeof variants;
-
-export const submitOnEnter = (submit: () => void) =>
-  Prec.highest(
-    keymap.of([
-      {
-        key: "Enter",
-        run: (view) => {
-          if (view.composing) return false;
-          submit();
-          return true;
-        },
-        shift: insertNewlineContinueMarkup,
-      },
-    ]),
-  );

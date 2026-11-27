@@ -1,0 +1,111 @@
+@layer components {
+  .tok-keyword {
+    @apply text-accent-purple;
+  }
+
+  .tok-string,
+  .tok-inserted {
+    @apply text-accent-green;
+  }
+
+  .tok-number,
+  .tok-bool,
+  .tok-atom,
+  .tok-literal {
+    @apply text-accent-orange;
+  }
+
+  .tok-typeName,
+  .tok-className,
+  .tok-namespace {
+    @apply text-accent-cyan;
+  }
+
+  .tok-propertyName,
+  .tok-macroName {
+    @apply text-accent-blue;
+  }
+
+  .tok-variableName.tok-definition,
+  .tok-labelName {
+    @apply text-accent-indigo;
+  }
+
+  .tok-comment,
+  .tok-meta,
+  .tok-punctuation {
+    @apply text-subtlest;
+  }
+
+  .tok-comment,
+  .tok-emphasis {
+    font-style: italic;
+  }
+
+  .tok-deleted,
+  .tok-invalid {
+    @apply text-danger;
+  }
+
+  .tok-heading,
+  .tok-strong {
+    @apply font-semibold;
+  }
+
+  .tok-link {
+    @apply underline;
+  }
+}
+
+.editor {
+  display: flex;
+  flex-direction: column;
+}
+
+.editor .cm-editor,
+.editor .cm-editor .cm-scroller {
+  flex: 1;
+}
+
+.editor .cm-editor.cm-focused {
+  outline: none;
+}
+
+.editor .cm-editor .cm-content {
+  @apply caret-(--text-color-brand) select-text;
+  align-self: stretch;
+  padding: 0;
+  cursor: text;
+}
+
+.editor .cm-editor .cm-line {
+  padding: 0;
+}
+
+.editor .cm-editor .cm-content ::selection {
+  @apply bg-selection;
+}
+
+.editor .cm-editor .cm-placeholder {
+  @apply text-subtlest;
+}
+
+.code-editor .cm-editor .cm-scroller {
+  @apply font-mono;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.code-editor .cm-editor .cm-gutters {
+  @apply text-subtlest;
+  background: none;
+  border: none;
+}
+
+.code-editor .cm-editor .cm-lineNumbers .cm-gutterElement {
+  padding-inline: 2ch;
+}
+
+.code-editor .cm-editor .cm-content {
+  padding: 1rem 2ch 40vh 0;
+}
