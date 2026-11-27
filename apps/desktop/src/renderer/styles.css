@@ -9,7 +9,7 @@
     height: 100%;
   }
   body {
-    @apply bg-surface-sunken text-default font-sans text-base antialiased select-none;
+    @apply bg-surface-sunken text-default text-base antialiased select-none;
     overflow: hidden;
   }
 }
