@@ -1,7 +1,8 @@
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
-import { markdown } from "@codemirror/lang-markdown";
+import { insertNewlineContinueMarkup, markdown } from "@codemirror/lang-markdown";
 import { Language, LanguageSupport, languageDataProp } from "@codemirror/language";
 import { languages } from "@codemirror/language-data";
+import { Prec } from "@codemirror/state";
 import { EditorView, keymap } from "@codemirror/view";
 import type { NodeType } from "@lezer/common";
 import { classHighlighter, type Highlighter, tagHighlighter, tags } from "@lezer/highlight";
@@ -42,8 +43,26 @@ const markupHighlighter: Highlighter = {
 export const writing = [
   new LanguageSupport(language, support.support),
   highlighting(codeHighlighter, markupHighlighter),
-  hangingIndents,
   history(),
   keymap.of([...defaultKeymap, ...historyKeymap]),
   EditorView.lineWrapping,
 ];
+
+export const variants = { document: hangingIndents, message: [] };
+
+export type Variant = keyof typeof variants;
+
+export const submitOnEnter = (submit: () => void) =>
+  Prec.highest(
+    keymap.of([
+      {
+        key: "Enter",
+        run: (view) => {
+          if (view.composing) return false;
+          submit();
+          return true;
+        },
+        shift: insertNewlineContinueMarkup,
+      },
+    ]),
+  );

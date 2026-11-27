@@ -26,7 +26,10 @@ const Message = ({
   pending,
 }: Pick<ChatMessage, "role" | "text"> & { readonly pending: boolean }) =>
   role === "user" ? (
-    <p className="max-w-[80%] self-end rounded-lg bg-neutral px-3 py-2 whitespace-pre-wrap">{text}</p>
+    <Markdown
+      value={text}
+      className="max-w-[80%] self-end rounded-lg bg-neutral px-3 py-2 whitespace-pre-line"
+    />
   ) : (
     <Reply text={text} pending={pending} />
   );
