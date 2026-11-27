@@ -1,24 +1,17 @@
 import type { Entry, EntryRef, FileSource } from "@starlight/client";
 import { cn, Icon, type IconProps } from "@starlight/ui";
 import { useQuery } from "@tanstack/react-query";
-import { type ReactNode, type SyntheticEvent, useState } from "react";
+import { type ReactNode, useState } from "react";
 import { fileUrl } from "../../../shared/files.ts";
 import { thumbnailUrl } from "../../../shared/thumbnails.ts";
 import { useStarlight } from "../../lib/context.ts";
+import { reveal } from "../../lib/reveal.ts";
 import { pictureUrl, presentationIcons, presentationOf } from "./presentation.ts";
 
 const PLACEHOLDER_PIXELS = 512;
 const POSTER_PIXELS = 1024;
 
 const fill = "absolute inset-0 size-full object-contain";
-
-const reveal = ({ currentTarget }: SyntheticEvent<HTMLImageElement>) =>
-  currentTarget.decode().then(
-    () => {
-      currentTarget.dataset["loaded"] = "";
-    },
-    () => undefined,
-  );
 
 const Notice = ({ icon, children }: { readonly icon: IconProps["icon"]; readonly children: ReactNode }) => (
   <div className="flex size-full flex-col items-center justify-center gap-3 text-subtle">

@@ -33,12 +33,12 @@ const Root = ({ onClose, onKeyDown, children }: RootProps) => {
   );
 };
 
-interface HeaderProps {
+interface SlotProps {
   readonly className?: string;
   readonly children: ReactNode;
 }
 
-const Header = ({ className, children }: HeaderProps) => (
+const Header = ({ className, children }: SlotProps) => (
   <header
     className={cn(
       "grid shrink-0 grid-cols-[minmax(max-content,1fr)_minmax(0,auto)_minmax(max-content,1fr)] items-center gap-2 pr-2",
@@ -49,7 +49,7 @@ const Header = ({ className, children }: HeaderProps) => (
   </header>
 );
 
-const Start = ({ className, children }: HeaderProps) => (
+const Start = ({ className, children }: SlotProps) => (
   <div className={cn("flex items-center gap-1", className)}>{children}</div>
 );
 
@@ -59,7 +59,7 @@ const Title = ({ children }: { readonly children: ReactNode }) => (
   </Dialog.Title>
 );
 
-const End = ({ className, children }: HeaderProps) => (
+const End = ({ className, children }: SlotProps) => (
   <div className={cn("flex items-center justify-end gap-1", className)}>{children}</div>
 );
 

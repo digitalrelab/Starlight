@@ -1,5 +1,5 @@
 import { ArrowLeft01Icon, ArrowRight01Icon } from "@hugeicons-pro/core-stroke-rounded";
-import { type Entry, type EntryRef, entryKey } from "@starlight/client";
+import type { Entry, EntryRef } from "@starlight/client";
 import { Button, Icon, IconButton, Theater } from "@starlight/ui";
 import { type KeyboardEvent, useEffect, useEffectEvent, useMemo, useRef } from "react";
 import { useStarlight } from "../../lib/context.ts";
@@ -56,8 +56,7 @@ export const FileViewer = ({
   onClose,
 }: Props) => {
   const files = useMemo(() => entries.filter((entry) => entry.kind === "file"), [entries]);
-  const shownKey = entryKey(file);
-  const index = files.findIndex((entry) => entryKey(entry.ref) === shownKey);
+  const index = files.findIndex(({ ref }) => ref.id === file.id && ref.source === file.source);
   const current = files[index];
   const previous = index > 0 ? files[index - 1] : undefined;
   const next = index >= 0 ? files[index + 1] : undefined;
@@ -121,7 +120,7 @@ export const FileViewer = ({
       </Theater.Header>
       <Theater.Stage onPrevious={showPrevious} onNext={showNext}>
         {current ? (
-          <FileStage key={shownKey} workspaceId={workspaceId} directory={directory} entry={current} />
+          <FileStage key={file.id} workspaceId={workspaceId} directory={directory} entry={current} />
         ) : null}
       </Theater.Stage>
     </Theater.Root>
