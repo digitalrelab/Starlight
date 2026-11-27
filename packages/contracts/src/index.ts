@@ -6,5 +6,6 @@ export * from "./errors.ts";
 export * from "./ids.ts";
 export * from "./media.ts";
 export * from "./rpc.ts";
+export * from "./storage.ts";
 export * from "./update.ts";
 export * from "./workspace.ts";
