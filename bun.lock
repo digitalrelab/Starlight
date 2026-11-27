@@ -11,6 +11,7 @@
     "apps/desktop": {
       "name": "@starlight/desktop",
       "devDependencies": {
+        "@hugeicons-pro/core-stroke-rounded": "catalog:",
         "@starlight/client": "workspace:*",
         "@starlight/contracts": "workspace:*",
         "@starlight/host": "workspace:*",
@@ -72,6 +73,7 @@
       "name": "@starlight/ui",
       "dependencies": {
         "@base-ui/react": "catalog:",
+        "@hugeicons/react": "catalog:",
         "clsx": "catalog:",
         "tailwind-merge": "catalog:",
       },
@@ -90,6 +92,8 @@
     "@base-ui/react": "1.9.0",
     "@effect/platform-node": "4.1.7",
     "@effect/sql-sqlite-node": "4.1.7",
+    "@hugeicons-pro/core-stroke-rounded": "4.4.0",
+    "@hugeicons/react": "1.1.10",
     "@tailwindcss/vite": "4.3.5",
     "@tanstack/react-query": "5.108.4",
     "@tanstack/react-router": "1.170.46",
@@ -193,6 +197,10 @@
     "@floating-ui/react-dom": ["@floating-ui/react-dom@2.1.9", "", { "dependencies": { "@floating-ui/dom": "^1.8.0" }, "peerDependencies": { "react": ">=16.8.0", "react-dom": ">=16.8.0" } }, "sha512-JDjEFGCpImxDCA7JJKviA0M9+RtmJdj0m/NVU5IMgBK+AmZouAQQ7/+2GLH0GXXY0YMw9oXPB8hKdbPYg5QLYg=="],
 
     "@floating-ui/utils": ["@floating-ui/utils@0.2.12", "", {}, "sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww=="],
+
+    "@hugeicons-pro/core-stroke-rounded": ["@hugeicons-pro/core-stroke-rounded@4.4.0", "https://npm.hugeicons.com/@hugeicons-pro/core-stroke-rounded/-/core-stroke-rounded-4.4.0.tgz", {}, "sha512-MkD8K66BlpeuDLCFHL9VTqzuw/vUzxKHV2Hk0yQxHORXaTvQNkdyFlMP5c0BzQqvByCFIe0HyCIOhrHyu1x0dA=="],
+
+    "@hugeicons/react": ["@hugeicons/react@1.1.10", "", { "peerDependencies": { "react": ">=16.0.0" } }, "sha512-9tAsd92yMVVGP+E+d8cM+wc0VnXuYZHNbWQi7TOe8k2neawmhiaFmVFbzyruejhOMa197/LbgvSED32ayUo3ZA=="],
 
     "@isaacs/fs-minipass": ["@isaacs/fs-minipass@4.0.1", "", { "dependencies": { "minipass": "^7.0.4" } }, "sha512-wgm9Ehl2jpeqP3zw/7mo3kRHFp5MEDhqAdwy1fTGkHAwnkGOVsgpvQhL8B5n1qlb01jV3n/bI0ZfZp5lWA1k4w=="],
 

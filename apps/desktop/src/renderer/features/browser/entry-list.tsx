@@ -1,5 +1,6 @@
+import { File01Icon, FolderIcon } from "@hugeicons-pro/core-stroke-rounded";
 import type { Entry } from "@starlight/client";
-import { cn, FileIcon, FolderIcon } from "@starlight/ui";
+import { cn, Icon } from "@starlight/ui";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { type KeyboardEvent, useRef, useState } from "react";
 import { formatDate, formatSize } from "../../lib/format.ts";
@@ -72,11 +73,10 @@ export const EntryList = ({ entries, onOpen }: Props) => {
                 style={{ height: ROW_HEIGHT, transform: `translateY(${row.start}px)` }}
               >
                 <span className="flex min-w-0 items-center gap-2">
-                  {isDir ? (
-                    <FolderIcon className="shrink-0 text-accent" />
-                  ) : (
-                    <FileIcon className="shrink-0 text-muted" />
-                  )}
+                  <Icon
+                    icon={isDir ? FolderIcon : File01Icon}
+                    className={cn("shrink-0", isDir ? "text-accent" : "text-muted")}
+                  />
                   <span className="truncate">{entry.name}</span>
                 </span>
                 <span className="text-right text-muted tabular-nums">

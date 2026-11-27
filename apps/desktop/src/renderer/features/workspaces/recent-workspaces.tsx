@@ -1,4 +1,5 @@
-import { FolderIcon } from "@starlight/ui";
+import { FolderIcon } from "@hugeicons-pro/core-stroke-rounded";
+import { Icon } from "@starlight/ui";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useStarlight } from "../../lib/context.ts";
@@ -20,7 +21,7 @@ export const RecentWorkspaces = () => {
               search={{ path: "" }}
               className="flex items-center gap-2.5 rounded-md px-2 py-1.5 hover:bg-hover"
             >
-              <FolderIcon className="shrink-0 text-accent" />
+              <Icon icon={FolderIcon} className="shrink-0 text-accent" />
               <span className="font-medium">{workspace.name}</span>
               <span className="truncate text-muted">{workspace.rootPath}</span>
             </Link>

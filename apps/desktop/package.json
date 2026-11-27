@@ -11,6 +11,7 @@
     "package": "electron-vite build && electron-builder"
   },
   "devDependencies": {
+    "@hugeicons-pro/core-stroke-rounded": "catalog:",
     "@starlight/client": "workspace:*",
     "@starlight/contracts": "workspace:*",
     "@starlight/host": "workspace:*",

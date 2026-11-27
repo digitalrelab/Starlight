@@ -1,5 +1,6 @@
+import { ArrowRight01Icon } from "@hugeicons-pro/core-stroke-rounded";
 import type { Workspace } from "@starlight/client";
-import { ChevronRightIcon, cn } from "@starlight/ui";
+import { cn, Icon } from "@starlight/ui";
 import { Link } from "@tanstack/react-router";
 
 interface Props {
@@ -21,7 +22,7 @@ export const Breadcrumbs = ({ workspace, path }: Props) => {
       </Link>
       {crumbs.map((crumb, i) => (
         <span key={crumb.path} className="flex min-w-0 items-center gap-0.5">
-          <ChevronRightIcon className="size-3 shrink-0 text-muted" />
+          <Icon icon={ArrowRight01Icon} size={12} className="shrink-0 text-muted" />
           <Link
             to="/w/$workspaceId"
             params={{ workspaceId: workspace.id }}

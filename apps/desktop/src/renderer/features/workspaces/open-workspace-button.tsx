@@ -1,4 +1,5 @@
-import { Button, FolderIcon } from "@starlight/ui";
+import { FolderOpenIcon } from "@hugeicons-pro/core-stroke-rounded";
+import { Button, Icon } from "@starlight/ui";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useStarlight } from "../../lib/context.ts";
@@ -29,7 +30,7 @@ export const OpenWorkspaceButton = () => {
         disabled={pick.isPending || open.isPending}
         onClick={onClick}
       >
-        <FolderIcon />
+        <Icon icon={FolderOpenIcon} />
         Open Folder…
       </Button>
       {error ? <p className="text-danger">{error.message}</p> : null}

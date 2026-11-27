@@ -29,7 +29,9 @@
       "@tailwindcss/vite": "4.3.5",
       "clsx": "2.1.1",
       "tailwind-merge": "3.7.1",
-      "vite-plus": "1.8.0"
+      "vite-plus": "1.8.0",
+      "@hugeicons/react": "1.1.10",
+      "@hugeicons-pro/core-stroke-rounded": "4.4.0"
     }
   },
   "type": "module",
