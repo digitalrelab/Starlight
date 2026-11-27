@@ -1,16 +1,14 @@
 import type { Entry, EntryRef, FileSource } from "@starlight/client";
 import { cn } from "@starlight/ui";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { lazy, type ReactNode, Suspense, useState } from "react";
+import { type ReactNode, Suspense, useState } from "react";
 import { fileUrl } from "../../../shared/files.ts";
 import { previewUrl } from "../../../shared/previews.ts";
 import { useStarlight } from "../../lib/context.ts";
 import { reveal } from "../../lib/reveal.ts";
 import { type ItemKind, KindIcon, itemKindOf } from "../files/kind-icon.tsx";
-import { loadEditor, markdownText } from "./markdown-file.ts";
+import { MarkdownEditor, markdownText } from "./markdown-file.ts";
 import { pictureUrl, presentationOf } from "./presentation.ts";
-
-const MarkdownEditor = lazy(() => loadEditor().then(({ MarkdownEditor }) => ({ default: MarkdownEditor })));
 
 const PLACEHOLDER_PIXELS = 512;
 const POSTER_PIXELS = 1024;

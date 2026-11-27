@@ -3,7 +3,7 @@ import { decodeNamedCharacterReference } from "decode-named-character-reference"
 const ESCAPED = /\\([!-/:-@[-`{-~])/g;
 const SAFE_URL = /^(?:https?|mailto):/i;
 const SCHEME = /^[a-z][a-z\d+.-]*:/i;
-const REPLACEMENT = "�";
+const REPLACEMENT = "\uFFFD";
 
 export const unescape = (text: string) => text.replace(ESCAPED, "$1");
 
