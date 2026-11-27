@@ -20,6 +20,10 @@ ipcRenderer.on(Channel.history, (_event, availability) => {
   window.postMessage({ type: Channel.history, availability }, "*");
 });
 
+ipcRenderer.on(Channel.toggleHiddenFiles, () => {
+  window.postMessage({ type: Channel.toggleHiddenFiles }, "*");
+});
+
 ipcRenderer.on(Channel.zoomStep, (_event, step) => {
   window.postMessage({ type: Channel.zoomStep, step }, "*");
 });
