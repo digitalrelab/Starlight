@@ -1,5 +1,10 @@
-import { Card, ScrollArea } from "@starlight/ui";
+import { Search01Icon } from "@hugeicons-pro/core-stroke-rounded";
+import { Card, IconButton, ScrollArea } from "@starlight/ui";
 import type { ReactNode } from "react";
+import {
+  COMMAND_PALETTE_SHORTCUT,
+  openCommandPalette,
+} from "#renderer/features/command-palette/command-palette.tsx";
 import { HistoryControls } from "#renderer/features/history/history-controls.tsx";
 
 interface Props {
@@ -14,6 +19,12 @@ export const AppShell = ({ sidebar, footer, children }: Props) => (
       <div className="flex h-titlebar shrink-0 items-center justify-end px-2 app-drag">
         <div className="flex items-center app-no-drag">
           <HistoryControls />
+          <IconButton
+            label="Search"
+            icon={Search01Icon}
+            shortcut={COMMAND_PALETTE_SHORTCUT}
+            onClick={openCommandPalette}
+          />
         </div>
       </div>
       <ScrollArea className="flex-1">

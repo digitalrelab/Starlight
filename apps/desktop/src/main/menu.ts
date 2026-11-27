@@ -3,10 +3,13 @@ import { Channel } from "#shared/channels.ts";
 import type { ZoomStep } from "#shared/zoom.ts";
 import { historyMenu } from "./history.ts";
 
+const sendToFocused = (channel: string, ...args: ReadonlyArray<unknown>) =>
+  BrowserWindow.getFocusedWindow()?.webContents.send(channel, ...args);
+
 const zoomItem = (label: string, accelerator: string, step: ZoomStep): MenuItemConstructorOptions => ({
   label,
   accelerator,
-  click: () => BrowserWindow.getFocusedWindow()?.webContents.send(Channel.zoomStep, step),
+  click: () => sendToFocused(Channel.zoomStep, step),
 });
 
 export const installMenu = () =>
@@ -18,6 +21,12 @@ export const installMenu = () =>
       {
         label: "View",
         submenu: [
+          {
+            label: "Command Palette…",
+            accelerator: "CommandOrControl+K",
+            click: () => sendToFocused(Channel.commandPalette),
+          },
+          { type: "separator" },
           { role: "reload" },
           { role: "forceReload" },
           { role: "toggleDevTools" },
