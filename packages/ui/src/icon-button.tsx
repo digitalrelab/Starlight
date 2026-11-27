@@ -9,6 +9,7 @@ const sizes = { sm: "size-6", md: "size-control" } as const;
 
 export interface IconButtonProps extends useRender.ComponentProps<"button"> {
   readonly icon: IconSvgElement;
+  readonly pressedIcon?: IconSvgElement | undefined;
   readonly label: string;
   readonly shortcut?: Shortcut | undefined;
   readonly size?: keyof typeof sizes;
@@ -16,6 +17,7 @@ export interface IconButtonProps extends useRender.ComponentProps<"button"> {
 
 export const IconButton = ({
   icon,
+  pressedIcon,
   label,
   shortcut,
   size = "md",
@@ -33,10 +35,10 @@ export const IconButton = ({
           "inline-flex items-center justify-center rounded-full text-subtle focus-ring",
           sizes[size],
           "highlighted:bg-neutral-subtle-hovered highlighted:text-default aria-[current=page]:text-default",
-          "aria-pressed:bg-neutral aria-pressed:text-default",
+          pressedIcon ? "aria-pressed:text-default" : "aria-pressed:bg-neutral aria-pressed:text-default",
           className,
         ),
-        children: <Icon icon={icon} />,
+        children: <Icon icon={pressedIcon && props["aria-pressed"] === true ? pressedIcon : icon} />,
       },
       props,
     ),

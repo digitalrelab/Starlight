@@ -84,7 +84,8 @@ const Star = ({
   readonly onToggle: () => void;
 }) => (
   <IconButton
-    icon={starred ? StarFilledIcon : StarIcon}
+    icon={StarIcon}
+    pressedIcon={StarFilledIcon}
     label={starred ? "Remove from favorites" : "Add to favorites"}
     aria-label={starred ? `Remove ${model} from favorites` : `Add ${model} to favorites`}
     aria-pressed={starred}
