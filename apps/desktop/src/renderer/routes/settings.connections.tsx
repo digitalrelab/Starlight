@@ -1,3 +1,4 @@
+import { Item } from "@starlight/ui";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { ProviderRow } from "../features/agents/provider-row.tsx";
@@ -15,9 +16,11 @@ function Connections() {
 
   return (
     <SettingsPage title="Connections">
-      {providers.map((provider) => (
-        <ProviderRow key={provider.id} provider={provider} />
-      ))}
+      <Item.List>
+        {providers.map((provider) => (
+          <ProviderRow key={provider.id} provider={provider} />
+        ))}
+      </Item.List>
     </SettingsPage>
   );
 }

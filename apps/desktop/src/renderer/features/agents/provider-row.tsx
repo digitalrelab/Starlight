@@ -1,6 +1,6 @@
 import { InformationCircleIcon } from "@hugeicons-pro/core-stroke-rounded";
 import type { AgentProvider } from "@starlight/client";
-import { Badge, cn, Icon } from "@starlight/ui";
+import { Badge, cn, Icon, Item } from "@starlight/ui";
 import { providerAppearance } from "./provider-appearance.ts";
 
 const StatusPill = ({ ready }: { readonly ready: boolean }) => (
@@ -19,28 +19,28 @@ export const ProviderRow = ({ provider: { id, name, status } }: { readonly provi
   const appearance = providerAppearance(id);
 
   return (
-    <div className="flex items-center gap-3 px-4 py-3.5">
-      <span className={cn("flex size-9 shrink-0 items-center justify-center rounded-lg", appearance.tile)}>
+    <Item.Root className="justify-start gap-3">
+      <Item.Media className={cn("size-9 justify-center rounded-lg", appearance.tile)}>
         <Icon icon={appearance.icon} size={20} />
-      </span>
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
+      </Item.Media>
+      <Item.Content className="gap-1">
         <div className="flex items-center gap-2">
-          <span className="font-medium">{name}</span>
+          <Item.Title>{name}</Item.Title>
           <StatusPill ready={status._tag === "Ready"} />
         </div>
         {status._tag === "Ready" ? (
-          <div className="flex min-w-0 items-center gap-2 text-sm text-subtle">
+          <Item.Description className="flex min-w-0 items-center gap-2">
             {status.account ? <span className="truncate">{status.account}</span> : null}
             {status.plan ? <Badge>{status.plan}</Badge> : null}
             {status.version ? <span className="text-subtlest tabular-nums">v{status.version}</span> : null}
-          </div>
+          </Item.Description>
         ) : (
-          <p className="flex items-center gap-1.5 text-sm text-subtle">
+          <Item.Description className="flex items-center gap-1.5">
             <Icon icon={InformationCircleIcon} size={14} />
             {status.message}
-          </p>
+          </Item.Description>
         )}
-      </div>
-    </div>
+      </Item.Content>
+    </Item.Root>
   );
 };
