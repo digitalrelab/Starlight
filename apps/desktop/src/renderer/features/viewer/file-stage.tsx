@@ -81,6 +81,21 @@ const Video = ({ source }: { readonly source: FileSource }) => (
   />
 );
 
+const Audio = ({ source }: { readonly source: FileSource }) => (
+  <MediaPlayer.Audio
+    src={fileUrl(source.token)}
+    autoPlay
+    hasPageShortcuts
+    failure={
+      <>
+        <KindIcon kind="audio" size={40} />
+        <p>Can’t play this audio</p>
+      </>
+    }
+    className="size-full"
+  />
+);
+
 interface MarkdownFileProps {
   readonly projectId: string;
   readonly entry: Entry;
@@ -128,6 +143,7 @@ export const FileStage = ({ projectId, directory, entry }: Props) => {
   if (source.isError) return <Notice kind={itemKindOf(entry)}>Can’t open this file</Notice>;
   if (!source.data) return null;
   if (presentation === "video") return <Video source={source.data} />;
+  if (presentation === "audio") return <Audio source={source.data} />;
   if (presentation === "markdown")
     return <MarkdownFile projectId={projectId} entry={entry} source={source.data} />;
   return <Picture name={entry.name} source={source.data} presentation={presentation} />;

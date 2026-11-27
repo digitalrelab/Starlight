@@ -154,7 +154,7 @@ export const Controls = ({ media, isVisible, onScrubChange, onMenuOpenChange, re
       </span>
       <Volume media={media} />
       <Settings media={media} onOpenChange={onMenuOpenChange} />
-      <Fullscreen />
+      {media instanceof HTMLVideoElement ? <Fullscreen /> : null}
     </div>
   );
 };

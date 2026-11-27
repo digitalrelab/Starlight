@@ -52,7 +52,8 @@ const usePrefetch = (
             void loadEditor();
             return queryClient.prefetchQuery(fileBytes(source));
           }
-          if (presentation !== "video") new Image().src = pictureUrl(source, presentation);
+          if (presentation === "image" || presentation === "preview")
+            new Image().src = pictureUrl(source, presentation);
         },
         () => undefined,
       );

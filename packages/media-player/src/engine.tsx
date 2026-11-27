@@ -76,7 +76,7 @@ export const usePlayerEngine = ({ src, autoPlay, hasPageShortcuts, onKey }: Engi
         ArrowUp: () => acknowledge({ kind: "volume", level: setVolume(media, media.volume + VOLUME_STEP) }),
         ArrowDown: () => acknowledge({ kind: "volume", level: setVolume(media, media.volume - VOLUME_STEP) }),
         m: () => acknowledge({ kind: "volume", level: toggleMute(media) }),
-        f: toggleFullscreen,
+        ...(media instanceof HTMLVideoElement && { f: toggleFullscreen }),
       }
     : {};
 

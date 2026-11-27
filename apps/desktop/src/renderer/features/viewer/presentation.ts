@@ -2,7 +2,7 @@ import { type Entry, type FileSource, mediaTypeOf } from "@starlight/client";
 import { fileUrl } from "#shared/files.ts";
 import { previewUrl } from "#shared/previews.ts";
 
-type Presentation = "image" | "preview" | "video" | "markdown" | "none";
+type Presentation = "image" | "preview" | "video" | "audio" | "markdown" | "none";
 
 const MAX_MARKDOWN_BYTES = 16 * 1024 ** 2;
 
@@ -13,6 +13,7 @@ export const presentationOf = ({ name, size }: Entry): Presentation => {
   if (type === undefined) return "none";
   if (type === "text/markdown") return size > MAX_MARKDOWN_BYTES ? "none" : "markdown";
   if (type.startsWith("video/")) return "video";
+  if (type.startsWith("audio/")) return "audio";
   return PREVIEW_ONLY_TYPES.has(type) ? "preview" : "image";
 };
 
