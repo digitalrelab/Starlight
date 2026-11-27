@@ -1,4 +1,4 @@
-import { DirectoryMissing, type Entry, type EntryRef, entryKey } from "@starlight/client";
+import { type CreatableKind, DirectoryMissing, type Entry, type EntryRef, entryKey } from "@starlight/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, type ErrorComponentProps, Navigate, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
@@ -14,6 +14,7 @@ import { DirectoryView } from "#renderer/features/browser/directory-view.tsx";
 import { layoutPreference } from "#renderer/features/browser/layout-preference.ts";
 import { LayoutSwitcher } from "#renderer/features/browser/layout-switcher.tsx";
 import { layouts } from "#renderer/features/browser/layouts/registry.ts";
+import { NewEntryMenu } from "#renderer/features/browser/new-entry-menu.tsx";
 import { useFoldersAhead } from "#renderer/features/browser/use-folders-ahead.ts";
 import { hiddenFiles } from "#renderer/features/settings/files.ts";
 import { PageError } from "#renderer/features/shell/page-error.tsx";
@@ -56,6 +57,7 @@ function Browser() {
   const layout = useStore(preference);
   const showHidden = useStore(hiddenFiles) === "show";
   const entries = showHidden ? listing.entries : listing.entries.filter((entry) => !entry.hidden);
+  const directoryName = listing.trail.at(-1)?.name ?? project.name;
   useEffect(() => subscriptions.entries(projectId), [subscriptions, projectId]);
 
   const directoryKey = directory ? entryKey(directory) : "";
@@ -67,10 +69,16 @@ function Browser() {
   const showFile = (shown: EntryRef) => {
     if (directory) void navigate({ search: toFileSearch(directory, shown), replace: true, state: true });
   };
+  const openFile = (shown: EntryRef) => {
+    if (directory) void navigate({ search: toFileSearch(directory, shown), state: { fromDirectory: true } });
+  };
   const onOpen = (entry: Entry) => {
     if (entry.kind === "directory") void navigate({ search: toDirectorySearch(entry.ref) });
-    else if (entry.kind === "file" && directory)
-      void navigate({ search: toFileSearch(directory, entry.ref), state: { fromDirectory: true } });
+    else if (entry.kind === "file") openFile(entry.ref);
+  };
+  const onCreated = (created: EntryRef, kind: CreatableKind) => {
+    if (kind === "file") openFile(created);
+    else select(entryKey(created));
   };
   const preloadFolder = (folder: EntryRef) =>
     router.preloadRoute({
@@ -94,6 +102,15 @@ function Browser() {
       <PageHeader
         actions={
           <>
+            {directory ? (
+              <NewEntryMenu
+                projectId={projectId}
+                directory={directory}
+                directoryName={directoryName}
+                entries={listing.entries}
+                onCreated={onCreated}
+              />
+            ) : null}
             <AddMountButton projectId={projectId} />
             <LayoutSwitcher value={layout} onChange={preference.set} />
           </>
@@ -116,7 +133,7 @@ function Browser() {
         <FileViewer
           projectId={projectId}
           directory={directory}
-          directoryName={listing.trail.at(-1)?.name ?? project.name}
+          directoryName={directoryName}
           entries={entries}
           file={file}
           onShow={showFile}

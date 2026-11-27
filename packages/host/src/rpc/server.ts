@@ -20,6 +20,7 @@ const HandlersLive = HostRpcs.toLayer(
       AddMount: ({ projectId, root }) => projects.addMount(projectId, root),
       RemoveMount: ({ projectId, root }) => projects.removeMount(projectId, root),
       ListEntries: ({ projectId, directory }) => entries.list(projectId, directory),
+      CreateEntry: ({ projectId, directory, name, kind }) => entries.create(projectId, directory, name, kind),
       WatchEntries: ({ projectId }) => entries.watch(projectId),
       ListMedia: ({ projectId, directory }) => media.list(projectId, directory),
       ProcessMedia: ({ projectId, directory }) => media.process(projectId, directory),

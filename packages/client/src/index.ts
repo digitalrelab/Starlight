@@ -4,6 +4,7 @@ export type {
   AgentProvider,
   Chat,
   ChatMessage,
+  CreatableKind,
   Crumb,
   DiskUsage,
   Draft,
@@ -26,7 +27,9 @@ export {
   CodexProvider,
   ChatNotFound,
   DirectoryMissing,
+  EntryExists,
   fileKindOf,
+  InvalidName,
   mediaTypeOf,
 } from "@starlight/contracts";
 export * from "./client.ts";

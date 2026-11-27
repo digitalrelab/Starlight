@@ -4,7 +4,15 @@ import {
   queryOptions,
   type QueryClient,
 } from "@tanstack/react-query";
-import type { ChatDetail, EntryRef, Listing, ModelChoice, Project, UpdaterState } from "@starlight/contracts";
+import type {
+  ChatDetail,
+  CreatableKind,
+  EntryRef,
+  Listing,
+  ModelChoice,
+  Project,
+  UpdaterState,
+} from "@starlight/contracts";
 import type { StarlightClient } from "./client.ts";
 import { createFileSession, type FileSessionOptions } from "./file-session.ts";
 import { entryKey } from "./refs.ts";
@@ -195,6 +203,13 @@ const createMutations = (client: StarlightClient, queryClient: QueryClient, quer
         cacheProject(queryClient, queries, project);
         return queryClient.invalidateQueries(queries.entries(projectId, null));
       },
+    }),
+
+  createEntry: (projectId: string, directory: EntryRef) =>
+    mutationOptions({
+      mutationFn: ({ name, kind }: { readonly name: string; readonly kind: CreatableKind }) =>
+        client.entries.create(projectId, directory, name, kind),
+      onSuccess: () => queryClient.invalidateQueries(queries.entries(projectId, directory)),
     }),
 
   removeMount: (projectId: string) =>

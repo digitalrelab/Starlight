@@ -6,6 +6,7 @@ import type {
   ChatMessage,
   Chat,
   ChatId,
+  CreatableKind,
   Dimensions,
   EntryId,
   EntryKind,
@@ -88,6 +89,11 @@ export interface SourceDriver {
   readonly stat: (id: EntryId) => Effect.Effect<SourceEntry, SourceError>;
   readonly list: (id: EntryId) => Effect.Effect<ReadonlyArray<SourceEntry>, SourceError>;
   readonly write: (id: EntryId, content: Uint8Array) => Effect.Effect<SourceEntry, SourceError>;
+  readonly create: (
+    parent: EntryId,
+    name: string,
+    kind: CreatableKind,
+  ) => Effect.Effect<SourceEntry, SourceError>;
   readonly watch: (root: EntryId) => Stream.Stream<SourceChange, SourceError>;
   readonly extractors: Extractors;
   readonly sample: (entry: SourceEntry) => Effect.Effect<Option.Option<PixelSample>, SampleFailed>;

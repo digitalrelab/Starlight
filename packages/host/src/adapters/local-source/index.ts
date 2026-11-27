@@ -1,8 +1,8 @@
 import type { Stats } from "node:fs";
-import { lstat, open, readdir, realpath, stat } from "node:fs/promises";
+import { lstat, mkdir, open, readdir, realpath, stat, writeFile } from "node:fs/promises";
 import { basename, dirname, join, relative, resolve, sep } from "node:path";
 import { subscribe } from "@parcel/watcher";
-import { EntryId, type EntryKind, type SourceError } from "@starlight/contracts";
+import { type CreatableKind, EntryId, type EntryKind, type SourceError } from "@starlight/contracts";
 import type { SourceChange, SourceCrumb, SourceDriver, SourceEntry } from "@starlight/core";
 import { Effect, Queue, Stream } from "effect";
 import type { Imaging } from "#adapters/imaging.ts";
@@ -55,6 +55,11 @@ const writeInPlace = async (path: string, content: Uint8Array) => {
   } finally {
     await handle.close();
   }
+};
+
+const createNew = async (path: string, kind: CreatableKind) => {
+  await (kind === "directory" ? mkdir(path) : writeFile(path, "", { flag: "wx" }));
+  return stat(path);
 };
 
 const staleDirectories = (paths: ReadonlyArray<string>) =>
@@ -113,6 +118,12 @@ export const makeLocalSource = (imaging: Imaging["Service"]): SourceDriver => {
       Effect.tryPromise({ try: () => writeInPlace(id, content), catch: toSourceError(id) }).pipe(
         Effect.map((s) => toEntry(id, s)),
       ),
+    create: (parent, name, kind) => {
+      const id = EntryId.make(join(parent, name));
+      return Effect.tryPromise({ try: () => createNew(id, kind), catch: toSourceError(id) }).pipe(
+        Effect.map((s) => toEntry(id, s)),
+      );
+    },
     watch,
     extractors: { dimensions: dimensionsExtractor, duration: durationExtractor },
     sample: (entry) => imaging.sample(entry.id),

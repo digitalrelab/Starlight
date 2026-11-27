@@ -1,6 +1,7 @@
 import {
   type ChatEvent,
   type ChatId,
+  type CreatableKind,
   type EntryChange,
   type EntryRef,
   type FileVersion,
@@ -66,6 +67,8 @@ export const createClient = (ports: PortSources) => {
     entries: {
       list: (projectId: string, directory: EntryRef | null) =>
         host((c) => c.ListEntries({ projectId: id(projectId), directory })),
+      create: (projectId: string, directory: EntryRef, name: string, kind: CreatableKind) =>
+        host((c) => c.CreateEntry({ projectId: id(projectId), directory, name, kind })),
       watch: (projectId: string, onChange: (change: EntryChange) => void) =>
         watch("Entries", (c) => c.WatchEntries({ projectId: id(projectId) }), onChange),
     },
