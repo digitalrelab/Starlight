@@ -150,7 +150,7 @@ interface Props {
 
 export const Controls = ({ media, isVisible, onScrubChange, onMenuOpenChange, ref }: Props) => {
   const { state, isVideo } = usePlayer();
-  const visualizer = useSetting("visualizer");
+  const showsVisualizer = useSetting("visualizer");
   return (
     <div
       ref={ref}
@@ -172,7 +172,7 @@ export const Controls = ({ media, isVisible, onScrubChange, onMenuOpenChange, re
       <span className={cn(timeReadout, "hidden text-subtle @sm/player:block")}>
         {formatDuration(state.duration)}
       </span>
-      {isVideo && visualizer ? (
+      {isVideo && showsVisualizer ? (
         <Visualizer
           media={media}
           active={isVisible && !state.paused}

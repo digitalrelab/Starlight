@@ -65,18 +65,20 @@ const Picture = ({ name, source, presentation }: PictureProps) => {
   );
 };
 
+const playbackFailure = (kind: "video" | "audio") => (
+  <>
+    <KindIcon kind={kind} size={40} />
+    <p>Can’t play this {kind}</p>
+  </>
+);
+
 const Video = ({ source }: { readonly source: FileSource }) => (
   <MediaPlayer.Video
     src={fileUrl(source.token)}
     poster={previewUrl(source.token, POSTER_PIXELS)}
     autoPlay
     hasPageShortcuts
-    failure={
-      <>
-        <KindIcon kind="video" size={40} />
-        <p>Can’t play this video</p>
-      </>
-    }
+    failure={playbackFailure("video")}
     className="size-full"
   />
 );
@@ -86,12 +88,7 @@ const Audio = ({ source }: { readonly source: FileSource }) => (
     src={fileUrl(source.token)}
     autoPlay
     hasPageShortcuts
-    failure={
-      <>
-        <KindIcon kind="audio" size={40} />
-        <p>Can’t play this audio</p>
-      </>
-    }
+    failure={playbackFailure("audio")}
     className="size-full"
   />
 );

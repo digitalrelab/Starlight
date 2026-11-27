@@ -46,7 +46,6 @@ interface Props {
 
 interface PlayerProps extends Props {
   readonly surface: ReactNode;
-  readonly hidesControls: boolean;
 }
 
 const Player = ({
@@ -56,7 +55,6 @@ const Player = ({
   failure = "This file can’t be played",
   className,
   surface,
-  hidesControls,
 }: PlayerProps) => {
   const [isScrubbing, setIsScrubbing] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -64,7 +62,7 @@ const Player = ({
   const controls = useRef<HTMLDivElement>(null);
   const { active, wake, hover, rest } = useActivity();
   const engine = usePlayerEngine({ src, autoPlay, hasPageShortcuts, onKey: wake });
-  const { media, state } = engine;
+  const { media, state, isVideo } = engine;
   const isPlaying = !state.paused && !state.buffering;
 
   useEffect(() => (media ? () => releaseDetached(media) : undefined), [media]);
@@ -77,12 +75,7 @@ const Player = ({
     hover(event.target instanceof Node && Boolean(controls.current?.contains(event.target)));
 
   const controlsVisible =
-    !hidesControls ||
-    active ||
-    isScrubbing ||
-    isMenuOpen ||
-    isFocusVisible ||
-    (state.paused && state.started);
+    !isVideo || active || isScrubbing || isMenuOpen || isFocusVisible || (state.paused && state.started);
 
   return (
     <PlayerContext value={engine}>
@@ -115,9 +108,9 @@ const Player = ({
 };
 
 const Video = ({ poster, ...props }: Props & { readonly poster?: string }) => (
-  <Player {...props} hidesControls surface={<VideoSurface poster={poster} />} />
+  <Player {...props} surface={<VideoSurface poster={poster} />} />
 );
 
-const Audio = (props: Props) => <Player {...props} hidesControls={false} surface={<AudioSurface />} />;
+const Audio = (props: Props) => <Player {...props} surface={<AudioSurface />} />;
 
 export const MediaPlayer = { Video, Audio };
