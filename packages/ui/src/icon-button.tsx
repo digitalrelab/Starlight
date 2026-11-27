@@ -1,6 +1,5 @@
 import type { IconSvgElement } from "@hugeicons/react";
-import { mergeProps } from "@base-ui/react/merge-props";
-import { useRender } from "@base-ui/react/use-render";
+import { mergeProps, useRender } from "@base-ui/react";
 import { cn } from "cn";
 import { Icon } from "./icon.tsx";
 import type { Shortcut } from "./kbd.tsx";

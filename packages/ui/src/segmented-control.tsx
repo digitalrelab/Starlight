@@ -1,6 +1,5 @@
 import type { IconSvgElement } from "@hugeicons/react";
-import { Toggle } from "@base-ui/react/toggle";
-import { ToggleGroup } from "@base-ui/react/toggle-group";
+import { Toggle, ToggleGroup } from "@base-ui/react";
 import { cn } from "cn";
 import type { ReactNode } from "react";
 import { Icon } from "./icon.tsx";
