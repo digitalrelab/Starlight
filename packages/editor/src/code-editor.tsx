@@ -1,13 +1,13 @@
 import { indentWithTab } from "@codemirror/commands";
 import { LanguageDescription, syntaxHighlighting } from "@codemirror/language";
 import { languages } from "@codemirror/language-data";
-import { EditorView, keymap, lineNumbers } from "@codemirror/view";
+import { EditorView, gutters, keymap, lineNumbers } from "@codemirror/view";
 import { classHighlighter } from "@lezer/highlight";
 import { cn } from "cn";
 import { use } from "react";
 import { Editor, type EditorProps } from "./editor.tsx";
 
-const base = [lineNumbers(), keymap.of([indentWithTab])];
+const base = [gutters({ fixed: false }), lineNumbers(), keymap.of([indentWithTab])];
 const code = [base, syntaxHighlighting(classHighlighter)];
 const prose = [base, EditorView.lineWrapping];
 
