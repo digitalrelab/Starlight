@@ -31,7 +31,7 @@ const Palette = ({ palette }: Pick<FileDetails, "palette">) => (
 
 const PropertyCards = ({ properties }: Pick<FileDetails, "properties">) =>
   [...Map.groupBy(properties, (property) => property.namespace)].map(([namespace, group]) => (
-    <Card key={namespace} className="flex shrink-0 flex-col gap-2 p-3">
+    <Card key={namespace} surface="panel" className="flex shrink-0 flex-col gap-2 p-3">
       <span className="text-subtle">{NAMESPACE_LABELS[namespace]}</span>
       <div className="flex flex-wrap gap-1">
         {group.map((property) => (
@@ -45,7 +45,7 @@ const PropertyCards = ({ properties }: Pick<FileDetails, "properties">) =>
   ));
 
 const DetailsCard = ({ details }: { readonly details: FileDetails }) => (
-  <Details.Root>
+  <Details.Root surface="panel">
     <Details.Row label="Kind">{details.mediaType ?? "File"}</Details.Row>
     <Details.Row label="Size">{formatSize(details.size)}</Details.Row>
     {details.dimensions ? (
@@ -98,7 +98,9 @@ export const Inspector = ({ projectId, directory, entry, className }: Props) => 
         {directory && entry?.kind === "file" ? (
           <FileCards projectId={projectId} directory={directory} entry={entry} />
         ) : (
-          <Card className="p-3 text-subtle">Select a file to see its details</Card>
+          <Card surface="panel" className="p-3 text-subtle">
+            Select a file to see its details
+          </Card>
         )}
       </div>
     </ScrollArea>

@@ -1,9 +1,18 @@
 import { cn } from "cn";
 import type { ReactNode } from "react";
-import { Card } from "./card.tsx";
+import { Card, type CardProps } from "./card.tsx";
 
-const Root = ({ className, children }: { readonly className?: string; readonly children: ReactNode }) => (
-  <Card render={<dl />} className={cn("flex shrink-0 flex-col gap-3 p-3 select-text", className)}>
+interface RootProps extends Pick<CardProps, "surface"> {
+  readonly className?: string;
+  readonly children: ReactNode;
+}
+
+const Root = ({ surface, className, children }: RootProps) => (
+  <Card
+    render={<dl />}
+    surface={surface}
+    className={cn("flex shrink-0 flex-col gap-3 p-3 select-text", className)}
+  >
     {children}
   </Card>
 );
