@@ -12,7 +12,7 @@ const store = async (path: string, bytes: Bytes) => {
   await rename(temporary, path);
 };
 
-export const createThumbnailCache = (directory: string, limitBytes: number) => {
+export const createPreviewCache = (directory: string, limitBytes: number) => {
   const pending = new Map<string, Promise<Bytes | null>>();
 
   const pathOf = (identity: string) => {
@@ -59,4 +59,4 @@ export const createThumbnailCache = (directory: string, limitBytes: number) => {
   };
 };
 
-export type ThumbnailCache = ReturnType<typeof createThumbnailCache>;
+export type PreviewCache = ReturnType<typeof createPreviewCache>;
