@@ -1,4 +1,5 @@
 import {
+  DashboardSpeed02Icon,
   Folder01Icon,
   HardDriveIcon,
   PaintBoardIcon,
@@ -19,6 +20,9 @@ export const SETTINGS_SECTIONS = [
   },
   {
     title: "AI",
-    pages: [{ label: "Providers", icon: Plug01Icon, link: linkOptions({ to: "/settings/providers" }) }],
+    pages: [
+      { label: "Providers", icon: Plug01Icon, link: linkOptions({ to: "/settings/providers" }) },
+      { label: "Usage", icon: DashboardSpeed02Icon, link: linkOptions({ to: "/settings/usage" }) },
+    ],
   },
 ] as const;

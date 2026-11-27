@@ -153,4 +153,30 @@ export const migrations = Migrator.fromRecord({
     yield* sql`ALTER TABLE chats ADD COLUMN project_id TEXT REFERENCES projects (id) ON DELETE SET NULL`;
     yield* sql`CREATE INDEX chats_by_project ON chats (project_id, updated_at)`;
   }),
+  "0012_entries": Effect.gen(function* () {
+    const sql = yield* SqlClient.SqlClient;
+    yield* sql`
+      CREATE TABLE entries (
+        source TEXT NOT NULL,
+        id TEXT NOT NULL,
+        parent TEXT NOT NULL,
+        key TEXT NOT NULL,
+        name TEXT NOT NULL,
+        kind TEXT NOT NULL,
+        size INTEGER NOT NULL,
+        created_at REAL NOT NULL,
+        modified_at REAL NOT NULL,
+        hidden INTEGER NOT NULL,
+        file_id TEXT UNIQUE,
+        PRIMARY KEY (source, id)
+      )
+    `;
+    yield* sql`CREATE INDEX entries_by_parent ON entries (source, parent)`;
+    yield* sql`CREATE INDEX entries_by_key ON entries (source, key) WHERE file_id IS NOT NULL`;
+    yield* sql`
+      INSERT INTO entries (source, id, parent, key, name, kind, size, created_at, modified_at, hidden, file_id)
+      SELECT source, entry, parent, key, '', 'file', -1, -1, -1, 0, id FROM file_identities
+    `;
+    yield* sql`DROP TABLE file_identities`;
+  }),
 });

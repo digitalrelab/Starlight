@@ -56,6 +56,7 @@ export const openSession = async (
 
   return {
     models: () => query.supportedModels(),
+    usage: () => query.usage_EXPERIMENTAL_MAY_CHANGE_DO_NOT_RELY_ON_THIS_API_YET({ skipBehaviors: true }),
     get id() {
       return id;
     },

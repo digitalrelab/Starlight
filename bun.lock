@@ -99,17 +99,14 @@
         "@lezer/common": "catalog:",
         "@lezer/highlight": "catalog:",
         "@lezer/markdown": "catalog:",
-        "@starlight/ui": "workspace:*",
         "cn": "catalog:",
         "decode-named-character-reference": "catalog:",
       },
       "devDependencies": {
         "@types/react": "catalog:",
-        "@types/react-dom": "catalog:",
       },
       "peerDependencies": {
         "react": "catalog:",
-        "react-dom": "catalog:",
       },
     },
     "packages/media-player": {

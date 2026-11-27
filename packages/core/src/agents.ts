@@ -1,4 +1,4 @@
-import type { AgentProvider } from "@starlight/contracts";
+import type { AgentProvider, AgentProviderUsage } from "@starlight/contracts";
 import { Context, Effect, Layer } from "effect";
 import { AgentProviderDrivers } from "./ports.ts";
 
@@ -6,6 +6,7 @@ export class AgentProviders extends Context.Service<
   AgentProviders,
   {
     readonly list: Effect.Effect<ReadonlyArray<AgentProvider>>;
+    readonly usage: Effect.Effect<ReadonlyArray<AgentProviderUsage>>;
     readonly prepare: Effect.Effect<void>;
   }
 >()("@starlight/core/AgentProviders") {
@@ -22,6 +23,13 @@ export class AgentProviders extends Context.Service<
               return { id, name: driver.name, status, models };
             }),
           { concurrency: "unbounded" },
+        ),
+        usage: Effect.forEach(
+          drivers,
+          ([provider, driver]) => Effect.map(driver.usage, (usage) => ({ provider, usage })),
+          {
+            concurrency: "unbounded",
+          },
         ),
         prepare: Effect.forEach(drivers, ([, driver]) => driver.prepare, { discard: true }),
       });

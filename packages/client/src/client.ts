@@ -93,6 +93,7 @@ export const createClient = (ports: PortSources) => {
     agents: {
       providers: () => host((c) => c.ListAgentProviders()),
       prepare: () => host((c) => c.PrepareAgentProviders()),
+      usage: () => host((c) => c.GetAgentUsage()),
     },
     chats: {
       list: (projectId: string | null) => host((c) => c.ListChats({ projectId: optionalId(projectId) })),

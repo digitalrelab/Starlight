@@ -1,16 +1,17 @@
 import { Layer } from "effect";
 import { AgentProviders } from "./agents.ts";
-import { FileIdentities } from "./file-identities.ts";
+import { EntryIndex } from "./entry-index.ts";
 import { Catalog } from "./catalog.ts";
 import { Chats } from "./chats.ts";
 import { Entries } from "./entries.ts";
 import { Files } from "./files.ts";
+import { IndexerLive } from "./indexer.ts";
 import { MediaLibrary } from "./media.ts";
 import { Projects } from "./projects.ts";
 import { References } from "./references.ts";
 
 export * from "./agents.ts";
-export * from "./file-identities.ts";
+export * from "./entry-index.ts";
 export * from "./catalog.ts";
 export * from "./chats.ts";
 export * from "./entries.ts";
@@ -27,8 +28,9 @@ export const CoreLive = Layer.mergeAll(
   AgentProviders.layer,
   Chats.layer,
   References.layer,
+  IndexerLive,
 ).pipe(
   Layer.provideMerge(Catalog.layer),
-  Layer.provideMerge(FileIdentities.layer),
+  Layer.provideMerge(EntryIndex.layer),
   Layer.provideMerge(Projects.layer),
 );

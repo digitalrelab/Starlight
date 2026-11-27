@@ -2,9 +2,11 @@ import { type Entry, type EntryRef, entryKey, type Media } from "@starlight/clie
 import { ScrollArea } from "@starlight/ui";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { type KeyboardEvent, useEffect, useEffectEvent, useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { useStarlight } from "#renderer/lib/context.ts";
 import { useElementWidth } from "#renderer/lib/use-element-width.ts";
+import { useRevealFocus } from "#renderer/features/browser/selection.ts";
+import { listProps, type Step } from "./events.ts";
 import { justify, nearestInRow, shelve, stack } from "./rows.ts";
 import { FolderChip, TILE_CHROME, TILE_INSET, Tile, tilePreviewUrl } from "./tile.tsx";
 import type { LayoutProps } from "./types.ts";
@@ -81,15 +83,7 @@ const useGridLayout = (
   return layout;
 };
 
-export const GridLayout = ({
-  projectId,
-  directory,
-  entries,
-  selected,
-  onSelect,
-  onHover,
-  onOpen,
-}: LayoutProps) => {
+export const GridLayout = ({ projectId, directory, entries, selection, onHover, onOpen }: LayoutProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const width = useElementWidth(scrollRef);
   const media = useMedia(projectId, directory, entries);
@@ -111,35 +105,30 @@ export const GridLayout = ({
     virtualizer.measure();
   }, [virtualizer, layout]);
 
-  const ready = layout.rows.length > 0;
-  const revealSelected = useEffectEvent(() => {
-    const row = layout.rowOf[selected];
-    if (row !== undefined) virtualizer.scrollToIndex(row);
-  });
-  const selectedEntry = entries[selected];
-  const selectedKey = selectedEntry && entryKey(selectedEntry.ref);
-  useEffect(() => {
-    if (ready) revealSelected();
-  }, [ready, selectedKey]);
+  useRevealFocus(
+    selection,
+    (index) => {
+      const row = layout.rowOf[index];
+      if (row !== undefined) virtualizer.scrollToIndex(row);
+    },
+    width > 0,
+  );
 
-  const moveVertically = (direction: 1 | -1) => {
-    if (selected < 0) return onSelect(0);
-    const row = layout.rows[(layout.rowOf[selected] ?? 0) + direction];
-    if (!row) return;
-    onSelect(nearestInRow(layout, row, (layout.left[selected] ?? 0) + (layout.width[selected] ?? 0) / 2));
+  const vertical = (from: number, direction: 1 | -1) => {
+    const row = layout.rows[(layout.rowOf[from] ?? 0) + direction];
+    return row ? nearestInRow(layout, row, (layout.left[from] ?? 0) + (layout.width[from] ?? 0) / 2) : from;
   };
 
-  const onKeyDown = (event: KeyboardEvent) => {
-    if (event.key === "ArrowRight") onSelect(selected + 1);
-    else if (event.key === "ArrowLeft") onSelect(selected - 1);
-    else if (event.key === "ArrowDown") moveVertically(1);
-    else if (event.key === "ArrowUp") moveVertically(-1);
-    else return;
-    event.preventDefault();
+  const step: Step = (from, key) => {
+    if (key === "ArrowRight") return from + 1;
+    if (key === "ArrowLeft") return from - 1;
+    if (key === "ArrowDown") return vertical(from, 1);
+    if (key === "ArrowUp") return vertical(from, -1);
+    return undefined;
   };
 
   return (
-    <ScrollArea ref={scrollRef} tabIndex={0} onKeyDown={onKeyDown} className="flex-1">
+    <ScrollArea ref={scrollRef} {...listProps({ entries, selection, onOpen }, step)} className="flex-1">
       <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
         {virtualizer.getVirtualItems().map((item) => {
           const row = layout.rows[item.index];
@@ -163,8 +152,7 @@ export const GridLayout = ({
                   left: layout.left[index] ?? 0,
                   width: layout.width[index] ?? 0,
                   height: row.height,
-                  selected: index === selected,
-                  onSelect,
+                  selection,
                   onHover,
                   onOpen,
                 };
