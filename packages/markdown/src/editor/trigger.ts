@@ -1,3 +1,4 @@
+import { syntaxTree } from "@codemirror/language";
 import {
   type EditorState,
   Prec,
@@ -16,6 +17,7 @@ import {
   tooltips,
   ViewPlugin,
 } from "@codemirror/view";
+import type { SyntaxNode } from "@lezer/common";
 import { useState } from "react";
 import { type Store, storeOf } from "./store.ts";
 
@@ -51,6 +53,14 @@ const latestIn = <Value>(tr: Transaction, type: StateEffectType<Value>, fallback
   return effect ? effect.value : fallback;
 };
 
+const CODE = new Set(["FencedCode", "CodeBlock", "InlineCode"]);
+
+const inCode = (state: EditorState, pos: number) => {
+  for (let node: SyntaxNode | null = syntaxTree(state).resolve(pos, -1); node; node = node.parent)
+    if (CODE.has(node.name)) return true;
+  return false;
+};
+
 const tooltipAt = (pos: number): Tooltip => ({
   pos,
   create: () => {
@@ -68,8 +78,8 @@ const createTrigger = <Choice>(source: TriggerSource<Choice>) => {
 
   const openedAt = (tr: Transaction) => {
     let opened: number | null = null;
-    tr.changes.iterChanges((_fromA, _toA, _fromB, toB, inserted) => {
-      if (!inserted.toString().endsWith(character)) return;
+    tr.changes.iterChanges((_fromA, toA, _fromB, toB, inserted) => {
+      if (!inserted.toString().endsWith(character) || inCode(tr.startState, toA)) return;
       const at = toB - character.length;
       const before = tr.state.sliceDoc(at - 1, at);
       if (before === "" || /\s/.test(before)) opened = at;

@@ -20,7 +20,7 @@ import { hiddenFiles } from "#renderer/features/settings/files.ts";
 import { useStarlight } from "#renderer/lib/context.ts";
 import { useStore } from "#renderer/lib/store.ts";
 import { renderReference } from "./reference-link.tsx";
-import { type Resolution, TriggerMenu, type TriggerOption } from "./trigger-menu.tsx";
+import { type Resolution, TriggerMenu, type TriggerOption } from "#renderer/features/editor/trigger-menu.tsx";
 
 const GROUPS = ["Folders", "Files", "Chats"] as const;
 

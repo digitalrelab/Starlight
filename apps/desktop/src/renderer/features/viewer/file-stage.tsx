@@ -12,7 +12,7 @@ import { FileSessionBanner } from "#renderer/features/files/file-session-banner.
 import { type ItemKind, KindIcon, itemKindOf } from "#renderer/features/files/kind-icon.tsx";
 import { UnsavedDot } from "#renderer/features/files/unsaved-dot.tsx";
 import { useFileSession } from "#renderer/features/files/use-file-session.ts";
-import { MarkdownEditor } from "./markdown-file.ts";
+import { DocumentEditor } from "./markdown-file.ts";
 import { playerSettings } from "./player-settings.ts";
 import { pictureUrl, presentationOf } from "./presentation.ts";
 import { StatusSlot } from "./status-slot.ts";
@@ -112,7 +112,7 @@ const MarkdownFile = ({ projectId, entry, source }: MarkdownFileProps) => {
       {unsaved && statusSlot ? createPortal(<UnsavedDot />, statusSlot) : null}
       <ScrollArea className="h-full">
         <Suspense fallback={null}>
-          <MarkdownEditor
+          <DocumentEditor
             key={document.revision}
             value={document.value}
             label={entry.name}
