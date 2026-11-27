@@ -12,7 +12,9 @@ export const AppShell = ({ sidebar, footer, children }: Props) => (
   <div className="flex h-full">
     <aside className="flex w-60 shrink-0 flex-col">
       <div className="flex h-titlebar shrink-0 items-center justify-end px-2 app-drag">
-        <HistoryControls />
+        <div className="flex items-center app-no-drag">
+          <HistoryControls />
+        </div>
       </div>
       <ScrollArea className="flex-1">
         <nav className="flex flex-col gap-4 px-2 pb-2">{sidebar}</nav>
