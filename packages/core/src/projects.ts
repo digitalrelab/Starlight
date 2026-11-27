@@ -7,12 +7,12 @@ import {
   type MountError,
   NotADirectory,
   NotAFile,
-  OutsideWorkspace,
+  OutsideProject,
   type SourceId,
   SourceUnavailable,
-  type Workspace,
-  type WorkspaceId,
-  WorkspaceNotFound,
+  type Project,
+  type ProjectId,
+  ProjectNotFound,
 } from "@starlight/contracts";
 import { Context, Effect, Layer, Option } from "effect";
 import {
@@ -21,7 +21,7 @@ import {
   type SourceDriver,
   SourceDrivers,
   type SourceEntry,
-  WorkspaceStore,
+  ProjectStore,
 } from "./ports.ts";
 
 export interface LocatedDirectory {
@@ -36,44 +36,41 @@ export interface LocatedFile {
   readonly entry: SourceEntry;
 }
 
-export class Workspaces extends Context.Service<
-  Workspaces,
+export class Projects extends Context.Service<
+  Projects,
   {
-    readonly create: (root: EntryRef) => Effect.Effect<Workspace, MountError, CurrentActor>;
-    readonly list: Effect.Effect<ReadonlyArray<Workspace>>;
-    readonly rename: (
-      id: WorkspaceId,
-      name: string,
-    ) => Effect.Effect<Workspace, WorkspaceNotFound, CurrentActor>;
-    readonly remove: (id: WorkspaceId) => Effect.Effect<void, WorkspaceNotFound, CurrentActor>;
+    readonly create: (root: EntryRef) => Effect.Effect<Project, MountError, CurrentActor>;
+    readonly list: Effect.Effect<ReadonlyArray<Project>>;
+    readonly rename: (id: ProjectId, name: string) => Effect.Effect<Project, ProjectNotFound, CurrentActor>;
+    readonly remove: (id: ProjectId) => Effect.Effect<void, ProjectNotFound, CurrentActor>;
     readonly addMount: (
-      id: WorkspaceId,
+      id: ProjectId,
       root: EntryRef,
-    ) => Effect.Effect<Workspace, WorkspaceNotFound | MountError, CurrentActor>;
+    ) => Effect.Effect<Project, ProjectNotFound | MountError, CurrentActor>;
     readonly removeMount: (
-      id: WorkspaceId,
+      id: ProjectId,
       root: EntryRef,
-    ) => Effect.Effect<Workspace, WorkspaceNotFound, CurrentActor>;
-    readonly get: (id: WorkspaceId) => Effect.Effect<Workspace, WorkspaceNotFound>;
+    ) => Effect.Effect<Project, ProjectNotFound, CurrentActor>;
+    readonly get: (id: ProjectId) => Effect.Effect<Project, ProjectNotFound>;
     readonly driverFor: (source: SourceId) => Effect.Effect<SourceDriver, SourceUnavailable>;
     readonly locateDirectory: (
-      id: WorkspaceId,
+      id: ProjectId,
       directory: EntryRef,
     ) => Effect.Effect<LocatedDirectory, DirectoryError>;
-    readonly locateFile: (id: WorkspaceId, file: EntryRef) => Effect.Effect<LocatedFile, FileError>;
+    readonly locateFile: (id: ProjectId, file: EntryRef) => Effect.Effect<LocatedFile, FileError>;
   }
->()("@starlight/core/Workspaces") {
-  static readonly layer = Layer.effect(Workspaces)(
+>()("@starlight/core/Projects") {
+  static readonly layer = Layer.effect(Projects)(
     Effect.gen(function* () {
       const drivers = yield* SourceDrivers;
-      const store = yield* WorkspaceStore;
+      const store = yield* ProjectStore;
       const audit = yield* AuditLog;
 
-      const get = (id: WorkspaceId) =>
+      const get = (id: ProjectId) =>
         store.findById(id).pipe(
           Effect.flatMap(
             Option.match({
-              onNone: () => Effect.fail(new WorkspaceNotFound({ workspaceId: id })),
+              onNone: () => Effect.fail(new ProjectNotFound({ projectId: id })),
               onSome: Effect.succeed,
             }),
           ),
@@ -84,7 +81,7 @@ export class Workspaces extends Context.Service<
         return found ? Effect.succeed(found) : Effect.fail(new SourceUnavailable({ source }));
       };
 
-      const prepareMount = Effect.fn("Workspaces.prepareMount")(function* (root: EntryRef) {
+      const prepareMount = Effect.fn("Projects.prepareMount")(function* (root: EntryRef) {
         const driver = yield* driverFor(root.source);
         const id = yield* driver.canonicalize(root.id);
         const entry = yield* driver.stat(id);
@@ -92,12 +89,12 @@ export class Workspaces extends Context.Service<
         return { root: { source: root.source, id }, name: entry.name } satisfies Mount;
       });
 
-      const record = Effect.fn("Workspaces.record")(function* (action: string, target: unknown) {
+      const record = Effect.fn("Projects.record")(function* (action: string, target: unknown) {
         yield* audit.record({ actor: yield* CurrentActor, action, target: JSON.stringify(target) });
       });
 
-      const mountOf = (workspace: Workspace, driver: SourceDriver, directory: EntryRef) =>
-        workspace.mounts.find(
+      const mountOf = (project: Project, driver: SourceDriver, directory: EntryRef) =>
+        project.mounts.find(
           (mount) => mount.root.source === directory.source && driver.contains(mount.root.id, directory.id),
         );
 
@@ -115,7 +112,7 @@ export class Workspaces extends Context.Service<
           Effect.orElseSucceed(() => false),
         );
 
-      const missing = Effect.fn("Workspaces.missing")(function* (
+      const missing = Effect.fn("Projects.missing")(function* (
         mount: Mount,
         driver: SourceDriver,
         requested: EntryRef,
@@ -131,60 +128,59 @@ export class Workspaces extends Context.Service<
         return yield* new DirectoryMissing({ entry: requested, nearest: Option.getOrNull(nearest) });
       });
 
-      return Workspaces.of({
-        create: Effect.fn("Workspaces.create")(function* (root) {
+      return Projects.of({
+        create: Effect.fn("Projects.create")(function* (root) {
           const mount = yield* prepareMount(root);
-          const workspace = yield* store.create({ name: mount.name, mounts: [mount] });
-          yield* record("CreateWorkspace", { workspaceId: workspace.id, root: mount.root });
-          return workspace;
+          const project = yield* store.create({ name: mount.name, mounts: [mount] });
+          yield* record("CreateProject", { projectId: project.id, root: mount.root });
+          return project;
         }),
         list: store.list,
-        rename: Effect.fn("Workspaces.rename")(function* (id, name) {
-          const workspace = yield* get(id);
+        rename: Effect.fn("Projects.rename")(function* (id, name) {
+          const project = yield* get(id);
           yield* store.rename(id, name);
-          yield* record("RenameWorkspace", { workspaceId: id });
-          return { ...workspace, name };
+          yield* record("RenameProject", { projectId: id });
+          return { ...project, name };
         }),
-        remove: Effect.fn("Workspaces.remove")(function* (id) {
+        remove: Effect.fn("Projects.remove")(function* (id) {
           yield* get(id);
           yield* store.remove(id);
-          yield* record("DeleteWorkspace", { workspaceId: id });
+          yield* record("DeleteProject", { projectId: id });
         }),
-        addMount: Effect.fn("Workspaces.addMount")(function* (id, root) {
+        addMount: Effect.fn("Projects.addMount")(function* (id, root) {
           yield* get(id);
           const mount = yield* prepareMount(root);
           yield* store.addMount(id, mount);
-          yield* record("AddMount", { workspaceId: id, root: mount.root });
+          yield* record("AddMount", { projectId: id, root: mount.root });
           return yield* get(id);
         }),
-        removeMount: Effect.fn("Workspaces.removeMount")(function* (id, root) {
+        removeMount: Effect.fn("Projects.removeMount")(function* (id, root) {
           yield* get(id);
           yield* store.removeMount(id, root);
-          yield* record("RemoveMount", { workspaceId: id, root });
+          yield* record("RemoveMount", { projectId: id, root });
           return yield* get(id);
         }),
         get,
         driverFor,
-        locateDirectory: Effect.fn("Workspaces.locateDirectory")(function* (id, requested) {
-          const workspace = yield* get(id);
+        locateDirectory: Effect.fn("Projects.locateDirectory")(function* (id, requested) {
+          const project = yield* get(id);
           const driver = yield* driverFor(requested.source);
-          const lexicalMount = mountOf(workspace, driver, requested);
-          if (!lexicalMount) return yield* new OutsideWorkspace({ entry: requested });
+          const lexicalMount = mountOf(project, driver, requested);
+          if (!lexicalMount) return yield* new OutsideProject({ entry: requested });
           const entry = yield* statIfExists(driver, requested);
           if (Option.isNone(entry) || entry.value.kind !== "directory")
             return yield* missing(lexicalMount, driver, requested);
           const directory = { source: requested.source, id: yield* driver.canonicalize(requested.id) };
-          const mount = mountOf(workspace, driver, directory);
-          if (!mount) return yield* new OutsideWorkspace({ entry: requested });
+          const mount = mountOf(project, driver, directory);
+          if (!mount) return yield* new OutsideProject({ entry: requested });
           return { mount, driver, directory };
         }),
-        locateFile: Effect.fn("Workspaces.locateFile")(function* (id, requested) {
-          const workspace = yield* get(id);
+        locateFile: Effect.fn("Projects.locateFile")(function* (id, requested) {
+          const project = yield* get(id);
           const driver = yield* driverFor(requested.source);
-          if (!mountOf(workspace, driver, requested))
-            return yield* new OutsideWorkspace({ entry: requested });
+          if (!mountOf(project, driver, requested)) return yield* new OutsideProject({ entry: requested });
           const file = { source: requested.source, id: yield* driver.canonicalize(requested.id) };
-          if (!mountOf(workspace, driver, file)) return yield* new OutsideWorkspace({ entry: requested });
+          if (!mountOf(project, driver, file)) return yield* new OutsideProject({ entry: requested });
           const entry = yield* driver.stat(file.id);
           if (entry.kind !== "file") return yield* new NotAFile({ entry: requested });
           return { driver, file, entry };

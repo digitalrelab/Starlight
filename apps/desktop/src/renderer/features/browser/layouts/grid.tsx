@@ -30,12 +30,12 @@ const tilePreviewUrl = (media: Media, width: number, height: number) =>
 const aspectOf = (media: Media | undefined) =>
   media ? Math.min(MAX_ASPECT, Math.max(MIN_ASPECT, media.width / media.height)) : ICON_TILE_ASPECT;
 
-const useMedia = (workspaceId: string, directory: EntryRef | null, entries: ReadonlyArray<Entry>) => {
+const useMedia = (projectId: string, directory: EntryRef | null, entries: ReadonlyArray<Entry>) => {
   const { queries, subscriptions } = useStarlight();
-  const { data } = useSuspenseQuery(queries.media(workspaceId, directory));
+  const { data } = useSuspenseQuery(queries.media(projectId, directory));
   useEffect(
-    () => (directory ? subscriptions.media(workspaceId, directory) : undefined),
-    [subscriptions, workspaceId, directory, entries],
+    () => (directory ? subscriptions.media(projectId, directory) : undefined),
+    [subscriptions, projectId, directory, entries],
   );
   const byKey = indexByKey(data);
   return { byKey, aspects: Float64Array.from(entries, (entry) => aspectOf(byKey.get(entryKey(entry.ref)))) };
@@ -64,7 +64,7 @@ const useGridLayout = (
 };
 
 export const GridLayout = ({
-  workspaceId,
+  projectId,
   directory,
   entries,
   selected,
@@ -74,7 +74,7 @@ export const GridLayout = ({
 }: LayoutProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const width = useElementWidth(scrollRef);
-  const media = useMedia(workspaceId, directory, entries);
+  const media = useMedia(projectId, directory, entries);
   const layout = useGridLayout(entries, media, width);
 
   const virtualizer = useVirtualizer({

@@ -16,7 +16,7 @@ export type {
   Media,
   Update,
   UpdaterState,
-  Workspace,
+  Project,
 } from "@starlight/contracts";
 export {
   ClaudeCodeProvider,

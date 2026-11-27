@@ -19,7 +19,7 @@ export interface FileSessionState<T> {
 }
 
 export interface FileSessionOptions<T> {
-  readonly workspaceId: string;
+  readonly projectId: string;
   readonly file: EntryRef;
   readonly codec: Codec<T>;
   readonly load: (source: FileSource) => Promise<Uint8Array>;
@@ -27,7 +27,7 @@ export interface FileSessionOptions<T> {
 
 export const createFileSession = <T>(
   client: StarlightClient,
-  { workspaceId, file, codec, load }: FileSessionOptions<T>,
+  { projectId, file, codec, load }: FileSessionOptions<T>,
 ) => {
   const listeners = new Set<() => void>();
   let state: FileSessionState<T> = { document: undefined, status: "loading", unsaved: false };
@@ -88,7 +88,7 @@ export const createFileSession = <T>(
     const startedAt = edits;
     update({ status: "saving" });
     try {
-      advance(await client.files.write(workspaceId, file, encode(read()), base));
+      advance(await client.files.write(projectId, file, encode(read()), base));
       settled = startedAt;
       update({ status: unsaved() ? "dirty" : "saved" });
       if (unsaved()) schedule();

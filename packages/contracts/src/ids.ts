@@ -1,7 +1,7 @@
 import { Schema } from "effect";
 
-export const WorkspaceId = Schema.String.pipe(Schema.brand("WorkspaceId"));
-export type WorkspaceId = typeof WorkspaceId.Type;
+export const ProjectId = Schema.String.pipe(Schema.brand("ProjectId"));
+export type ProjectId = typeof ProjectId.Type;
 
 export const SourceId = Schema.String.pipe(Schema.brand("SourceId"));
 export type SourceId = typeof SourceId.Type;

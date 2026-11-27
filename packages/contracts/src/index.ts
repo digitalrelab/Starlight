@@ -11,4 +11,4 @@ export * from "./imaging.ts";
 export * from "./media.ts";
 export * from "./rpc.ts";
 export * from "./update.ts";
-export * from "./workspace.ts";
+export * from "./project.ts";

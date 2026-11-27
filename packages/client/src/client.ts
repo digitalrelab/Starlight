@@ -8,7 +8,7 @@ import {
   HostRpcs,
   type ModelChoice,
   ShellRpcs,
-  type WorkspaceId,
+  type ProjectId,
 } from "@starlight/contracts";
 import { Context, Effect, Layer, ManagedRuntime, Stream } from "effect";
 import { RpcClient, type RpcClientError } from "effect/rpc";
@@ -46,42 +46,42 @@ export const createClient = (ports: PortSources) => {
     );
     return () => fiber.interruptUnsafe();
   };
-  const id = (workspaceId: string) => workspaceId as WorkspaceId;
+  const id = (projectId: string) => projectId as ProjectId;
   const chat = (chatId: string) => chatId as ChatId;
 
   return {
-    workspaces: {
-      create: (root: EntryRef) => host((c) => c.CreateWorkspace({ root })),
-      list: () => host((c) => c.ListWorkspaces()),
-      get: (workspaceId: string) => host((c) => c.GetWorkspace({ workspaceId: id(workspaceId) })),
-      rename: (workspaceId: string, name: string) =>
-        host((c) => c.RenameWorkspace({ workspaceId: id(workspaceId), name })),
-      remove: (workspaceId: string) => host((c) => c.DeleteWorkspace({ workspaceId: id(workspaceId) })),
-      addMount: (workspaceId: string, root: EntryRef) =>
-        host((c) => c.AddMount({ workspaceId: id(workspaceId), root })),
-      removeMount: (workspaceId: string, root: EntryRef) =>
-        host((c) => c.RemoveMount({ workspaceId: id(workspaceId), root })),
+    projects: {
+      create: (root: EntryRef) => host((c) => c.CreateProject({ root })),
+      list: () => host((c) => c.ListProjects()),
+      get: (projectId: string) => host((c) => c.GetProject({ projectId: id(projectId) })),
+      rename: (projectId: string, name: string) =>
+        host((c) => c.RenameProject({ projectId: id(projectId), name })),
+      remove: (projectId: string) => host((c) => c.DeleteProject({ projectId: id(projectId) })),
+      addMount: (projectId: string, root: EntryRef) =>
+        host((c) => c.AddMount({ projectId: id(projectId), root })),
+      removeMount: (projectId: string, root: EntryRef) =>
+        host((c) => c.RemoveMount({ projectId: id(projectId), root })),
     },
     entries: {
-      list: (workspaceId: string, directory: EntryRef | null) =>
-        host((c) => c.ListEntries({ workspaceId: id(workspaceId), directory })),
-      watch: (workspaceId: string, onChange: (change: EntryChange) => void) =>
-        watch("Entries", (c) => c.WatchEntries({ workspaceId: id(workspaceId) }), onChange),
+      list: (projectId: string, directory: EntryRef | null) =>
+        host((c) => c.ListEntries({ projectId: id(projectId), directory })),
+      watch: (projectId: string, onChange: (change: EntryChange) => void) =>
+        watch("Entries", (c) => c.WatchEntries({ projectId: id(projectId) }), onChange),
     },
     media: {
-      list: (workspaceId: string, directory: EntryRef | null) =>
-        host((c) => c.ListMedia({ workspaceId: id(workspaceId), directory })),
+      list: (projectId: string, directory: EntryRef | null) =>
+        host((c) => c.ListMedia({ projectId: id(projectId), directory })),
       process: (
-        workspaceId: string,
+        projectId: string,
         directory: EntryRef,
         onUpdates: (updates: ReadonlyArray<MediaUpdate>) => void,
-      ) => watch("Media", (c) => c.ProcessMedia({ workspaceId: id(workspaceId), directory }), onUpdates),
+      ) => watch("Media", (c) => c.ProcessMedia({ projectId: id(projectId), directory }), onUpdates),
     },
     files: {
-      source: (workspaceId: string, file: EntryRef) =>
-        host((c) => c.GetFileSource({ workspaceId: id(workspaceId), file })),
-      write: (workspaceId: string, file: EntryRef, content: Uint8Array, base: FileVersion) =>
-        host((c) => c.WriteFile({ workspaceId: id(workspaceId), file, content, base })),
+      source: (projectId: string, file: EntryRef) =>
+        host((c) => c.GetFileSource({ projectId: id(projectId), file })),
+      write: (projectId: string, file: EntryRef, content: Uint8Array, base: FileVersion) =>
+        host((c) => c.WriteFile({ projectId: id(projectId), file, content, base })),
     },
     agents: {
       providers: () => host((c) => c.ListAgentProviders()),

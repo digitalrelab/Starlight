@@ -1,11 +1,11 @@
 import { Schema } from "effect";
-import { EntryRef, SourceId, WorkspaceId } from "./ids.ts";
+import { EntryRef, SourceId, ProjectId } from "./ids.ts";
 
-export class WorkspaceNotFound extends Schema.TaggedError<WorkspaceNotFound>()("WorkspaceNotFound", {
-  workspaceId: WorkspaceId,
+export class ProjectNotFound extends Schema.TaggedError<ProjectNotFound>()("ProjectNotFound", {
+  projectId: ProjectId,
 }) {
   override get message() {
-    return `Workspace not found: ${this.workspaceId}`;
+    return `Project not found: ${this.projectId}`;
   }
 }
 
@@ -17,11 +17,11 @@ export class SourceUnavailable extends Schema.TaggedError<SourceUnavailable>()("
   }
 }
 
-export class OutsideWorkspace extends Schema.TaggedError<OutsideWorkspace>()("OutsideWorkspace", {
+export class OutsideProject extends Schema.TaggedError<OutsideProject>()("OutsideProject", {
   entry: EntryRef,
 }) {
   override get message() {
-    return `Outside the workspace: ${this.entry.id}`;
+    return `Outside the project: ${this.entry.id}`;
   }
 }
 
@@ -60,9 +60,9 @@ export const MountError = Schema.Union([SourceUnavailable, NotADirectory, Source
 export type MountError = typeof MountError.Type;
 
 export const DirectoryError = Schema.Union([
-  WorkspaceNotFound,
+  ProjectNotFound,
   SourceUnavailable,
-  OutsideWorkspace,
+  OutsideProject,
   DirectoryMissing,
   SourceError,
 ]);
@@ -77,9 +77,9 @@ export class VersionConflict extends Schema.TaggedError<VersionConflict>()("Vers
 }
 
 export const FileError = Schema.Union([
-  WorkspaceNotFound,
+  ProjectNotFound,
   SourceUnavailable,
-  OutsideWorkspace,
+  OutsideProject,
   NotAFile,
   SourceError,
 ]);

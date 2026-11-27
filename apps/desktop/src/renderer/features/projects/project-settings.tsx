@@ -1,17 +1,17 @@
 import { Delete02Icon, FolderAddIcon, FolderIcon, Remove01Icon } from "@hugeicons-pro/core-stroke-rounded";
-import { entryKey, type Workspace } from "@starlight/client";
+import { entryKey, type Project } from "@starlight/client";
 import { Button, Icon, IconButton, Item, RenameInput } from "@starlight/ui";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { useStarlight } from "#renderer/lib/context.ts";
-import { DeleteWorkspaceDialog } from "./delete-workspace-dialog.tsx";
+import { DeleteProjectDialog } from "./delete-project-dialog.tsx";
 import { useFolderAction } from "./use-folder-action.ts";
-import { useRenameWorkspace } from "./use-rename-workspace.ts";
+import { useRenameProject } from "./use-rename-project.ts";
 
-const Folders = ({ workspace }: { readonly workspace: Workspace }) => {
+const Folders = ({ project }: { readonly project: Project }) => {
   const { mutations } = useStarlight();
-  const add = useFolderAction(mutations.addMount(workspace.id));
-  const remove = useMutation(mutations.removeMount(workspace.id));
+  const add = useFolderAction(mutations.addMount(project.id));
+  const remove = useMutation(mutations.removeMount(project.id));
 
   return (
     <Item.List>
@@ -26,7 +26,7 @@ const Folders = ({ workspace }: { readonly workspace: Workspace }) => {
           Add Folder…
         </Button>
       </Item.Root>
-      {workspace.mounts.map((mount) => (
+      {project.mounts.map((mount) => (
         <Item.Root key={entryKey(mount.root)}>
           <Item.Main>
             <Item.Media>
@@ -49,8 +49,8 @@ const Folders = ({ workspace }: { readonly workspace: Workspace }) => {
   );
 };
 
-export const WorkspaceSettings = ({ workspace }: { readonly workspace: Workspace }) => {
-  const rename = useRenameWorkspace(workspace.id);
+export const ProjectSettings = ({ project }: { readonly project: Project }) => {
+  const rename = useRenameProject(project.id);
   const [deleting, setDeleting] = useState(false);
 
   return (
@@ -58,23 +58,23 @@ export const WorkspaceSettings = ({ workspace }: { readonly workspace: Workspace
       <Item.List>
         <Item.Root>
           <Item.Content>
-            <Item.Title htmlFor="workspace-name">Name</Item.Title>
+            <Item.Title htmlFor="project-name">Name</Item.Title>
             <Item.Description>Shown in the sidebar</Item.Description>
           </Item.Content>
           <RenameInput
-            key={workspace.name}
-            id="workspace-name"
-            value={workspace.name}
+            key={project.name}
+            id="project-name"
+            value={project.name}
             onRename={rename}
             className="max-w-64"
           />
         </Item.Root>
       </Item.List>
-      <Folders workspace={workspace} />
+      <Folders project={project} />
       <Item.List>
         <Item.Root>
           <Item.Content>
-            <Item.Title>Delete workspace</Item.Title>
+            <Item.Title>Delete project</Item.Title>
             <Item.Description>Its folders and files stay where they are</Item.Description>
           </Item.Content>
           <Button intent="secondary" onClick={() => setDeleting(true)}>
@@ -83,7 +83,7 @@ export const WorkspaceSettings = ({ workspace }: { readonly workspace: Workspace
           </Button>
         </Item.Root>
       </Item.List>
-      <DeleteWorkspaceDialog workspace={workspace} open={deleting} onOpenChange={setDeleting} />
+      <DeleteProjectDialog project={project} open={deleting} onOpenChange={setDeleting} />
     </>
   );
 };

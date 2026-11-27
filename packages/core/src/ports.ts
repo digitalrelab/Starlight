@@ -17,8 +17,8 @@ import type {
   FileToken,
   PixelSample,
   SampleFailed,
-  Workspace,
-  WorkspaceId,
+  Project,
+  ProjectId,
 } from "@starlight/contracts";
 import { Context, Data, type Effect, type Option, type Stream } from "effect";
 
@@ -114,21 +114,21 @@ export class FactStore extends Context.Service<
   }
 >()("@starlight/core/FactStore") {}
 
-export class WorkspaceStore extends Context.Service<
-  WorkspaceStore,
+export class ProjectStore extends Context.Service<
+  ProjectStore,
   {
     readonly create: (input: {
       readonly name: string;
       readonly mounts: ReadonlyArray<Mount>;
-    }) => Effect.Effect<Workspace>;
-    readonly rename: (id: WorkspaceId, name: string) => Effect.Effect<void>;
-    readonly remove: (id: WorkspaceId) => Effect.Effect<void>;
-    readonly addMount: (id: WorkspaceId, mount: Mount) => Effect.Effect<void>;
-    readonly removeMount: (id: WorkspaceId, root: EntryRef) => Effect.Effect<void>;
-    readonly findById: (id: WorkspaceId) => Effect.Effect<Option.Option<Workspace>>;
-    readonly list: Effect.Effect<ReadonlyArray<Workspace>>;
+    }) => Effect.Effect<Project>;
+    readonly rename: (id: ProjectId, name: string) => Effect.Effect<void>;
+    readonly remove: (id: ProjectId) => Effect.Effect<void>;
+    readonly addMount: (id: ProjectId, mount: Mount) => Effect.Effect<void>;
+    readonly removeMount: (id: ProjectId, root: EntryRef) => Effect.Effect<void>;
+    readonly findById: (id: ProjectId) => Effect.Effect<Option.Option<Project>>;
+    readonly list: Effect.Effect<ReadonlyArray<Project>>;
   }
->()("@starlight/core/WorkspaceStore") {}
+>()("@starlight/core/ProjectStore") {}
 
 export interface AuditRecord {
   readonly actor: Actor;

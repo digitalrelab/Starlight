@@ -2,11 +2,11 @@ import { FolderAddIcon, Navigation03Icon, Settings01Icon } from "@hugeicons-pro/
 import { IconButton, NavItem } from "@starlight/ui";
 import { Link } from "@tanstack/react-router";
 import { UpdateButton } from "#renderer/features/updates/update-button.tsx";
-import { useCreateWorkspace } from "#renderer/features/workspaces/use-create-workspace.ts";
-import { WorkspaceList } from "#renderer/features/workspaces/workspace-list.tsx";
+import { useCreateProject } from "#renderer/features/projects/use-create-project.ts";
+import { ProjectList } from "#renderer/features/projects/project-list.tsx";
 
 export const MainSidebar = () => {
-  const createWorkspace = useCreateWorkspace();
+  const createProject = useCreateProject();
 
   return (
     <>
@@ -14,14 +14,14 @@ export const MainSidebar = () => {
         <NavItem icon={Navigation03Icon} render={<Link to="/agent" />}>
           Agent
         </NavItem>
-        <NavItem icon={FolderAddIcon} onClick={createWorkspace.run} disabled={createWorkspace.pending}>
-          New Workspace…
+        <NavItem icon={FolderAddIcon} onClick={createProject.run} disabled={createProject.pending}>
+          New Project…
         </NavItem>
-        {createWorkspace.error ? (
-          <p className="px-2 text-sm text-danger">{createWorkspace.error.message}</p>
+        {createProject.error ? (
+          <p className="px-2 text-sm text-danger">{createProject.error.message}</p>
         ) : null}
       </div>
-      <WorkspaceList />
+      <ProjectList />
     </>
   );
 };

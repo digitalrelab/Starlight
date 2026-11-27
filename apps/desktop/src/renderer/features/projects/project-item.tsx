@@ -4,26 +4,26 @@ import {
   PencilEdit02Icon,
   Settings02Icon,
 } from "@hugeicons-pro/core-stroke-rounded";
-import type { Workspace } from "@starlight/client";
+import type { Project } from "@starlight/client";
 import { Menu, NavItem, RenameInput } from "@starlight/ui";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { DeleteWorkspaceDialog } from "./delete-workspace-dialog.tsx";
-import { useRenameWorkspace } from "./use-rename-workspace.ts";
+import { DeleteProjectDialog } from "./delete-project-dialog.tsx";
+import { useRenameProject } from "./use-rename-project.ts";
 
-export const WorkspaceItem = ({ workspace }: { readonly workspace: Workspace }) => {
+export const ProjectItem = ({ project }: { readonly project: Project }) => {
   const [renaming, setRenaming] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const rename = useRenameWorkspace(workspace.id);
+  const rename = useRenameProject(project.id);
   const navigate = useNavigate();
-  const params = { workspaceId: workspace.id };
+  const params = { projectId: project.id };
 
   if (renaming) {
     return (
       <RenameInput
         autoFocus
-        value={workspace.name}
-        aria-label="Workspace name"
+        value={project.name}
+        aria-label="Project name"
         onRename={rename}
         onClose={() => setRenaming(false)}
       />
@@ -37,7 +37,7 @@ export const WorkspaceItem = ({ workspace }: { readonly workspace: Workspace }) 
       </Menu.Item>
       <Menu.Item
         icon={Settings02Icon}
-        onClick={() => void navigate({ to: "/w/$workspaceId/settings", params })}
+        onClick={() => void navigate({ to: "/p/$projectId/settings", params })}
       >
         Settings
       </Menu.Item>
@@ -52,12 +52,12 @@ export const WorkspaceItem = ({ workspace }: { readonly workspace: Workspace }) 
     <>
       <NavItem
         icon={FolderIcon}
-        render={<Link to="/w/$workspaceId" params={params} activeOptions={{ includeSearch: false }} />}
-        menu={{ label: "Workspace actions", items }}
+        render={<Link to="/p/$projectId" params={params} activeOptions={{ includeSearch: false }} />}
+        menu={{ label: "Project actions", items }}
       >
-        {workspace.name}
+        {project.name}
       </NavItem>
-      <DeleteWorkspaceDialog workspace={workspace} open={deleting} onOpenChange={setDeleting} />
+      <DeleteProjectDialog project={project} open={deleting} onOpenChange={setDeleting} />
     </>
   );
 };
