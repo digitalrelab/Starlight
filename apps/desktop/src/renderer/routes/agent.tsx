@@ -1,7 +1,7 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
-import { AgentSidebar, AgentSidebarFooter } from "#renderer/features/agent/agent-sidebar.tsx";
+import { createFileRoute } from "@tanstack/react-router";
+import { AgentShell } from "#renderer/features/agent/agent-shell.tsx";
+import { NewChat } from "#renderer/features/agent/new-chat.tsx";
 import { usePrepareAgentProviders } from "#renderer/features/agent/use-prepare-agent-providers.ts";
-import { AppShell } from "#renderer/features/shell/app-shell.tsx";
 
 export const Route = createFileRoute("/agent")({
   loader: ({ context: { queryClient, queries } }) =>
@@ -9,14 +9,14 @@ export const Route = createFileRoute("/agent")({
       queryClient.ensureQueryData(queries.chats(null)),
       queryClient.ensureQueryData(queries.agentProviders()),
     ]),
-  component: AgentLayout,
+  component: Agent,
 });
 
-function AgentLayout() {
+function Agent() {
   usePrepareAgentProviders();
   return (
-    <AppShell sidebar={<AgentSidebar />} footer={<AgentSidebarFooter />}>
-      <Outlet />
-    </AppShell>
+    <AgentShell>
+      <NewChat projectId={null} />
+    </AgentShell>
   );
 }

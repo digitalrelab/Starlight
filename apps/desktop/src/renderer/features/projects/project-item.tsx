@@ -6,19 +6,23 @@ import {
 } from "@hugeicons-pro/core-stroke-rounded";
 import type { Project } from "@starlight/client";
 import { Menu, NavItem, RenameInput } from "@starlight/ui";
-import { Link, useNavigate, useParams } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { DeleteProjectDialog } from "./delete-project-dialog.tsx";
 import { ProjectChats } from "./project-chats.tsx";
 import { useRenameProject } from "./use-rename-project.ts";
 
-export const ProjectItem = ({ project }: { readonly project: Project }) => {
+interface Props {
+  readonly project: Project;
+  readonly active: boolean;
+}
+
+export const ProjectItem = ({ project, active }: Props) => {
   const [renaming, setRenaming] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const rename = useRenameProject(project.id);
   const navigate = useNavigate();
   const params = { projectId: project.id };
-  const active = useParams({ strict: false }).projectId === project.id;
 
   if (renaming) {
     return (

@@ -1,12 +1,15 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
-import { AppShell } from "#renderer/features/shell/app-shell.tsx";
-import { MainSidebar, MainSidebarFooter } from "#renderer/features/shell/main-sidebar.tsx";
+import { createFileRoute, Outlet, useParams } from "@tanstack/react-router";
+import { MainShell } from "#renderer/features/shell/main-shell.tsx";
 
 export const Route = createFileRoute("/_app")({
   loader: ({ context: { queryClient, queries } }) => queryClient.ensureQueryData(queries.projects()),
-  component: () => (
-    <AppShell sidebar={<MainSidebar />} footer={<MainSidebarFooter />}>
-      <Outlet />
-    </AppShell>
-  ),
+  component: AppLayout,
 });
+
+function AppLayout() {
+  return (
+    <MainShell activeProjectId={useParams({ strict: false }).projectId ?? null}>
+      <Outlet />
+    </MainShell>
+  );
+}

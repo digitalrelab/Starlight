@@ -13,8 +13,7 @@ import { Route as AppRouteImport } from './routes/_app'
 import { Route as AgentRouteImport } from './routes/agent'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
-import { Route as AgentIndexRouteImport } from './routes/agent.index'
-import { Route as AgentChatIdRouteImport } from './routes/agent.$chatId'
+import { Route as ChatsChatIdRouteImport } from './routes/chats.$chatId'
 import { Route as SettingsIndexRouteImport } from './routes/settings.index'
 import { Route as SettingsAppearanceRouteImport } from './routes/settings.appearance'
 import { Route as SettingsDiskRouteImport } from './routes/settings.disk'
@@ -25,8 +24,6 @@ import { Route as AppPProjectIdRouteImport } from './routes/_app.p.$projectId'
 import { Route as AppPProjectIdIndexRouteImport } from './routes/_app.p.$projectId.index'
 import { Route as AppPProjectIdChatsRouteImport } from './routes/_app.p.$projectId.chats'
 import { Route as AppPProjectIdSettingsRouteImport } from './routes/_app.p.$projectId.settings'
-import { Route as AppPProjectIdChatsIndexRouteImport } from './routes/_app.p.$projectId.chats.index'
-import { Route as AppPProjectIdChatsChatIdRouteImport } from './routes/_app.p.$projectId.chats.$chatId'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
@@ -47,15 +44,10 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
-const AgentIndexRoute = AgentIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AgentRoute,
-} as any)
-const AgentChatIdRoute = AgentChatIdRouteImport.update({
-  id: '/$chatId',
-  path: '/$chatId',
-  getParentRoute: () => AgentRoute,
+const ChatsChatIdRoute = ChatsChatIdRouteImport.update({
+  id: '/chats/$chatId',
+  path: '/chats/$chatId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsIndexRoute = SettingsIndexRouteImport.update({
   id: '/',
@@ -107,72 +99,54 @@ const AppPProjectIdSettingsRoute = AppPProjectIdSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AppPProjectIdRoute,
 } as any)
-const AppPProjectIdChatsIndexRoute = AppPProjectIdChatsIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppPProjectIdChatsRoute,
-} as any)
-const AppPProjectIdChatsChatIdRoute =
-  AppPProjectIdChatsChatIdRouteImport.update({
-    id: '/$chatId',
-    path: '/$chatId',
-    getParentRoute: () => AppPProjectIdChatsRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
-  '/agent': typeof AgentRouteWithChildren
+  '/agent': typeof AgentRoute
   '/settings': typeof SettingsRouteWithChildren
-  '/agent/$chatId': typeof AgentChatIdRoute
+  '/chats/$chatId': typeof ChatsChatIdRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/disk': typeof SettingsDiskRoute
   '/settings/files': typeof SettingsFilesRoute
   '/settings/providers': typeof SettingsProvidersRoute
   '/settings/updates': typeof SettingsUpdatesRoute
-  '/agent/': typeof AgentIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/p/$projectId': typeof AppPProjectIdRouteWithChildren
-  '/p/$projectId/chats': typeof AppPProjectIdChatsRouteWithChildren
+  '/p/$projectId/chats': typeof AppPProjectIdChatsRoute
   '/p/$projectId/settings': typeof AppPProjectIdSettingsRoute
   '/p/$projectId/': typeof AppPProjectIdIndexRoute
-  '/p/$projectId/chats/$chatId': typeof AppPProjectIdChatsChatIdRoute
-  '/p/$projectId/chats/': typeof AppPProjectIdChatsIndexRoute
 }
 export interface FileRoutesByTo {
-  '/agent/$chatId': typeof AgentChatIdRoute
+  '/agent': typeof AgentRoute
+  '/chats/$chatId': typeof ChatsChatIdRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/disk': typeof SettingsDiskRoute
   '/settings/files': typeof SettingsFilesRoute
   '/settings/providers': typeof SettingsProvidersRoute
   '/settings/updates': typeof SettingsUpdatesRoute
   '/': typeof AppIndexRoute
-  '/agent': typeof AgentIndexRoute
   '/settings': typeof SettingsIndexRoute
+  '/p/$projectId/chats': typeof AppPProjectIdChatsRoute
   '/p/$projectId/settings': typeof AppPProjectIdSettingsRoute
   '/p/$projectId': typeof AppPProjectIdIndexRoute
-  '/p/$projectId/chats/$chatId': typeof AppPProjectIdChatsChatIdRoute
-  '/p/$projectId/chats': typeof AppPProjectIdChatsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
-  '/agent': typeof AgentRouteWithChildren
+  '/agent': typeof AgentRoute
   '/settings': typeof SettingsRouteWithChildren
-  '/agent/$chatId': typeof AgentChatIdRoute
+  '/chats/$chatId': typeof ChatsChatIdRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/disk': typeof SettingsDiskRoute
   '/settings/files': typeof SettingsFilesRoute
   '/settings/providers': typeof SettingsProvidersRoute
   '/settings/updates': typeof SettingsUpdatesRoute
   '/_app/': typeof AppIndexRoute
-  '/agent/': typeof AgentIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/_app/p/$projectId': typeof AppPProjectIdRouteWithChildren
-  '/_app/p/$projectId/chats': typeof AppPProjectIdChatsRouteWithChildren
+  '/_app/p/$projectId/chats': typeof AppPProjectIdChatsRoute
   '/_app/p/$projectId/settings': typeof AppPProjectIdSettingsRoute
   '/_app/p/$projectId/': typeof AppPProjectIdIndexRoute
-  '/_app/p/$projectId/chats/$chatId': typeof AppPProjectIdChatsChatIdRoute
-  '/_app/p/$projectId/chats/': typeof AppPProjectIdChatsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -180,61 +154,55 @@ export interface FileRouteTypes {
     | '/'
     | '/agent'
     | '/settings'
-    | '/agent/$chatId'
+    | '/chats/$chatId'
     | '/settings/appearance'
     | '/settings/disk'
     | '/settings/files'
     | '/settings/providers'
     | '/settings/updates'
-    | '/agent/'
     | '/settings/'
     | '/p/$projectId'
     | '/p/$projectId/chats'
     | '/p/$projectId/settings'
     | '/p/$projectId/'
-    | '/p/$projectId/chats/$chatId'
-    | '/p/$projectId/chats/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/agent/$chatId'
+    | '/agent'
+    | '/chats/$chatId'
     | '/settings/appearance'
     | '/settings/disk'
     | '/settings/files'
     | '/settings/providers'
     | '/settings/updates'
     | '/'
-    | '/agent'
     | '/settings'
+    | '/p/$projectId/chats'
     | '/p/$projectId/settings'
     | '/p/$projectId'
-    | '/p/$projectId/chats/$chatId'
-    | '/p/$projectId/chats'
   id:
     | '__root__'
     | '/_app'
     | '/agent'
     | '/settings'
-    | '/agent/$chatId'
+    | '/chats/$chatId'
     | '/settings/appearance'
     | '/settings/disk'
     | '/settings/files'
     | '/settings/providers'
     | '/settings/updates'
     | '/_app/'
-    | '/agent/'
     | '/settings/'
     | '/_app/p/$projectId'
     | '/_app/p/$projectId/chats'
     | '/_app/p/$projectId/settings'
     | '/_app/p/$projectId/'
-    | '/_app/p/$projectId/chats/$chatId'
-    | '/_app/p/$projectId/chats/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
-  AgentRoute: typeof AgentRouteWithChildren
+  AgentRoute: typeof AgentRoute
   SettingsRoute: typeof SettingsRouteWithChildren
+  ChatsChatIdRoute: typeof ChatsChatIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -267,19 +235,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
-    '/agent/': {
-      id: '/agent/'
-      path: '/'
-      fullPath: '/agent/'
-      preLoaderRoute: typeof AgentIndexRouteImport
-      parentRoute: typeof AgentRoute
-    }
-    '/agent/$chatId': {
-      id: '/agent/$chatId'
-      path: '/$chatId'
-      fullPath: '/agent/$chatId'
-      preLoaderRoute: typeof AgentChatIdRouteImport
-      parentRoute: typeof AgentRoute
+    '/chats/$chatId': {
+      id: '/chats/$chatId'
+      path: '/chats/$chatId'
+      fullPath: '/chats/$chatId'
+      preLoaderRoute: typeof ChatsChatIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/settings/': {
       id: '/settings/'
@@ -351,44 +312,17 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPProjectIdSettingsRouteImport
       parentRoute: typeof AppPProjectIdRoute
     }
-    '/_app/p/$projectId/chats/': {
-      id: '/_app/p/$projectId/chats/'
-      path: '/'
-      fullPath: '/p/$projectId/chats/'
-      preLoaderRoute: typeof AppPProjectIdChatsIndexRouteImport
-      parentRoute: typeof AppPProjectIdChatsRoute
-    }
-    '/_app/p/$projectId/chats/$chatId': {
-      id: '/_app/p/$projectId/chats/$chatId'
-      path: '/$chatId'
-      fullPath: '/p/$projectId/chats/$chatId'
-      preLoaderRoute: typeof AppPProjectIdChatsChatIdRouteImport
-      parentRoute: typeof AppPProjectIdChatsRoute
-    }
   }
 }
 
-interface AppPProjectIdChatsRouteChildren {
-  AppPProjectIdChatsChatIdRoute: typeof AppPProjectIdChatsChatIdRoute
-  AppPProjectIdChatsIndexRoute: typeof AppPProjectIdChatsIndexRoute
-}
-
-const AppPProjectIdChatsRouteChildren: AppPProjectIdChatsRouteChildren = {
-  AppPProjectIdChatsChatIdRoute: AppPProjectIdChatsChatIdRoute,
-  AppPProjectIdChatsIndexRoute: AppPProjectIdChatsIndexRoute,
-}
-
-const AppPProjectIdChatsRouteWithChildren =
-  AppPProjectIdChatsRoute._addFileChildren(AppPProjectIdChatsRouteChildren)
-
 interface AppPProjectIdRouteChildren {
-  AppPProjectIdChatsRoute: typeof AppPProjectIdChatsRouteWithChildren
+  AppPProjectIdChatsRoute: typeof AppPProjectIdChatsRoute
   AppPProjectIdSettingsRoute: typeof AppPProjectIdSettingsRoute
   AppPProjectIdIndexRoute: typeof AppPProjectIdIndexRoute
 }
 
 const AppPProjectIdRouteChildren: AppPProjectIdRouteChildren = {
-  AppPProjectIdChatsRoute: AppPProjectIdChatsRouteWithChildren,
+  AppPProjectIdChatsRoute: AppPProjectIdChatsRoute,
   AppPProjectIdSettingsRoute: AppPProjectIdSettingsRoute,
   AppPProjectIdIndexRoute: AppPProjectIdIndexRoute,
 }
@@ -408,18 +342,6 @@ const AppRouteChildren: AppRouteChildren = {
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
-
-interface AgentRouteChildren {
-  AgentChatIdRoute: typeof AgentChatIdRoute
-  AgentIndexRoute: typeof AgentIndexRoute
-}
-
-const AgentRouteChildren: AgentRouteChildren = {
-  AgentChatIdRoute: AgentChatIdRoute,
-  AgentIndexRoute: AgentIndexRoute,
-}
-
-const AgentRouteWithChildren = AgentRoute._addFileChildren(AgentRouteChildren)
 
 interface SettingsRouteChildren {
   SettingsAppearanceRoute: typeof SettingsAppearanceRoute
@@ -445,8 +367,9 @@ const SettingsRouteWithChildren = SettingsRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
-  AgentRoute: AgentRouteWithChildren,
+  AgentRoute: AgentRoute,
   SettingsRoute: SettingsRouteWithChildren,
+  ChatsChatIdRoute: ChatsChatIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

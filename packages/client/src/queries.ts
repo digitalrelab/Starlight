@@ -15,6 +15,7 @@ const listingKey = (projectId: string, directory: string | null, facet: "entries
   [...directoryKey(projectId), directory, facet] as const;
 
 const chatsKey = ["chats"] as const;
+const chatKey = ["chat"] as const;
 
 const createQueries = (client: StarlightClient) => ({
   projects: () => queryOptions({ queryKey: ["projects"], queryFn: () => client.projects.list() }),
@@ -60,7 +61,7 @@ const createQueries = (client: StarlightClient) => ({
 
   chat: (id: string) =>
     queryOptions({
-      queryKey: ["chat", id],
+      queryKey: [...chatKey, id],
       queryFn: () => client.chats.get(id),
       staleTime: Infinity,
     }),
@@ -180,7 +181,10 @@ const createMutations = (client: StarlightClient, queryClient: QueryClient, quer
         );
         queryClient.removeQueries(queries.project(projectId));
         queryClient.removeQueries({ queryKey: directoryKey(projectId) });
-        return queryClient.invalidateQueries({ queryKey: chatsKey });
+        return Promise.all([
+          queryClient.invalidateQueries({ queryKey: chatsKey }),
+          queryClient.invalidateQueries({ queryKey: chatKey }),
+        ]);
       },
     }),
 
