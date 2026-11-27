@@ -94,9 +94,10 @@ export class Projects extends Context.Service<
       const recordChange = Effect.fn("Projects.recordChange")(function* (
         projectId: ProjectId,
         action: string,
-        target: unknown,
+        details?: object,
       ) {
-        yield* audit.record({ actor: yield* CurrentActor, action, target: JSON.stringify(target) });
+        const target = JSON.stringify({ projectId, ...details });
+        yield* audit.record({ actor: yield* CurrentActor, action, target });
         yield* PubSub.publish(changes, projectId);
       });
 
@@ -139,32 +140,32 @@ export class Projects extends Context.Service<
         create: Effect.fn("Projects.create")(function* (root) {
           const mount = yield* prepareMount(root);
           const project = yield* store.create({ name: mount.name, mounts: [mount] });
-          yield* recordChange(project.id, "CreateProject", { projectId: project.id, root: mount.root });
+          yield* recordChange(project.id, "CreateProject", { root: mount.root });
           return project;
         }),
         list: store.list,
         rename: Effect.fn("Projects.rename")(function* (id, name) {
           const project = yield* get(id);
           yield* store.rename(id, name);
-          yield* recordChange(id, "RenameProject", { projectId: id });
+          yield* recordChange(id, "RenameProject");
           return { ...project, name };
         }),
         remove: Effect.fn("Projects.remove")(function* (id) {
           yield* get(id);
           yield* store.remove(id);
-          yield* recordChange(id, "DeleteProject", { projectId: id });
+          yield* recordChange(id, "DeleteProject");
         }),
         addMount: Effect.fn("Projects.addMount")(function* (id, root) {
           yield* get(id);
           const mount = yield* prepareMount(root);
           yield* store.addMount(id, mount);
-          yield* recordChange(id, "AddMount", { projectId: id, root: mount.root });
+          yield* recordChange(id, "AddMount", { root: mount.root });
           return yield* get(id);
         }),
         removeMount: Effect.fn("Projects.removeMount")(function* (id, root) {
           yield* get(id);
           yield* store.removeMount(id, root);
-          yield* recordChange(id, "RemoveMount", { projectId: id, root });
+          yield* recordChange(id, "RemoveMount", { root });
           return yield* get(id);
         }),
         get,
