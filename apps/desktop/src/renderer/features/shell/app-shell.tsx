@@ -1,9 +1,16 @@
 import type { ReactNode } from "react";
-import { Sidebar } from "./sidebar.tsx";
 
-export const AppShell = ({ children }: { readonly children: ReactNode }) => (
+interface Props {
+  readonly sidebar: ReactNode;
+  readonly children: ReactNode;
+}
+
+export const AppShell = ({ sidebar, children }: Props) => (
   <div className="flex h-full">
-    <Sidebar />
+    <aside className="flex w-60 shrink-0 flex-col">
+      <div className="h-11 shrink-0 app-drag" />
+      <nav className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-2 pb-2">{sidebar}</nav>
+    </aside>
     <main className="my-2 mr-2 flex min-w-0 flex-1 flex-col overflow-hidden rounded-lg border border-border bg-panel shadow-xs">
       {children}
     </main>

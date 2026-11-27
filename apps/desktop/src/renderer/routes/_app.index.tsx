@@ -4,7 +4,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader } from "../features/shell/page-header.tsx";
 import { useOpenWorkspace } from "../features/workspaces/use-open-workspace.ts";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_app/")({
   component: Home,
 });
 

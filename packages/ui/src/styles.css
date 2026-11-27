@@ -47,3 +47,19 @@
 @utility focus-ring {
   @apply outline-none focus-visible:ring-2 focus-visible:ring-accent/60;
 }
+
+@layer base {
+  a {
+    cursor: default;
+  }
+
+  [data-pointer-cursors]
+    :is(
+      a[href],
+      button:not(:disabled),
+      [role="button"]:not([aria-disabled="true"]),
+      [role="switch"]:not([data-disabled])
+    ) {
+    cursor: pointer;
+  }
+}
