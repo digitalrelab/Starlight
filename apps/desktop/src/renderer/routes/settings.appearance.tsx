@@ -31,9 +31,9 @@ const SIZE_LABELS: Record<Size, string> = {
 };
 
 const CHAT_FONT_LABELS: Record<ChatFont, string> = {
+  mono: "Mono",
   sans: "Sans",
   serif: "Serif",
-  mono: "Mono",
 };
 
 export const Route = createFileRoute("/settings/appearance")({
