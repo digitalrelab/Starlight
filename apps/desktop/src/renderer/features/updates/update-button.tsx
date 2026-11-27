@@ -12,17 +12,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { useStarlight } from "../../lib/context.ts";
 import { UpdateAction } from "./update-action.tsx";
-
-const LABELS = {
-  available: "Update available",
-  downloading: "Downloading update",
-  downloaded: "Restart to update",
-} as const;
-
-const FAILURES = {
-  download: "Couldn't download the update.",
-  install: "Couldn't install the update.",
-} as const;
+import { updateStatus } from "./update-status.ts";
 
 export const UpdateButton = ({ className }: { readonly className?: string }) => {
   const { queries } = useStarlight();
@@ -30,21 +20,23 @@ export const UpdateButton = ({ className }: { readonly className?: string }) => 
   const update = updater?.update;
   if (!update) return null;
 
+  const { tone, label } = updateStatus(updater);
+
   return (
     <Popover>
       <span className={cn("relative inline-flex", className)}>
         <IconButton
           icon={RefreshDotIcon}
-          label={update.failure ? FAILURES[update.failure] : LABELS[update.status]}
+          label={label}
           className={
-            update.failure ? "text-danger highlighted:text-danger" : "text-brand highlighted:text-brand"
+            tone === "danger" ? "text-danger highlighted:text-danger" : "text-brand highlighted:text-brand"
           }
           render={<PopoverTrigger />}
         />
         {update.status === "downloading" ? (
           <ProgressRing
             value={update.progress}
-            label={LABELS.downloading}
+            label={label}
             className="pointer-events-none absolute inset-0 size-full text-brand"
           />
         ) : null}
@@ -62,7 +54,7 @@ export const UpdateButton = ({ className }: { readonly className?: string }) => 
           <Prose html={update.releaseNotes} />
         </ScrollArea>
         <div className="flex items-center justify-end gap-3">
-          {update.failure ? <p className="mr-auto text-sm text-danger">{FAILURES[update.failure]}</p> : null}
+          {update.failure ? <p className="mr-auto text-sm text-danger">{label}</p> : null}
           <UpdateAction update={update} />
         </div>
       </PopoverContent>
