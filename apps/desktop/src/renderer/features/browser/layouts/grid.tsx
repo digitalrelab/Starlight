@@ -1,31 +1,34 @@
-import { Image01Icon } from "@hugeicons-pro/core-stroke-rounded";
 import { type Entry, type EntryRef, entryKey, type Media } from "@starlight/client";
-import { cn, Icon, ScrollArea } from "@starlight/ui";
+import { ScrollArea } from "@starlight/ui";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { type KeyboardEvent, memo, useEffect, useEffectEvent, useLayoutEffect, useRef } from "react";
-import { previewUrl } from "#shared/previews.ts";
+import { type KeyboardEvent, useEffect, useEffectEvent, useLayoutEffect, useRef } from "react";
 import { useStarlight } from "#renderer/lib/context.ts";
-import { placeholderUrl } from "#renderer/lib/placeholder.ts";
-import { reveal } from "#renderer/lib/reveal.ts";
 import { useElementWidth } from "#renderer/lib/use-element-width.ts";
-import { KindIcon, itemKindOf } from "#renderer/features/files/kind-icon.tsx";
-import { justify, nearestInRow } from "./justify.ts";
+import { justify, nearestInRow, shelve, stack } from "./rows.ts";
+import { FolderChip, TILE_CHROME, TILE_INSET, Tile, tilePreviewUrl } from "./tile.tsx";
 import type { LayoutProps } from "./types.ts";
-import { usePreview, usePreviewsAhead } from "./use-preview.ts";
+import { usePreviewsAhead } from "./use-preview.ts";
 
 const TARGET_ROW_HEIGHT = 200;
 const MAX_ROW_HEIGHT = 320;
-const GAP = 4;
-const PADDING = 8;
+const GUTTER = 12;
+const SECTION_GAP = 16;
+const TILE_GAP = 4;
+const CHIP_HEIGHT = 40;
+const CHIP_MIN_WIDTH = 200;
+const CHIP_GAP = 8;
 const MIN_ASPECT = 0.5;
 const MAX_ASPECT = 3;
 const ICON_TILE_ASPECT = 1;
 
 const indexByKey = (media: ReadonlyArray<Media>) => new Map(media.map((item) => [entryKey(item.ref), item]));
 
-const tilePreviewUrl = (media: Media, width: number, height: number) =>
-  previewUrl(media.token, Math.max(width, height) * window.devicePixelRatio);
+const leadingFolders = (entries: ReadonlyArray<Entry>) => {
+  let count = 0;
+  while (entries[count]?.kind === "directory") count++;
+  return count;
+};
 
 const aspectOf = (media: Media | undefined) =>
   media ? Math.min(MAX_ASPECT, Math.max(MIN_ASPECT, media.width / media.height)) : ICON_TILE_ASPECT;
@@ -46,12 +49,27 @@ const useGridLayout = (
   { byKey, aspects }: ReturnType<typeof useMedia>,
   width: number,
 ) => {
-  const layout = justify(aspects, {
-    width: width - PADDING * 2,
+  const folderCount = leadingFolders(entries);
+  const inner = Math.max(0, width - GUTTER * 2);
+  const shelf = shelve(folderCount, {
+    width: inner,
+    minWidth: CHIP_MIN_WIDTH,
+    height: CHIP_HEIGHT,
+    gap: CHIP_GAP,
+  });
+  const tiles = justify(aspects.subarray(folderCount), {
+    width: inner + TILE_INSET * 2,
     targetHeight: TARGET_ROW_HEIGHT,
     maxHeight: MAX_ROW_HEIGHT,
-    gap: GAP,
+    gap: TILE_GAP,
+    chrome: TILE_CHROME,
   });
+  const layout = {
+    ...stack(shelf, GUTTER, tiles, GUTTER - TILE_INSET, SECTION_GAP - TILE_INSET),
+    folderCount,
+    paddingStart: shelf.rows.length > 0 ? GUTTER : GUTTER - TILE_INSET,
+    paddingEnd: tiles.rows.length > 0 ? GUTTER - TILE_INSET : GUTTER,
+  };
   usePreviewsAhead(
     layout.rows.flatMap((row) =>
       entries.slice(row.start, row.end).flatMap((entry, offset) => {
@@ -80,9 +98,12 @@ export const GridLayout = ({
   const virtualizer = useVirtualizer({
     count: layout.rows.length,
     getScrollElement: () => scrollRef.current,
-    estimateSize: (index) => (layout.rows[index]?.height ?? 0) + GAP,
-    paddingStart: PADDING,
-    paddingEnd: PADDING - GAP,
+    estimateSize: (index) => {
+      const row = layout.rows[index];
+      return row ? row.height + (index < layout.rows.length - 1 ? row.gap : 0) : 0;
+    },
+    paddingStart: layout.paddingStart,
+    paddingEnd: layout.paddingEnd,
     overscan: 3,
   });
 
@@ -136,21 +157,21 @@ export const GridLayout = ({
               {entries.slice(row.start, row.end).map((entry, offset) => {
                 const index = row.start + offset;
                 const key = entryKey(entry.ref);
-                return (
-                  <Tile
-                    key={key}
-                    index={index}
-                    entry={entry}
-                    media={media.byKey.get(key)}
-                    left={PADDING + (layout.left[index] ?? 0)}
-                    width={layout.width[index] ?? 0}
-                    height={row.height}
-                    visible={visible}
-                    selected={index === selected}
-                    onSelect={onSelect}
-                    onHover={onHover}
-                    onOpen={onOpen}
-                  />
+                const cell = {
+                  index,
+                  entry,
+                  left: layout.left[index] ?? 0,
+                  width: layout.width[index] ?? 0,
+                  height: row.height,
+                  selected: index === selected,
+                  onSelect,
+                  onHover,
+                  onOpen,
+                };
+                return index < layout.folderCount ? (
+                  <FolderChip key={key} {...cell} />
+                ) : (
+                  <Tile key={key} {...cell} media={media.byKey.get(key)} visible={visible} />
                 );
               })}
             </div>
@@ -158,88 +179,5 @@ export const GridLayout = ({
         })}
       </div>
     </ScrollArea>
-  );
-};
-
-interface TileProps {
-  readonly index: number;
-  readonly entry: Entry;
-  readonly media: Media | undefined;
-  readonly left: number;
-  readonly width: number;
-  readonly height: number;
-  readonly visible: boolean;
-  readonly selected: boolean;
-  readonly onSelect: (index: number) => void;
-  readonly onHover: (index: number | null) => void;
-  readonly onOpen: (entry: Entry) => void;
-}
-
-const Tile = memo(
-  ({ index, entry, media, left, width, height, visible, selected, onSelect, onHover, onOpen }: TileProps) => {
-    return (
-      <div
-        onClick={() => onSelect(index)}
-        onDoubleClick={() => onOpen(entry)}
-        onPointerEnter={() => onHover(index)}
-        onPointerLeave={() => onHover(null)}
-        title={entry.name}
-        className={cn(
-          "absolute top-0 overflow-hidden rounded-md bg-neutral",
-          selected && "ring-3 ring-selected",
-          entry.hidden && "opacity-50",
-        )}
-        style={{ left, width, height }}
-      >
-        {media ? (
-          <Preview
-            url={tilePreviewUrl(media, width, height)}
-            placeholder={media.placeholder}
-            visible={visible}
-          />
-        ) : (
-          <div className="flex size-full flex-col items-center justify-center gap-2 p-3">
-            <KindIcon kind={itemKindOf(entry)} size={40} />
-            <span className="w-full truncate text-center text-sm">{entry.name}</span>
-          </div>
-        )}
-      </div>
-    );
-  },
-);
-
-interface PreviewProps {
-  readonly url: string;
-  readonly placeholder: string | null;
-  readonly visible: boolean;
-}
-
-const Preview = ({ url, placeholder, visible }: PreviewProps) => {
-  const src = usePreview(url, visible);
-  return (
-    <>
-      {placeholder ? (
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${placeholderUrl(placeholder)})` }}
-        />
-      ) : (
-        <Icon
-          icon={Image01Icon}
-          size={24}
-          className="absolute top-1/2 left-1/2 -translate-1/2 text-subtlest"
-        />
-      )}
-      {src && (
-        <img
-          src={src}
-          alt=""
-          decoding="async"
-          draggable={false}
-          onLoad={reveal}
-          className="relative size-full object-cover opacity-0 transition-opacity duration-150 data-loaded:opacity-100"
-        />
-      )}
-    </>
   );
 };
