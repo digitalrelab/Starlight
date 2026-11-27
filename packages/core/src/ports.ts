@@ -95,6 +95,7 @@ export interface SourceDriver {
     name: string,
     kind: CreatableKind,
   ) => Effect.Effect<SourceEntry, SourceError>;
+  readonly rename: (id: EntryId, name: string) => Effect.Effect<SourceEntry, SourceError>;
   readonly watch: (root: EntryId) => Stream.Stream<SourceChange, SourceError>;
   readonly extractors: Extractors;
   readonly sample: (entry: SourceEntry) => Effect.Effect<Option.Option<PixelSample>, SampleFailed>;

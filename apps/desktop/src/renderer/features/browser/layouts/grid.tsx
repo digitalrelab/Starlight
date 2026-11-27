@@ -8,7 +8,9 @@ import { useElementWidth } from "#renderer/lib/use-element-width.ts";
 import { useRevealFocus } from "#renderer/features/browser/selection.ts";
 import { listProps, type Step } from "./events.ts";
 import { dropLeading, justify, nearestInRow, shelve, stack } from "./rows.ts";
+import { KindIcon } from "#renderer/features/files/kind-icon.tsx";
 import { DraftChip, FolderChip, TILE_CHROME, TILE_INSET, Tile, tilePreviewUrl } from "./tile.tsx";
+import { draftOf, fieldFor } from "./naming-slot.ts";
 import type { LayoutProps } from "./types.ts";
 import { usePreviewsAhead } from "./use-preview.ts";
 
@@ -96,10 +98,11 @@ export const GridLayout = ({
   directory,
   entries,
   selection,
-  draft,
+  naming,
   onHover,
   onOpen,
 }: LayoutProps) => {
+  const draft = draftOf(naming);
   const scrollRef = useRef<HTMLDivElement>(null);
   const width = useElementWidth(scrollRef);
   const media = useMedia(projectId, directory, entries);
@@ -148,7 +151,8 @@ export const GridLayout = ({
       <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
         {draft && layout.draftSlot ? (
           <DraftChip {...layout.draftSlot} height={CHIP_HEIGHT}>
-            {draft}
+            <KindIcon kind={draft.kind} className="shrink-0" />
+            {draft.field}
           </DraftChip>
         ) : null}
         {virtualizer.getVirtualItems().map((item) => {
@@ -173,6 +177,7 @@ export const GridLayout = ({
                   left: layout.left[index] ?? 0,
                   width: layout.width[index] ?? 0,
                   height: row.height,
+                  field: fieldFor(naming, key),
                   selection,
                   onHover,
                   onOpen,

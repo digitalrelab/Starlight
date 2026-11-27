@@ -6,10 +6,10 @@ import { DiskUsage } from "./disk.ts";
 import { EntryLocation } from "./reference.ts";
 import { CreatableKind, EntryChange, Listing } from "./entry.ts";
 import {
-  CreateError,
   DirectoryError,
   FileError,
   MountError,
+  NamingError,
   WriteError,
   SourceError,
   SourceUnavailable,
@@ -64,7 +64,12 @@ export class HostRpcs extends RpcGroup.make(
   Rpc.make("CreateEntry", {
     payload: { projectId: ProjectId, directory: EntryRef, name: Schema.NonEmptyString, kind: CreatableKind },
     success: EntryRef,
-    error: CreateError,
+    error: NamingError,
+  }),
+  Rpc.make("RenameEntry", {
+    payload: { projectId: ProjectId, entry: EntryRef, name: Schema.NonEmptyString },
+    success: EntryRef,
+    error: NamingError,
   }),
   Rpc.make("ListMedia", {
     payload: DirectoryRequest,

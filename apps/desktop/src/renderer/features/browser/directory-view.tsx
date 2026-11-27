@@ -1,8 +1,10 @@
 import { type Entry, type EntryRef, entryKey } from "@starlight/client";
 import { Suspense, useEffect, useEffectEvent, useLayoutEffect, useRef, useState } from "react";
+import { itemKindOf } from "#renderer/features/files/kind-icon.tsx";
 import { type LayoutId, layouts } from "./layouts/registry.ts";
-import { DraftField } from "./new-entry/draft-field.tsx";
-import { useDraft } from "./new-entry/draft.ts";
+import { ListingMenu } from "./listing-menu.tsx";
+import { NameField } from "./naming/name-field.tsx";
+import { useNaming } from "./naming/session.ts";
 import { createSelection, type SelectionStore, selectionId, useSelectedCount } from "./selection.ts";
 
 interface Props {
@@ -43,7 +45,7 @@ export const DirectoryView = ({ projectId, directory, entries, layout, shown, on
     if (shownId) selection.follow(shownId);
   }, [selection, shownId]);
 
-  const draft = useDraft(directory);
+  const naming = useNaming(directory);
   const [landing, setLanding] = useState<EntryRef | null>(null);
   const landedId = selectionIdOf(entries, landing);
   useLayoutEffect(() => {
@@ -55,38 +57,54 @@ export const DirectoryView = ({ projectId, directory, entries, layout, shown, on
   useEffect(() => selection.subscribeFocus((index) => intend(index)), [selection]);
   const onHover = (index: number | null) => dwell(index === null ? undefined : entries[index]);
 
-  if (entries.length === 0 && !draft) {
-    return <div className="flex flex-1 items-center justify-center text-subtle">Empty folder</div>;
-  }
+  const slot =
+    naming && directory
+      ? {
+          entry: naming.target && entryKey(naming.target),
+          kind: itemKindOf(naming),
+          field: (
+            <NameField
+              key={naming.key}
+              projectId={projectId}
+              directory={directory}
+              naming={naming}
+              onNamed={(ref) =>
+                naming.target === null && naming.kind === "file"
+                  ? onOpen({ ref, kind: "file" })
+                  : setLanding(ref)
+              }
+            />
+          ),
+        }
+      : null;
 
   const Layout = layouts[layout].component;
-  return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <Suspense fallback={<div className="flex-1" />}>
-        <Layout
-          projectId={projectId}
-          directory={directory}
-          entries={entries}
-          selection={selection}
-          draft={
-            draft && directory ? (
-              <DraftField
-                key={draft.key}
-                projectId={projectId}
-                directory={directory}
-                draft={draft}
-                onCreated={(created) =>
-                  created.kind === "directory" ? setLanding(created.ref) : onOpen(created)
-                }
-              />
-            ) : null
-          }
-          onHover={onHover}
-          onOpen={onOpen}
-        />
-      </Suspense>
-      <Footer selection={selection} total={entries.length} />
-    </div>
+  const listing =
+    entries.length === 0 && !slot ? (
+      <div className="flex flex-1 items-center justify-center text-subtle">Empty folder</div>
+    ) : (
+      <div className="flex min-h-0 flex-1 flex-col">
+        <Suspense fallback={<div className="flex-1" />}>
+          <Layout
+            projectId={projectId}
+            directory={directory}
+            entries={entries}
+            selection={selection}
+            naming={slot}
+            onHover={onHover}
+            onOpen={onOpen}
+          />
+        </Suspense>
+        <Footer selection={selection} total={entries.length} />
+      </div>
+    );
+
+  return directory ? (
+    <ListingMenu directory={directory} entries={entries} selection={selection}>
+      {listing}
+    </ListingMenu>
+  ) : (
+    listing
   );
 };
 
