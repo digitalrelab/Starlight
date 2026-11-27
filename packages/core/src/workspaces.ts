@@ -6,6 +6,7 @@ import {
   type MountError,
   NotADirectory,
   OutsideWorkspace,
+  type SourceId,
   SourceUnavailable,
   type Workspace,
   type WorkspaceId,
@@ -32,7 +33,7 @@ export class Workspaces extends Context.Service<
     ) => Effect.Effect<Workspace, WorkspaceNotFound | MountError, CurrentActor>;
     readonly recent: Effect.Effect<ReadonlyArray<Workspace>>;
     readonly get: (id: WorkspaceId) => Effect.Effect<Workspace, WorkspaceNotFound>;
-    readonly driverFor: (source: EntryRef["source"]) => Effect.Effect<SourceDriver, SourceUnavailable>;
+    readonly driverFor: (source: SourceId) => Effect.Effect<SourceDriver, SourceUnavailable>;
     readonly locateDirectory: (
       id: WorkspaceId,
       directory: EntryRef,
@@ -55,7 +56,7 @@ export class Workspaces extends Context.Service<
           ),
         );
 
-      const driverFor = (source: EntryRef["source"]) => {
+      const driverFor = (source: SourceId) => {
         const found = drivers.get(source);
         return found ? Effect.succeed(found) : Effect.fail(new SourceUnavailable({ source }));
       };
@@ -75,6 +76,14 @@ export class Workspaces extends Context.Service<
       const mountOf = (workspace: Workspace, driver: SourceDriver, directory: EntryRef) =>
         workspace.mounts.find(
           (mount) => mount.root.source === directory.source && driver.contains(mount.root.id, directory.id),
+        );
+
+      const statIfExists = (driver: SourceDriver, ref: EntryRef) =>
+        driver.stat(ref.id).pipe(
+          Effect.map(Option.some),
+          Effect.catchTag("SourceError", (error) =>
+            error.reason === "NotFound" ? Effect.succeedNone : Effect.fail(error),
+          ),
         );
 
       const isDirectory = (driver: SourceDriver, ref: EntryRef) =>
@@ -125,7 +134,8 @@ export class Workspaces extends Context.Service<
           const driver = yield* driverFor(requested.source);
           const lexicalMount = mountOf(workspace, driver, requested);
           if (!lexicalMount) return yield* new OutsideWorkspace({ entry: requested });
-          if (!(yield* isDirectory(driver, requested)))
+          const entry = yield* statIfExists(driver, requested);
+          if (Option.isNone(entry) || entry.value.kind !== "directory")
             return yield* missing(lexicalMount, driver, requested);
           const directory = { source: requested.source, id: yield* driver.canonicalize(requested.id) };
           const mount = mountOf(workspace, driver, directory);

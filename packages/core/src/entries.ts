@@ -6,6 +6,7 @@ import type {
   Listing,
   Mount,
   SourceError,
+  SourceId,
   SourceUnavailable,
   WorkspaceId,
   WorkspaceNotFound,
@@ -24,7 +25,7 @@ const byKindThenName = (a: Entry, b: Entry) => {
   return aDir - bDir || collator.compare(a.name, b.name);
 };
 
-const toEntry = (source: EntryRef["source"], { id, ...entry }: SourceEntry): Entry => ({
+const toEntry = (source: SourceId, { id, ...entry }: SourceEntry): Entry => ({
   ...entry,
   ref: { source, id },
 });
