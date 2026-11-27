@@ -83,7 +83,7 @@ export const UpdateButton = ({ className }: { readonly className?: string }) => 
         side="top"
         align="end"
         aria-label={`Starlight ${update.version}`}
-        className="flex max-h-[min(28rem,var(--available-height))] w-80 flex-col gap-3 overflow-hidden"
+        className="max-h-[min(28rem,var(--available-height))] w-80 gap-3"
       >
         <ScrollArea className="-mx-3" contentClassName="px-3">
           <Prose html={update.releaseNotes} />
