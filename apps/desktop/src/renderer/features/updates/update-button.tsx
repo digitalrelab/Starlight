@@ -19,6 +19,11 @@ const LABELS = {
   downloaded: "Restart to update",
 } as const;
 
+const FAILURES = {
+  download: "Couldn't download the update.",
+  install: "Couldn't install the update.",
+} as const;
+
 const UpdateAction = ({ update }: { readonly update: Update }) => {
   const { mutations } = useStarlight();
   const download = useMutation(mutations.downloadUpdate());
@@ -56,8 +61,10 @@ export const UpdateButton = ({ className }: { readonly className?: string }) => 
       <span className={cn("relative inline-flex", className)}>
         <IconButton
           icon={RefreshDotIcon}
-          label={LABELS[update.status]}
-          className="text-brand highlighted:text-brand"
+          label={update.failure ? FAILURES[update.failure] : LABELS[update.status]}
+          className={
+            update.failure ? "text-danger highlighted:text-danger" : "text-brand highlighted:text-brand"
+          }
           render={<PopoverTrigger />}
         />
         {update.status === "downloading" ? (
@@ -75,6 +82,7 @@ export const UpdateButton = ({ className }: { readonly className?: string }) => 
         className="flex w-80 flex-col gap-3"
       >
         <Prose html={update.releaseNotes} />
+        {update.failure ? <p className="text-sm text-danger">{FAILURES[update.failure]}</p> : null}
         <UpdateAction update={update} />
       </PopoverContent>
     </Popover>
