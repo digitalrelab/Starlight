@@ -5,6 +5,7 @@ import { Channel } from "../shared/channels.ts";
 import { superviseHost } from "./host.ts";
 import { serveShell } from "./shell.ts";
 import { fileScheme, serveFiles } from "./files.ts";
+import { installMenu } from "./menu.ts";
 import { openPreviewCache, previewScheme, servePreviews } from "./previews.ts";
 import { startUpdater } from "./updater.ts";
 import { createWindow } from "./window.ts";
@@ -14,6 +15,7 @@ protocol.registerSchemesAsPrivileged([previewScheme, fileScheme]);
 
 const main = async () => {
   await app.whenReady();
+  installMenu();
   const fileKey = randomBytes(32);
   const previews = openPreviewCache();
   servePreviews(fileKey, previews);
