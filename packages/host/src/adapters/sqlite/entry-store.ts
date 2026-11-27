@@ -75,14 +75,14 @@ export const SqliteEntryStoreLive = Layer.effect(EntryStore)(
     const search = SqlSchema.findAll({
       Request: Schema.Struct({
         words: Schema.String,
-        directories: Schema.Boolean,
-        hidden: Schema.Boolean,
+        group: Schema.Literals(["folders", "files"]),
+        includeHidden: Schema.Boolean,
         limit: Schema.Number,
       }),
       Result: Found,
-      execute: ({ words, directories, hidden, limit }) => {
-        const filters = sql`${directories ? sql`AND kind = 'directory'` : sql`AND kind != 'directory'`} ${
-          hidden ? sql.literal("") : sql`AND concealed = 0`
+      execute: ({ words, group, includeHidden, limit }) => {
+        const filters = sql`${group === "folders" ? sql`AND kind = 'directory'` : sql`AND kind != 'directory'`} ${
+          includeHidden ? sql.literal("") : sql`AND concealed = 0`
         }`;
         return words.trim().length >= TRIGRAM
           ? sql`

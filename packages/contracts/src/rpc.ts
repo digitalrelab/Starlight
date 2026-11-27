@@ -82,7 +82,7 @@ export class HostRpcs extends RpcGroup.make(
     error: Schema.Union([SourceUnavailable, SourceError]),
   }),
   Rpc.make("SearchEntries", {
-    payload: { query: Schema.String, projectId: Schema.NullOr(ProjectId), hidden: Schema.Boolean },
+    payload: { query: Schema.String, projectId: Schema.NullOr(ProjectId), includeHidden: Schema.Boolean },
     success: Schema.Array(EntryMatch),
   }),
   Rpc.make("GetFileDetails", {

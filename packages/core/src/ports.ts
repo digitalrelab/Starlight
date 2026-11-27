@@ -137,8 +137,8 @@ export interface FoundEntry extends StoredEntry {
 
 export interface EntryQuery {
   readonly text: string;
-  readonly directories: boolean;
-  readonly hidden: boolean;
+  readonly group: "folders" | "files";
+  readonly includeHidden: boolean;
   readonly limit: number;
 }
 

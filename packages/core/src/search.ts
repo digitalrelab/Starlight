@@ -12,7 +12,7 @@ export class EntrySearch extends Context.Service<
     readonly search: (
       query: string,
       preferred: ProjectId | null,
-      hidden: boolean,
+      includeHidden: boolean,
     ) => Effect.Effect<ReadonlyArray<EntryMatch>>;
   }
 >()("@starlight/core/EntrySearch") {
@@ -41,12 +41,12 @@ export class EntrySearch extends Context.Service<
       };
 
       return EntrySearch.of({
-        search: Effect.fn("EntrySearch.search")(function* (query, preferred, hidden) {
+        search: Effect.fn("EntrySearch.search")(function* (query, preferred, includeHidden) {
           const text = query.trim();
           if (text === "") return [];
           const [folders, files, all] = yield* Effect.all([
-            store.search({ text, directories: true, hidden, limit: FOLDER_LIMIT }),
-            store.search({ text, directories: false, hidden, limit: FILE_LIMIT }),
+            store.search({ text, group: "folders", includeHidden, limit: FOLDER_LIMIT }),
+            store.search({ text, group: "files", includeHidden, limit: FILE_LIMIT }),
             projects.list,
           ]);
           const candidates = all.toSorted((a, b) => Number(b.id === preferred) - Number(a.id === preferred));
