@@ -21,7 +21,7 @@ const ZOOM_FACTORS: Record<Size, number> = {
 
 export const interfaceSize = defineStored("interface-size", oneOf(SIZES), "default");
 
-export const CHAT_FONTS = ["sans", "serif", "mono"] as const;
+export const CHAT_FONTS = ["mono", "sans", "serif"] as const;
 export type ChatFont = (typeof CHAT_FONTS)[number];
 
 export const chatFont = defineStored("chat-font", oneOf(CHAT_FONTS), "mono");
