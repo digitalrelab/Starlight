@@ -3,6 +3,7 @@ export * from "./button.tsx";
 export { cn } from "cn";
 export * from "./color-scheme-swatch.tsx";
 export * from "./confirm-dialog.tsx";
+export * from "./hold-button.tsx";
 export * from "./icon.tsx";
 export * from "./icon-button.tsx";
 export * from "./interface.tsx";

@@ -78,13 +78,13 @@ export const ConversationItem = ({
       <ConfirmDialog
         open={deleting}
         onOpenChange={setDeleting}
-        title="Delete conversation?"
-        description={`“${title}” and its history will be removed.`}
-        confirmLabel="Delete"
+        action="Delete conversation"
+        subject={title}
+        message="The conversation and its replies are deleted for good."
+        icon={Delete02Icon}
         onConfirm={() =>
           remove.mutate(id, {
             onSuccess: () => {
-              setDeleting(false);
               if (conversationId === id) void navigate({ to: "/agent" });
             },
           })
