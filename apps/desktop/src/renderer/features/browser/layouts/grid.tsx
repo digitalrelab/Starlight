@@ -3,18 +3,10 @@ import { type Entry, entryKey, type Media } from "@starlight/client";
 import { cn, Icon } from "@starlight/ui";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import {
-  type KeyboardEvent,
-  memo,
-  type SyntheticEvent,
-  useEffect,
-  useEffectEvent,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-} from "react";
+import { type KeyboardEvent, memo, useEffect, useEffectEvent, useLayoutEffect, useMemo, useRef } from "react";
 import { thumbnailUrl } from "../../../../shared/thumbnails.ts";
 import { useStarlight } from "../../../lib/context.ts";
+import { reveal } from "../../../lib/reveal.ts";
 import { useElementWidth } from "../../../lib/use-element-width.ts";
 import { EntryIcon } from "../entry-icon.tsx";
 import { justify, nearestInRow } from "./justify.ts";
@@ -32,10 +24,6 @@ const indexByKey = (media: ReadonlyArray<Media>) => new Map(media.map((item) => 
 
 const aspectOf = (media: Media | undefined) =>
   media ? Math.min(MAX_ASPECT, Math.max(MIN_ASPECT, media.width / media.height)) : ICON_TILE_ASPECT;
-
-const reveal = (event: SyntheticEvent<HTMLImageElement>) => {
-  event.currentTarget.dataset["loaded"] = "";
-};
 
 export const GridLayout = ({ workspaceId, directory, entries, selected, onSelect, onOpen }: LayoutProps) => {
   const { queries } = useStarlight();
@@ -175,7 +163,7 @@ const Tile = memo(({ index, entry, media, left, width, height, selected, onSelec
             className="absolute top-1/2 left-1/2 -translate-1/2 text-subtlest"
           />
           <img
-            src={thumbnailUrl(media.thumbnail, Math.max(width, height) * window.devicePixelRatio)}
+            src={thumbnailUrl(media.token, Math.max(width, height) * window.devicePixelRatio)}
             alt=""
             decoding="async"
             draggable={false}

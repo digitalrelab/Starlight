@@ -1,6 +1,7 @@
 import { spawn, spawnSync } from "node:child_process";
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { type AddressInfo, createServer } from "node:net";
+import { join } from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
 
 const STOP_TIMEOUT_MS = 10_000;
@@ -8,7 +9,9 @@ const POLL_MS = 100;
 const FORWARDED_SIGNALS = ["SIGINT", "SIGTERM", "SIGHUP"] as const;
 
 const root = join(import.meta.dirname, "..");
-const pidFile = join(root, ".data", "dev.pid");
+const dataDir = join(root, ".data");
+const pidFile = join(dataDir, "dev.pid");
+const debuggingPortFile = join(dataDir, "dev.port");
 
 const signalGroup = (group: number, signal: NodeJS.Signals | 0) => {
   try {
@@ -35,6 +38,21 @@ const recordedGroup = () => {
   }
 };
 
+const freePort = () =>
+  new Promise<number>((resolve, reject) => {
+    const server = createServer();
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", () => {
+      const { port } = server.address() as AddressInfo;
+      server.close(() => resolve(port));
+    });
+  });
+
+const forget = () => {
+  rmSync(pidFile, { force: true });
+  rmSync(debuggingPortFile, { force: true });
+};
+
 const terminate = async (group: number) => {
   if (!signalGroup(group, "SIGTERM")) return;
   const deadline = Date.now() + STOP_TIMEOUT_MS;
@@ -43,15 +61,21 @@ const terminate = async (group: number) => {
 };
 
 const previous = recordedGroup();
-rmSync(pidFile, { force: true });
+forget();
 if (previous !== undefined && isOwned(previous)) await terminate(previous);
 
 if (!process.argv.includes("--stop")) {
-  const child = spawn("electron-vite", ["dev"], { cwd: root, detached: true, stdio: "inherit" });
+  const debuggingPort = await freePort();
+  const child = spawn("electron-vite", ["dev", "--remoteDebuggingPort", String(debuggingPort)], {
+    cwd: root,
+    detached: true,
+    stdio: "inherit",
+  });
   const group = child.pid;
   if (group === undefined) throw new Error("electron-vite failed to start");
-  mkdirSync(dirname(pidFile), { recursive: true });
+  mkdirSync(dataDir, { recursive: true });
   writeFileSync(pidFile, String(group));
+  writeFileSync(debuggingPortFile, String(debuggingPort));
 
   let stopping = false;
   for (const signal of FORWARDED_SIGNALS) {
@@ -63,7 +87,7 @@ if (!process.argv.includes("--stop")) {
   child.on("exit", async (code) => {
     await terminate(group);
     const current = recordedGroup() === group;
-    if (current) rmSync(pidFile, { force: true });
+    if (current) forget();
     process.exit(stopping || !current ? 0 : (code ?? 1));
   });
 }

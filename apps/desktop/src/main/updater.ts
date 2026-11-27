@@ -9,6 +9,7 @@ const MIN_CHECK_GAP_MS = 5 * 60 * 1000;
 const toUpdate = ({ version, releaseNotes }: UpdateInfo, fields: Pick<Update, "status" | "progress">) => ({
   version,
   releaseNotes: typeof releaseNotes === "string" ? releaseNotes : "",
+  failure: null,
   ...fields,
 });
 
@@ -28,7 +29,9 @@ export const startUpdater = () => {
     autoUpdater.on("download-progress", ({ percent }) => patch({ progress: percent / 100 }));
     autoUpdater.on("update-downloaded", (info) => set(toUpdate(info, { status: "downloaded", progress: 1 })));
     autoUpdater.on("error", () => {
-      if (current()?.status === "downloading") patch({ status: "available", progress: 0 });
+      const status = current()?.status;
+      if (status === "downloading") patch({ status: "available", progress: 0, failure: "download" });
+      if (status === "downloaded") patch({ failure: "install" });
     });
     let checkedAt = 0;
     const check = () => {
@@ -47,10 +50,13 @@ export const startUpdater = () => {
     updates: SubscriptionRef.changes(state).pipe(Stream.filter(Predicate.isNotNull)),
     download: () => {
       if (current()?.status !== "available") return;
-      patch({ status: "downloading", progress: 0 });
+      patch({ status: "downloading", progress: 0, failure: null });
       electronUpdater.autoUpdater.downloadUpdate().catch(() => null);
     },
-    install: () => electronUpdater.autoUpdater.quitAndInstall(),
+    install: () => {
+      patch({ failure: null });
+      electronUpdater.autoUpdater.quitAndInstall();
+    },
   };
 };
 

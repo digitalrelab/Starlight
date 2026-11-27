@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.3.0](https://github.com/digitalrelab/Starlight/compare/v0.2.0...v0.3.0) (2026-11-27)
+
+
+### Features
+
+* **agents:** detect agent providers, starting with Claude Code ([#18](https://github.com/digitalrelab/Starlight/issues/18)) ([106b69d](https://github.com/digitalrelab/Starlight/commit/106b69d7dbbbc96c4108fad68748ef6735206177))
+* **desktop:** add Starlight app icon ([#25](https://github.com/digitalrelab/Starlight/issues/25)) ([e8b235e](https://github.com/digitalrelab/Starlight/commit/e8b235e20955cc9a10e809acd2af338f124b69f0))
+* **desktop:** give each dev instance its own debugging port and a run skill ([#28](https://github.com/digitalrelab/Starlight/issues/28)) ([8b01335](https://github.com/digitalrelab/Starlight/commit/8b013352e76b383c90fce96d97c8003c99d92b31))
+* **desktop:** reopen the last location and show update failures ([#26](https://github.com/digitalrelab/Starlight/issues/26)) ([3bdb348](https://github.com/digitalrelab/Starlight/commit/3bdb348a907d728abda7321db8bc47926c7a0a8c))
+* **desktop:** scope dev instances to their checkout ([#22](https://github.com/digitalrelab/Starlight/issues/22)) ([f93ab7d](https://github.com/digitalrelab/Starlight/commit/f93ab7da2e5beefd1c51727915f2656f268a92e6))
+* **settings:** back arrow in the settings footer and instant provider status ([#24](https://github.com/digitalrelab/Starlight/issues/24)) ([be17eaf](https://github.com/digitalrelab/Starlight/commit/be17eaf11fd8262f023678901883ea1e513d31e4))
+* **viewer:** open images and videos in a full-window viewer ([#20](https://github.com/digitalrelab/Starlight/issues/20)) ([7b2b02f](https://github.com/digitalrelab/Starlight/commit/7b2b02fdc742c0cc04685cb4fce77f1d3edf8426))
+
 ## [0.2.0](https://github.com/digitalrelab/Starlight/compare/v0.1.0...v0.2.0) (2026-11-27)
 
 

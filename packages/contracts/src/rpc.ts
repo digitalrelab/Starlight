@@ -11,9 +11,16 @@ import {
   NoAgentProvider,
 } from "./conversation.ts";
 import { EntryChange, Listing } from "./entry.ts";
-import { DirectoryError, MountError, SourceError, SourceUnavailable, WorkspaceNotFound } from "./errors.ts";
+import {
+  DirectoryError,
+  FileError,
+  MountError,
+  SourceError,
+  SourceUnavailable,
+  WorkspaceNotFound,
+} from "./errors.ts";
 import { EntryRef, WorkspaceId } from "./ids.ts";
-import { Media } from "./media.ts";
+import { FileSource, Media } from "./media.ts";
 import { Update } from "./update.ts";
 import { Workspace } from "./workspace.ts";
 
@@ -47,6 +54,11 @@ export class HostRpcs extends RpcGroup.make(
     payload: DirectoryRequest,
     success: Schema.Array(Media),
     error: DirectoryError,
+  }),
+  Rpc.make("GetFileSource", {
+    payload: { workspaceId: WorkspaceId, file: EntryRef },
+    success: FileSource,
+    error: FileError,
   }),
   Rpc.make("WatchEntries", {
     payload: { workspaceId: WorkspaceId },

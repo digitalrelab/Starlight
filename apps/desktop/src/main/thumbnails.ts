@@ -1,17 +1,17 @@
-import { extname } from "node:path";
-import { LocalSource } from "@starlight/contracts";
-import { verifyThumbnailToken } from "@starlight/host/thumbnail-token";
-import { nativeImage, protocol, screen } from "electron";
+import { type CustomScheme, nativeImage, screen } from "electron";
+import { mediaTypeOf } from "../shared/media-types.ts";
 import { fitThumbnailSize, THUMBNAIL_SCHEME } from "../shared/thumbnails.ts";
+import { serveLocalFiles } from "./local-files.ts";
 
 const CONCURRENCY = 6;
+const MAX_POINTS = 1024;
 const JPEG_QUALITY = 85;
-const OPAQUE_EXTENSIONS = new Set([".jpg", ".jpeg", ".heic", ".heif"]);
+const OPAQUE_TYPES = new Set(["image/jpeg", "image/heic", "image/heif"]);
 
-export const registerThumbnailScheme = () =>
-  protocol.registerSchemesAsPrivileged([
-    { scheme: THUMBNAIL_SCHEME, privileges: { standard: true, secure: true } },
-  ]);
+export const thumbnailScheme: CustomScheme = {
+  scheme: THUMBNAIL_SCHEME,
+  privileges: { standard: true, secure: true },
+};
 
 const createLifoQueue = (concurrency: number) => {
   const pending: Array<() => void> = [];
@@ -39,10 +39,10 @@ const createLifoQueue = (concurrency: number) => {
 };
 
 const render = async (absolute: string, pixels: number) => {
-  const points = Math.ceil(pixels / screen.getPrimaryDisplay().scaleFactor);
+  const points = Math.min(MAX_POINTS, Math.ceil(pixels / screen.getPrimaryDisplay().scaleFactor));
   const image = await nativeImage.createThumbnailFromPath(absolute, { width: points, height: points });
   if (image.isEmpty()) return new Response(null, { status: 404 });
-  const opaque = OPAQUE_EXTENSIONS.has(extname(absolute).toLowerCase());
+  const opaque = OPAQUE_TYPES.has(mediaTypeOf(absolute) ?? "");
   return new Response(new Uint8Array(opaque ? image.toJPEG(JPEG_QUALITY) : image.toPNG()), {
     headers: {
       "content-type": opaque ? "image/jpeg" : "image/png",
@@ -53,12 +53,7 @@ const render = async (absolute: string, pixels: number) => {
 
 export const serveThumbnails = (key: Buffer) => {
   const enqueue = createLifoQueue(CONCURRENCY);
-  protocol.handle(THUMBNAIL_SCHEME, (request) => {
-    const url = new URL(request.url);
-    const ref = verifyThumbnailToken(key, url.pathname.slice(1));
-    if (!ref) return new Response(null, { status: 403 });
-    if (ref.source !== LocalSource) return new Response(null, { status: 404 });
-    const size = fitThumbnailSize(Number(url.searchParams.get("size")));
-    return enqueue(() => render(ref.id, size)).catch(() => new Response(null, { status: 404 }));
-  });
+  serveLocalFiles(THUMBNAIL_SCHEME, key, (path, request) =>
+    enqueue(() => render(path, fitThumbnailSize(Number(new URL(request.url).searchParams.get("size"))))),
+  );
 };

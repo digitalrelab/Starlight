@@ -5,9 +5,9 @@ import { ClaudeCodeProvider, ConnectRequest, LocalSource } from "@starlight/cont
 import { AgentProviderDrivers, CoreLive, SourceDrivers } from "@starlight/core";
 import { Effect, Layer, Queue, Schema } from "effect";
 import { makeClaudeCodeDriver } from "./adapters/claude-code/index.ts";
+import { FileTokensLive } from "./adapters/file-tokens.ts";
 import { makeLocalSource } from "./adapters/local-source/index.ts";
 import { SqliteLive } from "./adapters/sqlite/index.ts";
-import { ThumbnailTokensLive } from "./adapters/thumbnail-tokens.ts";
 import { HostServerLive } from "./rpc/server.ts";
 import { type MainPortLike, serve } from "./rpc/transport.ts";
 
@@ -35,7 +35,7 @@ const requireEnv = (name: string) => {
 const dataDir = requireEnv("STARLIGHT_DATA_DIR");
 const agentDir = join(dataDir, "agent");
 mkdirSync(agentDir, { recursive: true });
-const thumbnailKey = Buffer.from(requireEnv("STARLIGHT_THUMBNAIL_KEY"), "hex");
+const fileKey = Buffer.from(requireEnv("STARLIGHT_FILE_KEY"), "hex");
 
 const decodeConnect = Schema.decodeUnknownEffect(ConnectRequest);
 
@@ -47,12 +47,7 @@ const AgentProviderDriversLive = Layer.succeed(AgentProviderDrivers)(
 
 const HostLive = CoreLive.pipe(
   Layer.provide(
-    Layer.mergeAll(
-      SourceDriversLive,
-      AgentProviderDriversLive,
-      ThumbnailTokensLive(thumbnailKey),
-      SqliteLive(dataDir),
-    ),
+    Layer.mergeAll(SourceDriversLive, AgentProviderDriversLive, FileTokensLive(fileKey), SqliteLive(dataDir)),
   ),
 );
 
