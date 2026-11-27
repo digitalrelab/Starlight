@@ -82,9 +82,9 @@ export const UpdateButton = ({ className }: { readonly className?: string }) => 
         side="top"
         align="end"
         aria-label={`Starlight ${update.version}`}
-        className="flex w-80 flex-col gap-3"
+        className="flex max-h-[min(28rem,var(--available-height))] w-80 flex-col gap-3 overflow-hidden"
       >
-        <Prose html={update.releaseNotes} />
+        <Prose html={update.releaseNotes} className="-mx-3 min-h-0 overflow-y-auto px-3" />
         <div className="flex items-center gap-3">
           {update.failure ? <p className="text-sm text-danger">{FAILURES[update.failure]}</p> : null}
           <UpdateAction update={update} />
