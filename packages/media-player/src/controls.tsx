@@ -17,10 +17,10 @@ import {
   Switch,
 } from "@starlight/ui";
 import { type ReactNode, type Ref, useLayoutEffect, useRef } from "react";
-import { usePlayer } from "./engine.tsx";
+import { usePlayer, usePlayerSetting } from "./engine.tsx";
 import { formatDuration } from "./format.ts";
 import { setPlaybackRate, setVolume, toggleMute, useMediaClock } from "./media.ts";
-import { PLAYBACK_RATES, settings, useSetting } from "./settings.ts";
+import { PLAYBACK_RATES, updateSetting } from "./settings.ts";
 import { Timeline } from "./timeline.tsx";
 import { Visualizer } from "./visualizer.tsx";
 import { volumeIcon } from "./volume.ts";
@@ -78,7 +78,7 @@ const Setting = ({ label, children }: { readonly label: string; readonly childre
 );
 
 const Speed = ({ media }: { readonly media: HTMLMediaElement }) => {
-  const rate = useSetting("playbackRate");
+  const rate = usePlayerSetting("playbackRate");
   return (
     <Select.Root value={String(rate)} onValueChange={(next) => setPlaybackRate(media, Number(next))}>
       <Select.Trigger render={<Button aria-label="Speed" className="w-32 justify-between tabular-nums" />}>
@@ -100,14 +100,17 @@ interface SettingsProps {
   readonly onOpenChange: (open: boolean) => void;
 }
 
-const VisualizerSwitch = () => (
-  <Switch
-    aria-label="Visualizer"
-    checked={useSetting("visualizer")}
-    onCheckedChange={(checked) => settings.update("visualizer", checked)}
-    className="mr-1.5"
-  />
-);
+const VisualizerSwitch = () => {
+  const { settings } = usePlayer();
+  return (
+    <Switch
+      aria-label="Visualizer"
+      checked={usePlayerSetting("visualizer")}
+      onCheckedChange={(checked) => updateSetting(settings, "visualizer", checked)}
+      className="mr-1.5"
+    />
+  );
+};
 
 const Settings = ({ media, onOpenChange }: SettingsProps) => {
   const { isVideo } = usePlayer();
@@ -150,7 +153,7 @@ interface Props {
 
 export const Controls = ({ media, isVisible, onScrubChange, onMenuOpenChange, ref }: Props) => {
   const { state, isVideo } = usePlayer();
-  const showsVisualizer = useSetting("visualizer");
+  const showsVisualizer = usePlayerSetting("visualizer");
   return (
     <div
       ref={ref}
