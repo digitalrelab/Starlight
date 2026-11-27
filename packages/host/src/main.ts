@@ -1,10 +1,17 @@
 import { randomUUID } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { NodeRuntime } from "@effect/platform-node";
-import { type Actor, ClaudeCodeProvider, HostChannel, LocalSource } from "@starlight/contracts";
+import {
+  type Actor,
+  ClaudeCodeProvider,
+  CodexProvider,
+  HostChannel,
+  LocalSource,
+} from "@starlight/contracts";
 import { AgentProviderDrivers, CoreLive, IdGenerator, SourceDrivers } from "@starlight/core";
 import { Effect, Layer, Option, Queue, Schema } from "effect";
 import { makeClaudeCodeDriver } from "./adapters/claude-code/index.ts";
+import { makeCodexDriver } from "./adapters/codex/index.ts";
 import { FileTokensLive } from "./adapters/file-tokens.ts";
 import { Imaging, ImagingLive } from "./adapters/imaging.ts";
 import { makeLocalSource } from "./adapters/local-source/index.ts";
@@ -56,7 +63,10 @@ const SourceDriversLive = Layer.effect(SourceDrivers)(
 ).pipe(Layer.provide(ImagingLive(() => imagingPort.promise)));
 
 const AgentProviderDriversLive = Layer.succeed(AgentProviderDrivers)(
-  new Map([[ClaudeCodeProvider, makeClaudeCodeDriver(agentDir)]]),
+  new Map([
+    [ClaudeCodeProvider, makeClaudeCodeDriver(agentDir)],
+    [CodexProvider, makeCodexDriver(agentDir)],
+  ]),
 );
 
 const IdGeneratorLive = Layer.succeed(IdGenerator)({ next: Effect.sync(randomUUID) });

@@ -21,7 +21,7 @@ export const PopoverContent = ({ side, align, className, ...props }: PopoverCont
       align={align}
       sideOffset={6}
       collisionPadding={8}
-      className="z-floating"
+      className="z-overlay"
     >
       <BasePopover.Popup
         className={cn(

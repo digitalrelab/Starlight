@@ -1,5 +1,6 @@
 import { ArrowUp02Icon } from "@hugeicons-pro/core-stroke-rounded";
-import { IconButton } from "@starlight/ui";
+import { MarkdownEditor } from "@starlight/markdown/editor";
+import { IconButton, ScrollArea } from "@starlight/ui";
 import { type ReactNode, useState } from "react";
 
 interface Props {
@@ -12,6 +13,7 @@ interface Props {
 
 export const Composer = ({ placeholder, disabled = false, autoFocus = false, actions, onSubmit }: Props) => {
   const [text, setText] = useState("");
+  const [sent, setSent] = useState(0);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const ready = text.trim() !== "" && !disabled && !pending;
@@ -22,7 +24,10 @@ export const Composer = ({ placeholder, disabled = false, autoFocus = false, act
     setError(null);
     onSubmit(text.trim())
       .then(
-        () => setText(""),
+        () => {
+          setText("");
+          setSent((count) => count + 1);
+        },
         (cause: unknown) => setError(cause instanceof Error ? cause.message : String(cause)),
       )
       .finally(() => setPending(false));
@@ -37,20 +42,19 @@ export const Composer = ({ placeholder, disabled = false, autoFocus = false, act
           submit();
         }}
       >
-        <textarea
-          value={text}
-          placeholder={placeholder}
-          autoFocus={autoFocus}
-          rows={2}
-          onChange={(event) => setText(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
-              event.preventDefault();
-              submit();
-            }
-          }}
-          className="max-h-64 min-h-12 resize-none bg-transparent px-1 chat-text outline-none field-sizing-content placeholder:text-subtlest"
-        />
+        <ScrollArea className="max-h-64 px-1">
+          <MarkdownEditor
+            key={sent}
+            value=""
+            label="Message"
+            variant="message"
+            className="min-h-12 chat-text"
+            placeholder={placeholder}
+            autoFocus={autoFocus || sent > 0}
+            onChange={(read) => setText(read())}
+            onSubmit={submit}
+          />
+        </ScrollArea>
         <div className="flex items-center justify-end gap-1">
           {actions}
           <IconButton

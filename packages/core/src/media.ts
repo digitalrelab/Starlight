@@ -64,7 +64,14 @@ export class MediaLibrary extends Context.Service<
                   catalog.process(driver, directory, media).pipe(
                     Stream.map((batch) =>
                       batch.flatMap(({ entry, facts }): ReadonlyArray<MediaUpdate> =>
-                        facts ? [{ ref: { source: directory.source, id: entry.id }, ...facts }] : [],
+                        facts
+                          ? [
+                              {
+                                ref: { source: directory.source, id: entry.id },
+                                placeholder: facts.placeholder,
+                              },
+                            ]
+                          : [],
                       ),
                     ),
                     Stream.filter((updates) => updates.length > 0),
