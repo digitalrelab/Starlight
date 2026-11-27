@@ -6,7 +6,8 @@
   "main": "./out/main/index.js",
   "scripts": {
     "postinstall": "install-electron",
-    "dev": "electron-vite dev",
+    "dev": "bun scripts/dev.ts",
+    "dev:stop": "bun scripts/dev.ts --stop",
     "build": "electron-vite build",
     "preview": "electron-vite preview",
     "package": "electron-vite build && electron-builder"
