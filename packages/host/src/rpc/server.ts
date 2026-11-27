@@ -6,6 +6,7 @@ import {
   Entries,
   EntrySearch,
   Files,
+  IgnoreRules,
   MediaLibrary,
   Projects,
 } from "@starlight/core";
@@ -21,6 +22,7 @@ const HandlersLive = HostRpcs.toLayer(
     const agentProviders = yield* AgentProviders;
     const chats = yield* Chats;
     const search = yield* EntrySearch;
+    const ignoreRules = yield* IgnoreRules;
     return HostRpcs.of({
       CreateProject: ({ root }) => projects.create(root),
       ListProjects: () => projects.list,
@@ -36,6 +38,8 @@ const HandlersLive = HostRpcs.toLayer(
       ProcessMedia: ({ projectId, directory }) => media.process(projectId, directory),
       GetFileSource: ({ projectId, file }) => files.source(projectId, file),
       LocateEntry: ({ ref }) => projects.locateEntry(ref),
+      GetIgnorePatterns: () => ignoreRules.patterns,
+      SetIgnorePatterns: ({ patterns }) => ignoreRules.replace(patterns),
       SearchEntries: ({ query, projectId, includeHidden }) => search.search(query, projectId, includeHidden),
       GetFileDetails: ({ projectId, file }) => files.details(projectId, file),
       WriteFile: ({ projectId, file, content, base }) => files.write(projectId, file, content, base),

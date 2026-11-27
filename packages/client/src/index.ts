@@ -31,6 +31,8 @@ export type {
 export {
   ClaudeCodeProvider,
   CodexProvider,
+  DEFAULT_IGNORE_PATTERNS,
+  isIgnorePattern,
   ChatNotFound,
   DirectoryMissing,
   fileKindOf,

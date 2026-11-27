@@ -1,6 +1,7 @@
 import type { EntryId, EntryRef, Project } from "@starlight/contracts";
 import { Array as Arr, type Duration, Effect, FiberMap, Layer, Stream } from "effect";
 import { EntryIndex } from "./entry-index.ts";
+import { IgnoreRules } from "./ignore-rules.ts";
 import type { SourceChange, SourceDriver } from "./ports.ts";
 import { Projects } from "./projects.ts";
 
@@ -32,6 +33,7 @@ export const IndexerLive = Layer.effectDiscard(
   Effect.gen(function* () {
     const projects = yield* Projects;
     const index = yield* EntryIndex;
+    const rules = yield* IgnoreRules;
     const fibers = yield* FiberMap.make<string>();
 
     const reconcile = Effect.fnUntraced(function* (
@@ -55,6 +57,7 @@ export const IndexerLive = Layer.effectDiscard(
 
     const follow = (root: Root) =>
       root.driver.watch(root.ref.id).pipe(
+        Stream.merge(Stream.map(rules.changes, (): SourceChange => ({ _tag: "Resync" }))),
         Stream.groupedWithin(CHANGE_BATCH, CHANGE_WINDOW),
         Stream.runForEach((changes) =>
           changes.some((change) => change._tag === "Resync")

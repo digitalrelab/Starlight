@@ -44,10 +44,10 @@ export class MediaLibrary extends Context.Service<
       const index = yield* EntryIndex;
 
       const locate = Effect.fnUntraced(function* (projectId: ProjectId, requested: EntryRef) {
-        const { driver, directory } = yield* projects.locateDirectory(projectId, requested);
+        const located = yield* projects.locateDirectory(projectId, requested);
+        const { driver, directory } = located;
         const files = yield* index.bind(
-          driver,
-          directory,
+          located,
           (yield* driver.list(directory.id)).filter((entry) => entry.kind === "file"),
         );
         const dimensions = yield* catalog.directory("dimensions", driver, directory, files);

@@ -223,4 +223,9 @@ export const migrations = Migrator.fromRecord({
       END
     `;
   }),
+  "0014_ignore_patterns": Effect.gen(function* () {
+    const sql = yield* SqlClient.SqlClient;
+    yield* sql`CREATE TABLE settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)`;
+    yield* sql`ALTER TABLE entries ADD COLUMN ignored INTEGER NOT NULL DEFAULT 0`;
+  }),
 });

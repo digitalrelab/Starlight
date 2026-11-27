@@ -69,6 +69,9 @@ const createQueries = (client: StarlightClient) => ({
   entryLocation: (ref: EntryRef) =>
     queryOptions({ queryKey: ["entryLocation", entryKey(ref)], queryFn: () => client.entries.locate(ref) }),
 
+  ignorePatterns: () =>
+    queryOptions({ queryKey: ["ignorePatterns"], queryFn: () => client.entries.ignorePatterns() }),
+
   entrySearch: (query: string, projectId: string | null, includeHidden: boolean) =>
     queryOptions({
       queryKey: ["entrySearch", query, projectId, includeHidden],
@@ -134,6 +137,12 @@ const cacheProject = (queryClient: QueryClient, queries: Queries, project: Proje
 
 const createMutations = (client: StarlightClient, queryClient: QueryClient, queries: Queries) => ({
   pickDirectory: () => mutationOptions({ mutationFn: () => client.shell.pickDirectory() }),
+
+  ignore: () =>
+    mutationOptions({
+      mutationFn: (patterns: ReadonlyArray<string>) => client.entries.ignore(patterns),
+      onSuccess: (patterns) => queryClient.setQueryData(queries.ignorePatterns().queryKey, patterns),
+    }),
 
   checkForUpdates: () => mutationOptions({ mutationFn: () => client.updates.check() }),
 

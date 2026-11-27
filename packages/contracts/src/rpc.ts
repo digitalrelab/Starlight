@@ -16,6 +16,7 @@ import {
   ProjectNotFound,
 } from "./errors.ts";
 import { EntryRef, ProjectId } from "./ids.ts";
+import { IgnorePattern } from "./ignore.ts";
 import { FileDetails, FileSource, FileVersion, Media, MediaUpdate } from "./media.ts";
 import { EntryMatch } from "./search.ts";
 import { UpdaterState } from "./update.ts";
@@ -86,6 +87,13 @@ export class HostRpcs extends RpcGroup.make(
     payload: { ref: EntryRef },
     success: EntryLocation,
     error: Schema.Union([SourceUnavailable, SourceError]),
+  }),
+  Rpc.make("GetIgnorePatterns", {
+    success: Schema.Array(IgnorePattern),
+  }),
+  Rpc.make("SetIgnorePatterns", {
+    payload: { patterns: Schema.Array(IgnorePattern) },
+    success: Schema.Array(IgnorePattern),
   }),
   Rpc.make("SearchEntries", {
     payload: { query: Schema.String, projectId: Schema.NullOr(ProjectId), includeHidden: Schema.Boolean },
