@@ -16,6 +16,7 @@ const Root = ({ onClose, onKeyDown, children }: RootProps) => {
   return (
     <Dialog.Root
       open
+      disablePointerDismissal
       onOpenChange={(open) => {
         if (!open) onClose();
       }}
