@@ -219,7 +219,7 @@
 }
 
 .markdown-editor .cm-editor {
-  @apply h-full bg-transparent text-default;
+  @apply bg-transparent text-default;
 }
 
 .markdown-editor .cm-editor.cm-focused {

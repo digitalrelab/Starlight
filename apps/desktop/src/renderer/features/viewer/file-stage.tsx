@@ -1,5 +1,5 @@
 import type { Entry, EntryRef, FileSource } from "@starlight/client";
-import { cn } from "@starlight/ui";
+import { cn, ScrollArea } from "@starlight/ui";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { type ReactNode, Suspense, useState } from "react";
 import { fileUrl } from "../../../shared/files.ts";
@@ -81,9 +81,11 @@ const MarkdownFile = ({ name, source }: { readonly name: string; readonly source
   if (text.isError) return <Notice kind="markdown">Can’t open this file</Notice>;
   if (text.data === undefined) return null;
   return (
-    <Suspense fallback={null}>
-      <MarkdownEditor value={text.data} label={name} className="absolute inset-0" />
-    </Suspense>
+    <ScrollArea className="h-full">
+      <Suspense fallback={null}>
+        <MarkdownEditor value={text.data} label={name} />
+      </Suspense>
+    </ScrollArea>
   );
 };
 
