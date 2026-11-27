@@ -39,6 +39,7 @@ export const connectAppServer = async (executable: string) => {
 
   child.on("exit", () => stop(new Error("Codex stopped.")));
   child.on("error", stop);
+  child.stdin.on("error", stop);
 
   createInterface({ input: child.stdout }).on("line", (line) => {
     const message = parse(line);

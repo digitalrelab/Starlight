@@ -26,7 +26,18 @@ interface TurnCompleted {
   readonly turn: { readonly status: string; readonly error: { readonly message: string } | null };
 }
 
-const listModels = async ({ server }: Connection) => {
+const catalogs = new WeakMap<Connection, Promise<ReadonlyArray<CodexModel>>>();
+
+const listModels = (connection: Connection) => {
+  const known = catalogs.get(connection);
+  if (known) return known;
+  const catalog = fetchModels(connection);
+  catalogs.set(connection, catalog);
+  void catalog.catch(() => catalogs.delete(connection));
+  return catalog;
+};
+
+const fetchModels = async ({ server }: Connection) => {
   const models: Array<CodexModel> = [];
   let cursor: string | null = null;
   do {
