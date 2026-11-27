@@ -2,7 +2,7 @@ import { DirectoryMissing, type Entry, type EntryRef, entryKey } from "@starligh
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, type ErrorComponentProps, Navigate, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Breadcrumbs } from "#renderer/features/browser/breadcrumbs.tsx";
+import { DirectoryBreadcrumbs } from "#renderer/features/browser/directory-breadcrumbs.tsx";
 import {
   parseDirectorySearch,
   toDirectory,
@@ -96,7 +96,7 @@ function Browser() {
           </>
         }
       >
-        <Breadcrumbs project={project} trail={listing.trail} />
+        <DirectoryBreadcrumbs project={project} trail={listing.trail} />
       </PageHeader>
       <DirectoryView
         key={directoryKey}
