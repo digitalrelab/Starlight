@@ -4,7 +4,7 @@ import { useEffect } from "react";
 const BACK_BUTTON = 3;
 const FORWARD_BUTTON = 4;
 
-export const useHistoryButtons = () => {
+export const useMouseHistory = () => {
   const { history } = useRouter();
   useEffect(() => {
     const onMouseUp = (event: MouseEvent) => {
