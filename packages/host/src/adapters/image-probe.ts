@@ -1,4 +1,4 @@
-import { open } from "node:fs/promises";
+import { type FileHandle, open } from "node:fs/promises";
 import { extname } from "node:path";
 import { type Dimensions, MediaProbe, type ProbeTarget } from "@starlight/core";
 import { Effect, Layer, Option } from "effect";
@@ -18,20 +18,17 @@ const EXTENSIONS = new Set([
   ".tif",
   ".tiff",
 ]);
-const READ_STEPS = [64 * 1024, 1024 * 1024] as const;
-const CACHE_LIMIT = 100_000;
+const HEIF_TYPES = new Set(["heif", "heic", "avif"]);
 const ROTATED_ORIENTATIONS = new Set([5, 6, 7, 8]);
+const READ_STEPS = [64 * 1024, 1024 * 1024] as const;
+const EXIF_ITEM_LIMIT = 64 * 1024;
+const CACHE_LIMIT = 100_000;
 
 interface Cached {
   readonly size: number;
   readonly modifiedAt: number;
   readonly dimensions: Dimensions | null;
 }
-
-const HEIF_TYPES = new Set(["heif", "heic", "avif"]);
-const EXIF_ITEM_LIMIT = 64 * 1024;
-
-type FileHandle = Awaited<ReturnType<typeof open>>;
 
 const measure = (bytes: Uint8Array) => {
   try {
@@ -62,17 +59,16 @@ const read = async ({ absolute, size }: ProbeTarget): Promise<Dimensions | null>
     for (const step of READ_STEPS) {
       const header = await readRange(handle, 0, Math.min(step, size));
       const measured = measure(header);
-      if (!measured) {
-        if (header.length === size) return null;
-        continue;
+      if (measured) {
+        const orientation =
+          measured.type && HEIF_TYPES.has(measured.type) && (measured.orientation ?? 1) === 1
+            ? await heifOrientation(handle, header)
+            : measured.orientation;
+        return orientation && ROTATED_ORIENTATIONS.has(orientation)
+          ? { width: measured.height, height: measured.width }
+          : { width: measured.width, height: measured.height };
       }
-      const orientation =
-        measured.type && HEIF_TYPES.has(measured.type) && (measured.orientation ?? 1) === 1
-          ? await heifOrientation(handle, header)
-          : measured.orientation;
-      return orientation && ROTATED_ORIENTATIONS.has(orientation)
-        ? { width: measured.height, height: measured.width }
-        : { width: measured.width, height: measured.height };
+      if (header.length === size) break;
     }
     return null;
   } finally {

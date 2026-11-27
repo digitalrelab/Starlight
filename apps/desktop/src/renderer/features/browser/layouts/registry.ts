@@ -13,7 +13,7 @@ export interface LayoutDefinition {
   readonly preload?: (context: RouterContext, workspaceId: string, path: string) => Promise<unknown>;
 }
 
-export const layouts = {
+const definitions = {
   table: { label: "Table", icon: ListViewIcon, component: TableLayout },
   grid: {
     label: "Grid",
@@ -24,7 +24,9 @@ export const layouts = {
   },
 } satisfies Record<string, LayoutDefinition>;
 
-export type LayoutId = keyof typeof layouts;
+export type LayoutId = keyof typeof definitions;
+
+export const layouts: Readonly<Record<LayoutId, LayoutDefinition>> = definitions;
 
 export const DEFAULT_LAYOUT: LayoutId = "table";
 

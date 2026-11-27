@@ -40,8 +40,12 @@ const findBox = (view: DataView, start: number, end: number, type: string) => {
   return undefined;
 };
 
-const readUint = (view: DataView, offset: number, size: number) =>
-  size === 0 ? 0 : size === 4 ? view.getUint32(offset) : size === 8 ? Number(view.getBigUint64(offset)) : NaN;
+const readUint = (view: DataView, offset: number, size: number) => {
+  if (size === 0) return 0;
+  if (size === 4) return view.getUint32(offset);
+  if (size === 8) return Number(view.getBigUint64(offset));
+  throw new RangeError(`Unsupported field size: ${size}`);
+};
 
 const exifItemId = (view: DataView, iinf: Box) => {
   const version = view.getUint8(iinf.start);

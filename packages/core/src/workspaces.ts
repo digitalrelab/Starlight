@@ -84,7 +84,7 @@ export class Workspaces extends Context.Service<
           const resolved = yield* resolve(id, relative);
           const info = yield* fs.stat(resolved.absolute);
           if (info.kind !== "directory") return yield* new NotADirectory({ path: resolved.relative });
-          return { absolute: resolved.absolute, relative: resolved.relative };
+          return resolved;
         }),
       });
     }),

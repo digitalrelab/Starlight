@@ -6,7 +6,7 @@ import { Breadcrumbs } from "../features/browser/breadcrumbs.tsx";
 import { DirectoryView } from "../features/browser/directory-view.tsx";
 import { readLayout, useLayoutPreference } from "../features/browser/layout-preference.ts";
 import { LayoutSwitcher } from "../features/browser/layout-switcher.tsx";
-import { type LayoutDefinition, layouts } from "../features/browser/layouts/registry.ts";
+import { layouts } from "../features/browser/layouts/registry.ts";
 import { PageHeader } from "../features/shell/page-header.tsx";
 import { useStarlight } from "../lib/context.ts";
 
@@ -21,11 +21,10 @@ export const Route = createFileRoute("/w/$workspaceId")({
   loaderDeps: ({ search }) => ({ path: search.path }),
   loader: ({ context, params, deps }) => {
     const { queryClient, queries } = context;
-    const layout: LayoutDefinition = layouts[readLayout(params.workspaceId)];
     return Promise.all([
       queryClient.ensureQueryData(queries.workspace(params.workspaceId)),
       queryClient.ensureQueryData(queries.entries(params.workspaceId, deps.path)),
-      layout.preload?.(context, params.workspaceId, deps.path),
+      layouts[readLayout(params.workspaceId)].preload?.(context, params.workspaceId, deps.path),
     ]);
   },
   component: Browser,

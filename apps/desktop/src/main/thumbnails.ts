@@ -58,7 +58,7 @@ export const serveThumbnails = () => {
     const url = new URL(request.url);
     const absolute = verifyThumbnailToken(thumbnailKey, url.pathname.slice(1));
     if (!absolute) return new Response(null, { status: 403 });
-    const size = fitThumbnailSize(Number(url.searchParams.get("size")) || 0);
+    const size = fitThumbnailSize(Number(url.searchParams.get("size")));
     return enqueue(() => render(absolute, size), request.signal).catch(
       () => new Response(null, { status: 404 }),
     );

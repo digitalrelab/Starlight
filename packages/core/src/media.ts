@@ -6,7 +6,7 @@ import type {
   WorkspaceId,
   WorkspaceNotFound,
 } from "@starlight/contracts";
-import { Array, Context, Effect, Layer, Option, Path } from "effect";
+import { Array as Arr, Context, Effect, Layer, Option, Path } from "effect";
 import { FileSystemPort, MediaProbe, ThumbnailTokens } from "./ports.ts";
 import { joinRelative } from "./relative-path.ts";
 import { Workspaces } from "./workspaces.ts";
@@ -56,7 +56,7 @@ export class MediaLibrary extends Context.Service<
             },
             { concurrency: PROBE_CONCURRENCY },
           );
-          return Array.getSomes(media);
+          return Arr.getSomes(media);
         }),
       });
     }),

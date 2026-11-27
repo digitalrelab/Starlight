@@ -6,7 +6,6 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import {
   type KeyboardEvent,
   memo,
-  type ReactNode,
   type SyntheticEvent,
   useEffect,
   useLayoutEffect,
@@ -25,12 +24,12 @@ const GAP = 4;
 const PADDING = 8;
 const MIN_ASPECT = 0.5;
 const MAX_ASPECT = 3;
-const PLACEHOLDER_ASPECT = 1;
+const ICON_TILE_ASPECT = 1;
 
 const indexByPath = (media: ReadonlyArray<Media>) => new Map(media.map((item) => [item.path, item]));
 
 const aspectOf = (media: Media | undefined) =>
-  media ? Math.min(MAX_ASPECT, Math.max(MIN_ASPECT, media.width / media.height)) : PLACEHOLDER_ASPECT;
+  media ? Math.min(MAX_ASPECT, Math.max(MIN_ASPECT, media.width / media.height)) : ICON_TILE_ASPECT;
 
 const reveal = (event: SyntheticEvent<HTMLImageElement>) => {
   event.currentTarget.dataset["loaded"] = "";
@@ -85,7 +84,7 @@ export const GridLayout = ({ workspaceId, path, entries, selected, onSelect, onO
 
   const onKeyDown = (event: KeyboardEvent) => {
     if (event.key === "ArrowRight") onSelect(selected + 1);
-    else if (event.key === "ArrowLeft") onSelect(Math.max(0, selected - 1));
+    else if (event.key === "ArrowLeft") onSelect(selected - 1);
     else if (event.key === "ArrowDown") moveVertically(1);
     else if (event.key === "ArrowUp") moveVertically(-1);
     else if (event.key === "Enter" && entries[selected]) onOpen(entries[selected]);
@@ -104,32 +103,29 @@ export const GridLayout = ({ workspaceId, path, entries, selected, onSelect, onO
         {virtualizer.getVirtualItems().map((item) => {
           const row = layout.rows[item.index];
           if (!row) return null;
-          const tiles: Array<ReactNode> = [];
-          for (let index = row.start; index < row.end; index++) {
-            const entry = entries[index];
-            if (!entry) continue;
-            tiles.push(
-              <Tile
-                key={entry.path}
-                index={index}
-                entry={entry}
-                media={media.get(entry.path)}
-                left={PADDING + (layout.left[index] ?? 0)}
-                width={layout.width[index] ?? 0}
-                height={row.height}
-                selected={index === selected}
-                onSelect={onSelect}
-                onOpen={onOpen}
-              />,
-            );
-          }
           return (
             <div
               key={item.index}
               className="absolute inset-x-0 top-0"
               style={{ height: row.height, transform: `translateY(${item.start}px)` }}
             >
-              {tiles}
+              {entries.slice(row.start, row.end).map((entry, offset) => {
+                const index = row.start + offset;
+                return (
+                  <Tile
+                    key={entry.path}
+                    index={index}
+                    entry={entry}
+                    media={media.get(entry.path)}
+                    left={PADDING + (layout.left[index] ?? 0)}
+                    width={layout.width[index] ?? 0}
+                    height={row.height}
+                    selected={index === selected}
+                    onSelect={onSelect}
+                    onOpen={onOpen}
+                  />
+                );
+              })}
             </div>
           );
         })}
