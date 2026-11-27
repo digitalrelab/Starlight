@@ -31,4 +31,8 @@ export const migrations = Migrator.fromRecord({
       )
     `;
   }),
+  "0003_drop_settings": Effect.gen(function* () {
+    const sql = yield* SqlClient.SqlClient;
+    yield* sql`DROP TABLE settings`;
+  }),
 });

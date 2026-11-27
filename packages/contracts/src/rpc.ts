@@ -4,7 +4,6 @@ import { Entry, EntryChange } from "./entry.ts";
 import { DirectoryError, FileSystemError, NotADirectory, WorkspaceNotFound } from "./errors.ts";
 import { RelativePath, WorkspaceId } from "./ids.ts";
 import { Media } from "./media.ts";
-import { Settings, SettingsPatch } from "./settings.ts";
 import { Update } from "./update.ts";
 import { Workspace } from "./workspace.ts";
 
@@ -37,13 +36,6 @@ export class HostRpcs extends RpcGroup.make(
     success: EntryChange,
     error: Schema.Union([WorkspaceNotFound, FileSystemError]),
     stream: true,
-  }),
-  Rpc.make("GetSettings", {
-    success: Settings,
-  }),
-  Rpc.make("UpdateSettings", {
-    payload: SettingsPatch,
-    success: Settings,
   }),
 ) {}
 

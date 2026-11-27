@@ -2,7 +2,6 @@ import type {
   Actor,
   EntryKind,
   FileSystemError,
-  SettingsPatch,
   ThumbnailToken,
   Workspace,
   WorkspaceId,
@@ -71,14 +70,6 @@ export class WorkspaceStore extends Context.Service<
     readonly recent: (limit: number) => Effect.Effect<ReadonlyArray<Workspace>>;
   }
 >()("@starlight/core/WorkspaceStore") {}
-
-export class SettingsStore extends Context.Service<
-  SettingsStore,
-  {
-    readonly read: Effect.Effect<SettingsPatch>;
-    readonly merge: (patch: SettingsPatch) => Effect.Effect<SettingsPatch>;
-  }
->()("@starlight/core/SettingsStore") {}
 
 export interface AuditRecord {
   readonly actor: Actor;

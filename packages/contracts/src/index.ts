@@ -6,6 +6,5 @@ export * from "./ids.ts";
 export * from "./media.ts";
 export * from "./relative-path.ts";
 export * from "./rpc.ts";
-export * from "./settings.ts";
 export * from "./update.ts";
 export * from "./workspace.ts";

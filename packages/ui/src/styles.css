@@ -1,4 +1,5 @@
 @import "./theme.css";
+@import "./appearance.css";
 @source "./";
 
 @custom-variant highlighted {
@@ -12,18 +13,6 @@
   @apply outline-none focus-visible:ring-2 focus-visible:ring-selected;
 }
 
-@layer base {
-  a {
-    cursor: default;
-  }
-
-  [data-pointer-cursors]
-    :is(
-      a[href],
-      button:not(:disabled),
-      [role="button"]:not([aria-disabled="true"]),
-      [role="switch"]:not([data-disabled])
-    ) {
-    cursor: pointer;
-  }
+@utility wash-* {
+  background-image: linear-gradient(--value(--background-color-*), --value(--background-color-*));
 }

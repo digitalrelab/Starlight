@@ -64,7 +64,7 @@
 }
 
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
 
   --shadow-ambient: light-dark(rgb(0 0 0 / 10%), rgb(0 0 0 / 40%));
   --shadow-key: light-dark(rgb(0 0 0 / 15%), rgb(0 0 0 / 60%));
