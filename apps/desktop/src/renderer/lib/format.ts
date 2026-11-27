@@ -29,3 +29,21 @@ export const formatRecency = (epochMs: number) => {
   const days = Math.ceil((today - epochMs) / DAY_MS);
   return recencies.find(([within]) => days <= within)?.[1] ?? "Older";
 };
+
+const SPAN_UNITS = [
+  ["d", DAY_MS],
+  ["h", 60 * 60 * 1000],
+  ["m", 60 * 1000],
+] as const;
+
+export const formatSpan = (ms: number, precision = 2) => {
+  const pieces: Array<string> = [];
+  let rest = ms;
+  for (const [suffix, size] of SPAN_UNITS) {
+    const count = Math.floor(rest / size);
+    rest -= count * size;
+    if (count > 0 || pieces.length > 0) pieces.push(`${count}${suffix}`);
+  }
+  const shown = pieces.slice(0, precision).filter((piece) => !piece.startsWith("0"));
+  return shown.length > 0 ? shown.join(" ") : "<1m";
+};

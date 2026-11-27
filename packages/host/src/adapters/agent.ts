@@ -1,4 +1,4 @@
-import type { AgentProviderStatus } from "@starlight/contracts";
+import type { AgentProviderStatus, AgentUsage } from "@starlight/contracts";
 
 export const AGENT_INSTRUCTIONS =
   "You are the assistant inside Starlight, a desktop file manager. Answer clearly and concisely. You cannot see or change the user's files yet.";
@@ -12,3 +12,5 @@ export const effortLabel = (effort: string) => EFFORT_LABELS[effort] ?? capitali
 export const asError = (cause: unknown) => (cause instanceof Error ? cause : new Error(String(cause)));
 
 export const notReady = (message: string): AgentProviderStatus => ({ _tag: "NotReady", message });
+
+export const unmetered = (message: string): AgentUsage => ({ _tag: "Unmetered", message });

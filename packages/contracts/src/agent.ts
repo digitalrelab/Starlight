@@ -44,3 +44,23 @@ export const AgentProvider = Schema.Struct({
   models: Schema.Array(AgentModel),
 });
 export type AgentProvider = typeof AgentProvider.Type;
+
+export const UsageWindow = Schema.Struct({
+  label: Schema.String,
+  usedPercent: Schema.Number,
+  resetsAt: Schema.NullOr(Schema.Number),
+  durationMs: Schema.NullOr(Schema.Number),
+});
+export type UsageWindow = typeof UsageWindow.Type;
+
+export const AgentUsage = Schema.Union([
+  Schema.TaggedStruct("Metered", {
+    windows: Schema.Array(UsageWindow),
+    resetCredits: Schema.optionalKey(Schema.Number),
+  }),
+  Schema.TaggedStruct("Unmetered", { message: Schema.String }),
+]);
+export type AgentUsage = typeof AgentUsage.Type;
+
+export const AgentProviderUsage = Schema.Struct({ provider: AgentProviderId, usage: AgentUsage });
+export type AgentProviderUsage = typeof AgentProviderUsage.Type;

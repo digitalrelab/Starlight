@@ -56,6 +56,14 @@ const createQueries = (client: StarlightClient) => ({
       refetchOnWindowFocus: "always",
     }),
 
+  agentUsage: () =>
+    queryOptions({
+      queryKey: ["agentUsage"],
+      queryFn: () => client.agents.usage(),
+      refetchOnMount: "always",
+      refetchOnWindowFocus: "always",
+    }),
+
   chats: (projectId: string | null) =>
     queryOptions({ queryKey: [...chatsKey, projectId], queryFn: () => client.chats.list(projectId) }),
 
