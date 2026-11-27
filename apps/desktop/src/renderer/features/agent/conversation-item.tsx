@@ -9,7 +9,7 @@ import { ConfirmDialog, IconButton, Menu, NavItem } from "@starlight/ui";
 import { useMutation } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useState } from "react";
-import { useStarlight } from "../../lib/context.ts";
+import { useStarlight } from "#renderer/lib/context.ts";
 
 export const ConversationItem = ({
   conversation: { id, title },

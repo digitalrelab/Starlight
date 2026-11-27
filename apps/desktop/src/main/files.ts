@@ -2,7 +2,7 @@ import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import { Readable } from "node:stream";
 import type { CustomScheme } from "electron";
-import { FILE_SCHEME } from "../shared/files.ts";
+import { FILE_SCHEME } from "#shared/files.ts";
 import { mediaTypeOf } from "@starlight/contracts";
 import { serveLocalFiles } from "./local-files.ts";
 

@@ -2,7 +2,7 @@ import { RefreshDotIcon } from "@hugeicons-pro/core-stroke-rounded";
 import { Markdown } from "@starlight/markdown";
 import { Button, cn, Icon, Item, StatusPill } from "@starlight/ui";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useStarlight } from "../../lib/context.ts";
+import { useStarlight } from "#renderer/lib/context.ts";
 import { UpdateAction } from "./update-action.tsx";
 import { updateStatus } from "./update-status.ts";
 

@@ -2,11 +2,13 @@ import { defineConfig } from "vite-plus";
 import type { OxlintOverride } from "vite-plus/lint";
 
 const baseUiSubpaths = { group: ["@base-ui/react/*"], message: "Import from @base-ui/react." };
+const parentPaths = { regex: "^\\.\\./", message: "Import through the package's # alias." };
+const restrictedEverywhere = [baseUiSubpaths, parentPaths];
 
 const forbid = (...groups: string[]): OxlintOverride["rules"] => ({
   "no-restricted-imports": [
     "error",
-    { patterns: [{ group: groups, message: "Crosses a package boundary." }, baseUiSubpaths] },
+    { patterns: [{ group: groups, message: "Crosses a package boundary." }, ...restrictedEverywhere] },
   ],
 });
 
@@ -22,6 +24,7 @@ export default defineConfig({
     rules: {
       "typescript/no-floating-promises": "error",
       "typescript/consistent-type-imports": "error",
+      "no-restricted-imports": ["error", { patterns: restrictedEverywhere }],
     },
     overrides: [
       {

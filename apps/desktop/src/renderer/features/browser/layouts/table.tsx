@@ -2,14 +2,14 @@ import { entryKey } from "@starlight/client";
 import { cn, ScrollArea } from "@starlight/ui";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { type KeyboardEvent, useEffect, useEffectEvent, useRef } from "react";
-import { formatDate, formatSize } from "../../../lib/format.ts";
-import { KindIcon, itemKindOf } from "../../files/kind-icon.tsx";
+import { formatDate, formatSize } from "#renderer/lib/format.ts";
+import { KindIcon, itemKindOf } from "#renderer/features/files/kind-icon.tsx";
 import type { LayoutProps } from "./types.ts";
 
 const ROW_HEIGHT = 26;
 const COLUMNS = "grid grid-cols-[minmax(0,1fr)_96px_168px] gap-4";
 
-export const TableLayout = ({ entries, selected, onSelect, onOpen }: LayoutProps) => {
+export const TableLayout = ({ entries, selected, onSelect, onHover, onOpen }: LayoutProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const virtualizer = useVirtualizer({
     count: entries.length,
@@ -49,6 +49,8 @@ export const TableLayout = ({ entries, selected, onSelect, onOpen }: LayoutProps
                 key={entryKey(entry.ref)}
                 onClick={() => onSelect(row.index)}
                 onDoubleClick={() => onOpen(entry)}
+                onPointerEnter={() => onHover(row.index)}
+                onPointerLeave={() => onHover(null)}
                 className={cn(
                   COLUMNS,
                   "absolute inset-x-2 items-center rounded-md px-2",

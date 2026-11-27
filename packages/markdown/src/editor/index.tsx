@@ -2,7 +2,7 @@ import { Compartment, EditorState, Transaction } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { cn } from "cn";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
-import { changeBetween } from "../change.ts";
+import { changeBetween } from "#change.ts";
 import { writing } from "./writing.ts";
 
 export interface MarkdownEditorProps {

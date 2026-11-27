@@ -3,8 +3,8 @@ import type { Conversation } from "@starlight/client";
 import { IconButton, NavItem, NavSection } from "@starlight/ui";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { useStarlight } from "../../lib/context.ts";
-import { formatRecency } from "../../lib/format.ts";
+import { useStarlight } from "#renderer/lib/context.ts";
+import { formatRecency } from "#renderer/lib/format.ts";
 import { ConversationItem } from "./conversation-item.tsx";
 
 const byRecency = (conversations: ReadonlyArray<Conversation>) =>

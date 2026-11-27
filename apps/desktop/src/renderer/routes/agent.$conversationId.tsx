@@ -2,14 +2,14 @@ import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { ConversationNotFound } from "@starlight/client";
 import { createFileRoute, type ErrorComponentProps, Navigate } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { Composer } from "../features/agent/composer.tsx";
-import { Transcript } from "../features/agent/transcript.tsx";
-import { useModelChoice } from "../features/providers/model-choice.ts";
-import { ModelPicker } from "../features/providers/model-picker.tsx";
-import { NoProvider } from "../features/providers/no-provider.tsx";
-import { PageError } from "../features/shell/page-error.tsx";
-import { PageHeader } from "../features/shell/page-header.tsx";
-import { useStarlight } from "../lib/context.ts";
+import { Composer } from "#renderer/features/agent/composer.tsx";
+import { Transcript } from "#renderer/features/agent/transcript.tsx";
+import { useModelChoice } from "#renderer/features/providers/model-choice.ts";
+import { ModelPicker } from "#renderer/features/providers/model-picker.tsx";
+import { NoProvider } from "#renderer/features/providers/no-provider.tsx";
+import { PageError } from "#renderer/features/shell/page-error.tsx";
+import { PageHeader } from "#renderer/features/shell/page-header.tsx";
+import { useStarlight } from "#renderer/lib/context.ts";
 
 export const Route = createFileRoute("/agent/$conversationId")({
   loader: ({ context: { queryClient, queries }, params }) =>

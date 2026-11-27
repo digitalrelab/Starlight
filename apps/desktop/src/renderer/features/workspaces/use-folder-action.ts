@@ -1,6 +1,6 @@
 import type { EntryRef } from "@starlight/client";
 import { type UseMutationOptions, useMutation } from "@tanstack/react-query";
-import { useStarlight } from "../../lib/context.ts";
+import { useStarlight } from "#renderer/lib/context.ts";
 
 export const useFolderAction = <T>(
   options: UseMutationOptions<T, Error, EntryRef>,

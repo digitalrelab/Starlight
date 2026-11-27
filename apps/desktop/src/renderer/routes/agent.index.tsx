@@ -1,11 +1,11 @@
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Composer } from "../features/agent/composer.tsx";
-import { useModelChoice } from "../features/providers/model-choice.ts";
-import { ModelPicker } from "../features/providers/model-picker.tsx";
-import { NoProvider } from "../features/providers/no-provider.tsx";
-import { PageHeader } from "../features/shell/page-header.tsx";
-import { useStarlight } from "../lib/context.ts";
+import { Composer } from "#renderer/features/agent/composer.tsx";
+import { useModelChoice } from "#renderer/features/providers/model-choice.ts";
+import { ModelPicker } from "#renderer/features/providers/model-picker.tsx";
+import { NoProvider } from "#renderer/features/providers/no-provider.tsx";
+import { PageHeader } from "#renderer/features/shell/page-header.tsx";
+import { useStarlight } from "#renderer/lib/context.ts";
 
 export const Route = createFileRoute("/agent/")({
   component: NewConversation,
