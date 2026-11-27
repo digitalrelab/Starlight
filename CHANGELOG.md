@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.4.0](https://github.com/digitalrelab/Starlight/compare/v0.3.0...v0.4.0) (2026-11-27)
+
+
+### Features
+
+* **agent:** chat with agent providers on an Agent page ([#29](https://github.com/digitalrelab/Starlight/issues/29)) ([40c826d](https://github.com/digitalrelab/Starlight/commit/40c826d743f7b6f7c2ee71da89fb793184a5fc0b))
+* **agent:** pick the model and reasoning effort per message ([#39](https://github.com/digitalrelab/Starlight/issues/39)) ([4b40537](https://github.com/digitalrelab/Starlight/commit/4b4053721ed250b3a69213623d6b517c3a81638e))
+* **core:** persist file facts in a versioned catalog, starting with image dimensions ([#40](https://github.com/digitalrelab/Starlight/issues/40)) ([ea4e295](https://github.com/digitalrelab/Starlight/commit/ea4e295003ae2409c0b1d2b4c944bacd1357b189))
+* **desktop:** add an interface size setting to appearance ([#42](https://github.com/digitalrelab/Starlight/issues/42)) ([77f8c89](https://github.com/digitalrelab/Starlight/commit/77f8c89111408d7a0f4301539ae9737d2ba58955))
+* **desktop:** add an Updates settings page with the version and a manual check ([#35](https://github.com/digitalrelab/Starlight/issues/35)) ([28eb3f4](https://github.com/digitalrelab/Starlight/commit/28eb3f46b2f4c31288e113a38636cded331cd519))
+* **files:** classify files into kinds with colored icons ([#33](https://github.com/digitalrelab/Starlight/issues/33)) ([e9993f7](https://github.com/digitalrelab/Starlight/commit/e9993f7d5dd1d18758497804596ee8c98bfb5b00))
+* **markdown:** add a markdown engine for release notes, files and chats ([#37](https://github.com/digitalrelab/Starlight/issues/37)) ([aa4e2ed](https://github.com/digitalrelab/Starlight/commit/aa4e2ed0772db70e0e1c55be623c10a4995b6399))
+* **settings:** show disk usage by part in Settings › Disk ([#34](https://github.com/digitalrelab/Starlight/issues/34)) ([87b1448](https://github.com/digitalrelab/Starlight/commit/87b1448edb7d61d2a033b4cc910f94fe8ad213da))
+* **ui:** use ScrollArea for the sidebar, settings pages and browser layouts ([#38](https://github.com/digitalrelab/Starlight/issues/38)) ([70e93f7](https://github.com/digitalrelab/Starlight/commit/70e93f796c4dce061ff24a5f0452a9fcc9bc0f74))
+
+
+### Bug Fixes
+
+* **desktop:** pre-bundle Base UI as one dependency to stop duplicate React in dev ([#31](https://github.com/digitalrelab/Starlight/issues/31)) ([a6d53c5](https://github.com/digitalrelab/Starlight/commit/a6d53c54c5a502de9fdd7643e74fa86aba0c1780))
+
+
+### Performance Improvements
+
+* **desktop:** cache thumbnails on disk and load them by visibility ([#30](https://github.com/digitalrelab/Starlight/issues/30)) ([edeb5bc](https://github.com/digitalrelab/Starlight/commit/edeb5bc029a55ea9bc48b1301d5d002fee9de07f))
+
 ## [0.3.0](https://github.com/digitalrelab/Starlight/compare/v0.2.0...v0.3.0) (2026-11-27)
 
 
