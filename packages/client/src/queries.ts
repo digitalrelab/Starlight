@@ -83,107 +83,106 @@ const createQueries = (client: StarlightClient) => ({
     }),
 });
 
-const createMutations = (client: StarlightClient, queryClient: QueryClient, queries: Queries) => {
-  const listKey = queries.workspaces().queryKey;
-  const cacheWorkspace = (workspace: Workspace) => {
-    queryClient.setQueryData(queries.workspace(workspace.id).queryKey, workspace);
-    queryClient.setQueryData(listKey, (list) => {
-      if (!list) return list;
-      const index = list.findIndex(({ id }) => id === workspace.id);
-      return index === -1 ? [...list, workspace] : list.with(index, workspace);
-    });
-  };
-
-  return {
-    pickDirectory: () => mutationOptions({ mutationFn: () => client.shell.pickDirectory() }),
-
-    checkForUpdates: () => mutationOptions({ mutationFn: () => client.updates.check() }),
-
-    downloadUpdate: () => mutationOptions({ mutationFn: () => client.updates.download() }),
-
-    installUpdate: () => mutationOptions({ mutationFn: () => client.updates.install() }),
-
-    sendMessage: () =>
-      mutationOptions({
-        mutationFn: ({
-          chatId,
-          text,
-          model,
-        }: {
-          readonly chatId: string | null;
-          readonly text: string;
-          readonly model: ModelChoice;
-        }) => client.chats.send(chatId, text, model),
-        onSuccess: () => queryClient.invalidateQueries(queries.chats()),
-      }),
-
-    clearPreviews: () =>
-      mutationOptions({
-        mutationFn: () => client.disk.clearPreviews(),
-        onSettled: () => queryClient.invalidateQueries(queries.diskUsage()),
-      }),
-
-    renameChat: () =>
-      mutationOptions({
-        mutationFn: ({ chatId, title }: { readonly chatId: string; readonly title: string }) =>
-          client.chats.rename(chatId, title),
-        onSuccess: (chat) => {
-          queryClient.setQueryData(queries.chat(chat.id).queryKey, (detail) => detail && { ...detail, chat });
-          return queryClient.invalidateQueries(queries.chats());
-        },
-      }),
-
-    deleteChat: () =>
-      mutationOptions({
-        mutationFn: (chatId: string) => client.chats.remove(chatId),
-        onSuccess: (_, chatId) => {
-          queryClient.removeQueries(queries.chat(chatId));
-          return queryClient.invalidateQueries(queries.chats());
-        },
-      }),
-
-    createWorkspace: () =>
-      mutationOptions({
-        mutationFn: (root: EntryRef) => client.workspaces.create(root),
-        onSuccess: cacheWorkspace,
-      }),
-
-    renameWorkspace: () =>
-      mutationOptions({
-        mutationFn: ({ workspaceId, name }: { readonly workspaceId: string; readonly name: string }) =>
-          client.workspaces.rename(workspaceId, name),
-        onSuccess: cacheWorkspace,
-      }),
-
-    deleteWorkspace: () =>
-      mutationOptions({
-        mutationFn: (workspaceId: string) => client.workspaces.remove(workspaceId),
-        onSuccess: (_, workspaceId) => {
-          queryClient.setQueryData(listKey, (list) => list?.filter(({ id }) => id !== workspaceId));
-          queryClient.removeQueries(queries.workspace(workspaceId));
-          queryClient.removeQueries({ queryKey: directoryKey(workspaceId) });
-        },
-      }),
-
-    addMount: (workspaceId: string) =>
-      mutationOptions({
-        mutationFn: (root: EntryRef) => client.workspaces.addMount(workspaceId, root),
-        onSuccess: (workspace) => {
-          cacheWorkspace(workspace);
-          return queryClient.invalidateQueries(queries.entries(workspaceId, null));
-        },
-      }),
-
-    removeMount: (workspaceId: string) =>
-      mutationOptions({
-        mutationFn: (root: EntryRef) => client.workspaces.removeMount(workspaceId, root),
-        onSuccess: (workspace) => {
-          cacheWorkspace(workspace);
-          return queryClient.invalidateQueries({ queryKey: directoryKey(workspaceId) });
-        },
-      }),
-  };
+const cacheWorkspace = (queryClient: QueryClient, queries: Queries, workspace: Workspace) => {
+  queryClient.setQueryData(queries.workspace(workspace.id).queryKey, workspace);
+  queryClient.setQueryData(queries.workspaces().queryKey, (list) => {
+    if (!list) return list;
+    const index = list.findIndex(({ id }) => id === workspace.id);
+    return index === -1 ? [...list, workspace] : list.with(index, workspace);
+  });
 };
+
+const createMutations = (client: StarlightClient, queryClient: QueryClient, queries: Queries) => ({
+  pickDirectory: () => mutationOptions({ mutationFn: () => client.shell.pickDirectory() }),
+
+  checkForUpdates: () => mutationOptions({ mutationFn: () => client.updates.check() }),
+
+  downloadUpdate: () => mutationOptions({ mutationFn: () => client.updates.download() }),
+
+  installUpdate: () => mutationOptions({ mutationFn: () => client.updates.install() }),
+
+  sendMessage: () =>
+    mutationOptions({
+      mutationFn: ({
+        chatId,
+        text,
+        model,
+      }: {
+        readonly chatId: string | null;
+        readonly text: string;
+        readonly model: ModelChoice;
+      }) => client.chats.send(chatId, text, model),
+      onSuccess: () => queryClient.invalidateQueries(queries.chats()),
+    }),
+
+  clearPreviews: () =>
+    mutationOptions({
+      mutationFn: () => client.disk.clearPreviews(),
+      onSettled: () => queryClient.invalidateQueries(queries.diskUsage()),
+    }),
+
+  renameChat: () =>
+    mutationOptions({
+      mutationFn: ({ chatId, title }: { readonly chatId: string; readonly title: string }) =>
+        client.chats.rename(chatId, title),
+      onSuccess: (chat) => {
+        queryClient.setQueryData(queries.chat(chat.id).queryKey, (detail) => detail && { ...detail, chat });
+        return queryClient.invalidateQueries(queries.chats());
+      },
+    }),
+
+  deleteChat: () =>
+    mutationOptions({
+      mutationFn: (chatId: string) => client.chats.remove(chatId),
+      onSuccess: (_, chatId) => {
+        queryClient.removeQueries(queries.chat(chatId));
+        return queryClient.invalidateQueries(queries.chats());
+      },
+    }),
+
+  createWorkspace: () =>
+    mutationOptions({
+      mutationFn: (root: EntryRef) => client.workspaces.create(root),
+      onSuccess: (workspace) => cacheWorkspace(queryClient, queries, workspace),
+    }),
+
+  renameWorkspace: () =>
+    mutationOptions({
+      mutationFn: ({ workspaceId, name }: { readonly workspaceId: string; readonly name: string }) =>
+        client.workspaces.rename(workspaceId, name),
+      onSuccess: (workspace) => cacheWorkspace(queryClient, queries, workspace),
+    }),
+
+  deleteWorkspace: () =>
+    mutationOptions({
+      mutationFn: (workspaceId: string) => client.workspaces.remove(workspaceId),
+      onSuccess: (_, workspaceId) => {
+        queryClient.setQueryData(queries.workspaces().queryKey, (list) =>
+          list?.filter(({ id }) => id !== workspaceId),
+        );
+        queryClient.removeQueries(queries.workspace(workspaceId));
+        queryClient.removeQueries({ queryKey: directoryKey(workspaceId) });
+      },
+    }),
+
+  addMount: (workspaceId: string) =>
+    mutationOptions({
+      mutationFn: (root: EntryRef) => client.workspaces.addMount(workspaceId, root),
+      onSuccess: (workspace) => {
+        cacheWorkspace(queryClient, queries, workspace);
+        return queryClient.invalidateQueries(queries.entries(workspaceId, null));
+      },
+    }),
+
+  removeMount: (workspaceId: string) =>
+    mutationOptions({
+      mutationFn: (root: EntryRef) => client.workspaces.removeMount(workspaceId, root),
+      onSuccess: (workspace) => {
+        cacheWorkspace(queryClient, queries, workspace);
+        return queryClient.invalidateQueries({ queryKey: directoryKey(workspaceId) });
+      },
+    }),
+});
 
 const createSubscriptions = (client: StarlightClient, queryClient: QueryClient, queries: Queries) => ({
   chat: (id: string) => {

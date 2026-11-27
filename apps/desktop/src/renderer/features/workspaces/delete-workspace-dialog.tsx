@@ -25,9 +25,9 @@ export const DeleteWorkspaceDialog = ({ workspace, open, onOpenChange }: Props) 
       subject={workspace.name}
       message="Its folders and files stay where they are."
       icon={Delete02Icon}
-      onConfirm={() => {
-        const leave = workspaceId === workspace.id ? navigate({ to: "/" }) : Promise.resolve();
-        void leave.then(() => remove.mutate(workspace.id));
+      onConfirm={async () => {
+        if (workspaceId === workspace.id) await navigate({ to: "/" });
+        remove.mutate(workspace.id);
       }}
     />
   );

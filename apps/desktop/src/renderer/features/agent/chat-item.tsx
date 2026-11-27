@@ -54,8 +54,8 @@ export const ChatItem = ({ chat: { id, title } }: { readonly chat: Chat }) => {
         subject={title}
         message="The chat and its replies are deleted for good."
         icon={Delete02Icon}
-        onConfirm={() => {
-          if (chatId === id) void navigate({ to: "/agent" });
+        onConfirm={async () => {
+          if (chatId === id) await navigate({ to: "/agent" });
           remove.mutate(id);
         }}
       />
