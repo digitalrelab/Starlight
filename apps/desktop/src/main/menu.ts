@@ -1,14 +1,14 @@
 import { BrowserWindow, Menu, type MenuItemConstructorOptions } from "electron";
 import { Channel } from "#shared/channels.ts";
 import type { ZoomStep } from "#shared/zoom.ts";
-import { goBack, goForward } from "./history.ts";
+import { stepHistory } from "./history.ts";
 
-const historyItem = (label: string, accelerator: string, go: typeof goBack): MenuItemConstructorOptions => ({
+const historyItem = (label: string, accelerator: string, offset: -1 | 1): MenuItemConstructorOptions => ({
   label,
   accelerator,
   click: () => {
     const window = BrowserWindow.getFocusedWindow();
-    if (window) go(window.webContents);
+    if (window) stepHistory(window.webContents, offset);
   },
 });
 
@@ -41,8 +41,8 @@ export const installMenu = () =>
       {
         label: "Go",
         submenu: [
-          historyItem("Back", "CommandOrControl+[", goBack),
-          historyItem("Forward", "CommandOrControl+]", goForward),
+          historyItem("Back", "CommandOrControl+[", -1),
+          historyItem("Forward", "CommandOrControl+]", 1),
         ],
       },
       { role: "windowMenu" },

@@ -1,7 +1,7 @@
 import { join } from "node:path";
 import { BrowserWindow, nativeTheme, shell } from "electron";
 import { Channel } from "#shared/channels.ts";
-import { goBack, goForward } from "./history.ts";
+import { stepHistory } from "./history.ts";
 
 const EXTERNAL_URL = /^(?:https?|mailto):/i;
 const READY_TIMEOUT_MS = 5000;
@@ -38,8 +38,8 @@ export const createWindow = () => {
   });
   window.webContents.on("will-navigate", (event) => event.preventDefault());
   window.on("swipe", (_event, direction) => {
-    if (direction === "left") goBack(window.webContents);
-    else if (direction === "right") goForward(window.webContents);
+    if (direction === "left") stepHistory(window.webContents, -1);
+    else if (direction === "right") stepHistory(window.webContents, 1);
   });
 
   const devUrl = process.env["ELECTRON_RENDERER_URL"];
