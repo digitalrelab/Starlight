@@ -1,5 +1,5 @@
 import { ipcRenderer, webFrame } from "electron";
-import { Channel } from "../shared/channels.ts";
+import { Channel } from "#shared/channels.ts";
 
 window.addEventListener("message", (event) => {
   if (event.source !== window) return;
@@ -12,4 +12,8 @@ window.addEventListener("message", (event) => {
 
 ipcRenderer.on(Channel.ports, (event) => {
   window.postMessage({ type: Channel.ports }, "*", event.ports);
+});
+
+ipcRenderer.on(Channel.zoomStep, (_event, step) => {
+  window.postMessage({ type: Channel.zoomStep, step }, "*");
 });

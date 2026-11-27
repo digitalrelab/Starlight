@@ -1,6 +1,6 @@
 import type { Conversation } from "@starlight/client";
 import { Link } from "@tanstack/react-router";
-import { formatAge } from "../../lib/format.ts";
+import { formatAge } from "#renderer/lib/format.ts";
 
 interface Props {
   readonly conversations: ReadonlyArray<Conversation>;

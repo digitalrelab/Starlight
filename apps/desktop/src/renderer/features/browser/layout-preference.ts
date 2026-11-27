@@ -1,4 +1,4 @@
-import { defineStoredFamily, oneOf } from "../../lib/storage.ts";
+import { defineStoredFamily, oneOf } from "#renderer/lib/storage.ts";
 import { DEFAULT_LAYOUT, layoutIds } from "./layouts/registry.ts";
 
 export const layoutPreference = defineStoredFamily(

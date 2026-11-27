@@ -1,6 +1,6 @@
 import type { FileSource } from "@starlight/client";
 import { queryOptions } from "@tanstack/react-query";
-import { fileUrl } from "../../../shared/files.ts";
+import { fileUrl } from "#shared/files.ts";
 
 export const fileBytes = ({ token }: FileSource) =>
   queryOptions({

@@ -2,13 +2,13 @@ import { type Entry, type EntryRef, type FileSource, textCodec } from "@starligh
 import { cn, ScrollArea } from "@starlight/ui";
 import { useQuery } from "@tanstack/react-query";
 import { type ReactNode, Suspense, useState } from "react";
-import { fileUrl } from "../../../shared/files.ts";
-import { previewUrl } from "../../../shared/previews.ts";
-import { useStarlight } from "../../lib/context.ts";
-import { reveal } from "../../lib/reveal.ts";
-import { FileSessionBanner } from "../files/file-session-banner.tsx";
-import { type ItemKind, KindIcon, itemKindOf } from "../files/kind-icon.tsx";
-import { useFileSession } from "../files/use-file-session.ts";
+import { fileUrl } from "#shared/files.ts";
+import { previewUrl } from "#shared/previews.ts";
+import { useStarlight } from "#renderer/lib/context.ts";
+import { reveal } from "#renderer/lib/reveal.ts";
+import { FileSessionBanner } from "#renderer/features/files/file-session-banner.tsx";
+import { type ItemKind, KindIcon, itemKindOf } from "#renderer/features/files/kind-icon.tsx";
+import { useFileSession } from "#renderer/features/files/use-file-session.ts";
 import { MarkdownEditor } from "./markdown-file.ts";
 import { pictureUrl, presentationOf } from "./presentation.ts";
 

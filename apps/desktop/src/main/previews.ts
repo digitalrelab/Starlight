@@ -1,6 +1,6 @@
 import { mediaTypeOf } from "@starlight/contracts";
 import { type CustomScheme, nativeImage, screen } from "electron";
-import { fitPreviewSize, PREVIEW_SCHEME } from "../shared/previews.ts";
+import { fitPreviewSize, PREVIEW_SCHEME } from "#shared/previews.ts";
 import { appData } from "./app-data.ts";
 import { serveLocalFiles } from "./local-files.ts";
 import { createPreviewCache, type PreviewCache } from "./preview-cache.ts";

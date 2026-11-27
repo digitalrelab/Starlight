@@ -2,7 +2,7 @@ import { GridViewIcon, ListViewIcon } from "@hugeicons-pro/core-stroke-rounded";
 import type { EntryRef } from "@starlight/client";
 import type { IconProps } from "@starlight/ui";
 import type { ComponentType } from "react";
-import type { RouterContext } from "../../../lib/context.ts";
+import type { RouterContext } from "#renderer/lib/context.ts";
 import { GridLayout } from "./grid.tsx";
 import { TableLayout } from "./table.tsx";
 import type { LayoutProps } from "./types.ts";

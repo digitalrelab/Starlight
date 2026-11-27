@@ -4,14 +4,14 @@ import { cn, Icon, ScrollArea } from "@starlight/ui";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { type KeyboardEvent, memo, useEffect, useEffectEvent, useLayoutEffect, useMemo, useRef } from "react";
-import { previewUrl } from "../../../../shared/previews.ts";
-import { useStarlight } from "../../../lib/context.ts";
-import { reveal } from "../../../lib/reveal.ts";
-import { useElementWidth } from "../../../lib/use-element-width.ts";
-import { KindIcon, itemKindOf } from "../../files/kind-icon.tsx";
+import { previewUrl } from "#shared/previews.ts";
+import { useStarlight } from "#renderer/lib/context.ts";
+import { reveal } from "#renderer/lib/reveal.ts";
+import { useElementWidth } from "#renderer/lib/use-element-width.ts";
+import { KindIcon, itemKindOf } from "#renderer/features/files/kind-icon.tsx";
 import { justify, nearestInRow } from "./justify.ts";
 import type { LayoutProps } from "./types.ts";
-import { usePreview } from "./use-preview.ts";
+import { usePreview, usePreviewsAhead } from "./use-preview.ts";
 
 const TARGET_ROW_HEIGHT = 200;
 const MAX_ROW_HEIGHT = 320;
@@ -23,10 +23,21 @@ const ICON_TILE_ASPECT = 1;
 
 const indexByKey = (media: ReadonlyArray<Media>) => new Map(media.map((item) => [entryKey(item.ref), item]));
 
+const tilePreviewUrl = (media: Media, width: number, height: number) =>
+  previewUrl(media.token, Math.max(width, height) * window.devicePixelRatio);
+
 const aspectOf = (media: Media | undefined) =>
   media ? Math.min(MAX_ASPECT, Math.max(MIN_ASPECT, media.width / media.height)) : ICON_TILE_ASPECT;
 
-export const GridLayout = ({ workspaceId, directory, entries, selected, onSelect, onOpen }: LayoutProps) => {
+export const GridLayout = ({
+  workspaceId,
+  directory,
+  entries,
+  selected,
+  onSelect,
+  onHover,
+  onOpen,
+}: LayoutProps) => {
   const { queries } = useStarlight();
   const { data } = useSuspenseQuery(queries.media(workspaceId, directory));
   const media = useMemo(() => indexByKey(data), [data]);
@@ -47,6 +58,18 @@ export const GridLayout = ({ workspaceId, directory, entries, selected, onSelect
       }),
     [aspects, width],
   );
+
+  const ahead = useMemo(
+    () =>
+      layout.rows.flatMap((row) =>
+        entries.slice(row.start, row.end).flatMap((entry, offset) => {
+          const found = media.get(entryKey(entry.ref));
+          return found ? [tilePreviewUrl(found, layout.width[row.start + offset] ?? 0, row.height)] : [];
+        }),
+      ),
+    [layout, entries, media],
+  );
+  usePreviewsAhead(ahead);
 
   const virtualizer = useVirtualizer({
     count: layout.rows.length,
@@ -119,6 +142,7 @@ export const GridLayout = ({ workspaceId, directory, entries, selected, onSelect
                     visible={visible}
                     selected={index === selected}
                     onSelect={onSelect}
+                    onHover={onHover}
                     onOpen={onOpen}
                   />
                 );
@@ -141,15 +165,18 @@ interface TileProps {
   readonly visible: boolean;
   readonly selected: boolean;
   readonly onSelect: (index: number) => void;
+  readonly onHover: (index: number | null) => void;
   readonly onOpen: (entry: Entry) => void;
 }
 
 const Tile = memo(
-  ({ index, entry, media, left, width, height, visible, selected, onSelect, onOpen }: TileProps) => {
+  ({ index, entry, media, left, width, height, visible, selected, onSelect, onHover, onOpen }: TileProps) => {
     return (
       <div
         onClick={() => onSelect(index)}
         onDoubleClick={() => onOpen(entry)}
+        onPointerEnter={() => onHover(index)}
+        onPointerLeave={() => onHover(null)}
         title={entry.name}
         className={cn(
           "absolute top-0 overflow-hidden rounded-md bg-neutral",
@@ -159,10 +186,7 @@ const Tile = memo(
         style={{ left, width, height }}
       >
         {media ? (
-          <Preview
-            url={previewUrl(media.token, Math.max(width, height) * window.devicePixelRatio)}
-            visible={visible}
-          />
+          <Preview url={tilePreviewUrl(media, width, height)} visible={visible} />
         ) : (
           <div className="flex size-full flex-col items-center justify-center gap-2 p-3">
             <KindIcon kind={itemKindOf(entry)} size={40} />

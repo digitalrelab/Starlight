@@ -1,24 +1,25 @@
 import { DirectoryMissing, type Entry, type EntryRef, entryKey } from "@starlight/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, type ErrorComponentProps, Navigate } from "@tanstack/react-router";
+import { createFileRoute, type ErrorComponentProps, Navigate, useRouter } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
-import { Breadcrumbs } from "../features/browser/breadcrumbs.tsx";
+import { Breadcrumbs } from "#renderer/features/browser/breadcrumbs.tsx";
 import {
   parseDirectorySearch,
   toDirectory,
   toDirectorySearch,
   toFile,
   toFileSearch,
-} from "../features/browser/directory-search.ts";
-import { DirectoryView } from "../features/browser/directory-view.tsx";
-import { layoutPreference } from "../features/browser/layout-preference.ts";
-import { LayoutSwitcher } from "../features/browser/layout-switcher.tsx";
-import { layouts } from "../features/browser/layouts/registry.ts";
-import { PageError } from "../features/shell/page-error.tsx";
-import { PageHeader } from "../features/shell/page-header.tsx";
-import { FileViewer } from "../features/viewer/file-viewer.tsx";
-import { AddMountButton } from "../features/workspaces/add-mount-button.tsx";
-import { useStarlight } from "../lib/context.ts";
+} from "#renderer/features/browser/directory-search.ts";
+import { DirectoryView } from "#renderer/features/browser/directory-view.tsx";
+import { layoutPreference } from "#renderer/features/browser/layout-preference.ts";
+import { LayoutSwitcher } from "#renderer/features/browser/layout-switcher.tsx";
+import { layouts } from "#renderer/features/browser/layouts/registry.ts";
+import { useFoldersAhead } from "#renderer/features/browser/use-folders-ahead.ts";
+import { PageError } from "#renderer/features/shell/page-error.tsx";
+import { PageHeader } from "#renderer/features/shell/page-header.tsx";
+import { FileViewer } from "#renderer/features/viewer/file-viewer.tsx";
+import { AddMountButton } from "#renderer/features/workspaces/add-mount-button.tsx";
+import { useStarlight } from "#renderer/lib/context.ts";
 
 interface Selection {
   readonly directory: string;
@@ -50,6 +51,7 @@ function Browser() {
   const file = toFile(Route.useSearch());
   const fileKey = file ? entryKey(file) : undefined;
   const navigate = Route.useNavigate();
+  const router = useRouter();
   const { queries, subscriptions } = useStarlight();
   const { data: workspace } = useSuspenseQuery(queries.workspace(workspaceId));
   const { data: listing, error, isFetching } = useSuspenseQuery(queries.entries(workspaceId, directory));
@@ -78,6 +80,18 @@ function Browser() {
     },
     [navigate, showFile],
   );
+  const preloadFolder = useCallback(
+    (folder: EntryRef) =>
+      router.preloadRoute({ to: Route.fullPath, params: { workspaceId }, search: toDirectorySearch(folder) }),
+    [router, workspaceId],
+  );
+  const prefetch = useCallback(
+    (entry: Entry) => {
+      if (entry.kind === "directory") void preloadFolder(entry.ref);
+    },
+    [preloadFolder],
+  );
+  useFoldersAhead(workspaceId, listing.entries, preloadFolder);
   const closeViewer = useCallback(() => {
     select(fileKey);
     void navigate({ search: toDirectorySearch(directory), replace: true });
@@ -106,6 +120,7 @@ function Browser() {
         selectedKey={selectedKey}
         onSelectKey={select}
         onOpen={onOpen}
+        onIntent={prefetch}
       />
       {directory && file ? (
         <FileViewer

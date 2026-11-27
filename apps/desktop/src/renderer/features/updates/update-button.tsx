@@ -10,7 +10,7 @@ import {
   ScrollArea,
 } from "@starlight/ui";
 import { useQuery } from "@tanstack/react-query";
-import { useStarlight } from "../../lib/context.ts";
+import { useStarlight } from "#renderer/lib/context.ts";
 import { UpdateAction } from "./update-action.tsx";
 import { updateStatus } from "./update-status.ts";
 

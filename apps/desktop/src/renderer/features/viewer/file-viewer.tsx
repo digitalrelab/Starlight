@@ -2,10 +2,10 @@ import { ArrowLeft01Icon, ArrowRight01Icon } from "@hugeicons-pro/core-stroke-ro
 import type { Entry, EntryRef } from "@starlight/client";
 import { Button, Icon, IconButton, Theater } from "@starlight/ui";
 import { type KeyboardEvent, useEffect, useEffectEvent, useMemo, useRef } from "react";
-import { useStarlight } from "../../lib/context.ts";
+import { KindIcon, itemKindOf } from "#renderer/features/files/kind-icon.tsx";
+import { useStarlight } from "#renderer/lib/context.ts";
 import { FileStage } from "./file-stage.tsx";
-import { KindIcon, itemKindOf } from "../files/kind-icon.tsx";
-import { fileBytes } from "../files/file-bytes.ts";
+import { fileBytes } from "#renderer/features/files/file-bytes.ts";
 import { loadEditor } from "./markdown-file.ts";
 import { pictureUrl, presentationOf } from "./presentation.ts";
 

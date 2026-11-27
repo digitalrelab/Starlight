@@ -1,9 +1,9 @@
 import { FolderOpenIcon, Navigation03Icon, Settings01Icon } from "@hugeicons-pro/core-stroke-rounded";
 import { IconButton, NavItem } from "@starlight/ui";
 import { Link } from "@tanstack/react-router";
-import { UpdateButton } from "../updates/update-button.tsx";
-import { RecentWorkspaces } from "../workspaces/recent-workspaces.tsx";
-import { useOpenWorkspace } from "../workspaces/use-open-workspace.ts";
+import { UpdateButton } from "#renderer/features/updates/update-button.tsx";
+import { RecentWorkspaces } from "#renderer/features/workspaces/recent-workspaces.tsx";
+import { useOpenWorkspace } from "#renderer/features/workspaces/use-open-workspace.ts";
 
 export const MainSidebar = () => {
   const openWorkspace = useOpenWorkspace();

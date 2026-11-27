@@ -2,7 +2,7 @@ import { FolderIcon } from "@hugeicons-pro/core-stroke-rounded";
 import { NavItem, NavSection } from "@starlight/ui";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { useStarlight } from "../../lib/context.ts";
+import { useStarlight } from "#renderer/lib/context.ts";
 
 export const RecentWorkspaces = () => {
   const { queries } = useStarlight();

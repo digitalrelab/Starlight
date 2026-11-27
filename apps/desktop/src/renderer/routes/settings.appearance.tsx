@@ -6,9 +6,9 @@ import {
   INTERFACE_SIZES,
   type InterfaceSize,
   interfaceSize,
-} from "../features/settings/appearance.ts";
-import { SettingsPage } from "../features/settings/settings-page.tsx";
-import { SettingsSelect } from "../features/settings/settings-select.tsx";
+} from "#renderer/features/settings/appearance.ts";
+import { SettingsPage } from "#renderer/features/settings/settings-page.tsx";
+import { SettingsSelect } from "#renderer/features/settings/settings-select.tsx";
 
 const COLOR_SCHEME_LABELS: Record<ColorScheme, string> = {
   system: "System",

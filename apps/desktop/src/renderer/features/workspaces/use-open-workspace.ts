@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { useStarlight } from "../../lib/context.ts";
+import { useStarlight } from "#renderer/lib/context.ts";
 import { useFolderAction } from "./use-folder-action.ts";
 
 export const useOpenWorkspace = () => {

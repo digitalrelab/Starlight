@@ -5,7 +5,7 @@ import { languages } from "@codemirror/language-data";
 import { EditorView, keymap } from "@codemirror/view";
 import type { NodeType } from "@lezer/common";
 import { classHighlighter, type Highlighter, tags } from "@lezer/highlight";
-import { extensions } from "../dialect.ts";
+import { extensions } from "#dialect.ts";
 import { hangingIndents } from "./hanging.ts";
 
 const support = markdown({ extensions, codeLanguages: languages });
