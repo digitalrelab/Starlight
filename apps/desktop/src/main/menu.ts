@@ -1,9 +1,13 @@
 import { BrowserWindow, Menu, type MenuItemConstructorOptions } from "electron";
 import { Channel } from "#shared/channels.ts";
 import type { ZoomStep } from "#shared/zoom.ts";
-import { stepHistory } from "./history.ts";
+import { type HistoryStep, stepHistory } from "./history.ts";
 
-const historyItem = (label: string, accelerator: string, offset: -1 | 1): MenuItemConstructorOptions => ({
+const historyItem = (
+  label: string,
+  accelerator: string,
+  offset: HistoryStep,
+): MenuItemConstructorOptions => ({
   label,
   accelerator,
   click: () => {
