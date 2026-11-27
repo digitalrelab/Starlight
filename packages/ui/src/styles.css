@@ -9,6 +9,17 @@
   }
 }
 
+@utility scroll-fade-y {
+  --scroll-fade: 2rem;
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    black min(var(--scroll-fade), var(--scroll-area-overflow-y-start, 0px)),
+    black calc(100% - min(var(--scroll-fade), var(--scroll-area-overflow-y-end, 0px))),
+    transparent
+  );
+}
+
 @utility focus-ring {
   @apply outline-none focus-visible:ring-2 focus-visible:ring-selected;
 }
