@@ -28,9 +28,17 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: oven-sh/setup-bun@v2
+      - uses: actions/cache@v6
+        with:
+          path: |
+            ~/Library/Caches/electron
+            ~/Library/Caches/electron-builder
+          key: electron-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          restore-keys: electron-${{ runner.os }}-
 
-      - run: bun install --frozen-lockfile --cpu="*"
+      - uses: ./.github/actions/setup
+        with:
+          install-args: --cpu="*"
         env:
           HUGEICONS_LICENSE_KEY: ${{ secrets.HUGEICONS_LICENSE_KEY }}
 
