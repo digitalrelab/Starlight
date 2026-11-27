@@ -8,6 +8,7 @@ import {
   type WriteError,
 } from "@starlight/contracts";
 import { Context, Effect, Layer, Option } from "effect";
+import { FileIdentities } from "./file-identities.ts";
 import { Catalog } from "./catalog.ts";
 import { AuditLog, CurrentActor, FileTokens, type SourceEntry } from "./ports.ts";
 import { Projects } from "./projects.ts";
@@ -31,12 +32,18 @@ export class Files extends Context.Service<
       const projects = yield* Projects;
       const tokens = yield* FileTokens;
       const catalog = yield* Catalog;
+      const identities = yield* FileIdentities;
       const audit = yield* AuditLog;
 
       return Files.of({
         source: Effect.fn("Files.source")(function* (projectId, requested) {
           const { driver, file, entry } = yield* projects.locateFile(projectId, requested);
-          const dimensions = yield* catalog.entry("dimensions", driver, file, entry);
+          const [bound] = yield* identities.bind(
+            driver,
+            { source: file.source, id: driver.parent(file.id) },
+            [entry],
+          );
+          const dimensions = bound ? yield* catalog.entry("dimensions", driver, bound) : Option.none();
           return {
             token: tokens.issue(file, entry.modifiedAt),
             version: versionOf(entry),
