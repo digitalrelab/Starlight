@@ -38,7 +38,9 @@ export const UpdateSettings = () => {
       </Item.List>
       {updater.update?.releaseNotes ? (
         <Item.List className="py-4">
-          <Prose html={updater.update.releaseNotes} />
+          <Prose.Root>
+            <Prose.Html html={updater.update.releaseNotes} />
+          </Prose.Root>
         </Item.List>
       ) : null}
     </>

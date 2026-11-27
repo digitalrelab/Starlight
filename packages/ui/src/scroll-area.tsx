@@ -1,19 +1,28 @@
 import { ScrollArea as BaseScrollArea } from "@base-ui/react";
-import type { ComponentProps } from "react";
+import type { ComponentProps, Ref } from "react";
 import { cn } from "cn";
 
 export interface ScrollAreaProps extends Omit<ComponentProps<typeof BaseScrollArea.Viewport>, "className"> {
   readonly className?: string;
   readonly contentClassName?: string;
+  readonly contentRef?: Ref<HTMLDivElement>;
 }
 
-export const ScrollArea = ({ className, contentClassName, children, ...props }: ScrollAreaProps) => (
+export const ScrollArea = ({
+  className,
+  contentClassName,
+  contentRef,
+  children,
+  ...props
+}: ScrollAreaProps) => (
   <BaseScrollArea.Root className={cn("relative flex min-h-0 flex-col", className)}>
     <BaseScrollArea.Viewport
       className="min-h-0 flex-1 overscroll-contain outline-none scroll-fade-y"
       {...props}
     >
-      <BaseScrollArea.Content className={contentClassName}>{children}</BaseScrollArea.Content>
+      <BaseScrollArea.Content ref={contentRef} className={contentClassName} style={{ minWidth: 0 }}>
+        {children}
+      </BaseScrollArea.Content>
     </BaseScrollArea.Viewport>
     <BaseScrollArea.Scrollbar
       orientation="vertical"

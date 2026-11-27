@@ -5,7 +5,12 @@ import { listFiles } from "./list-files.ts";
 
 export const appData = () => {
   const root = app.getPath("userData");
-  return { root, database: join(root, "starlight.db"), previews: join(root, "previews") };
+  return {
+    root,
+    database: join(root, "starlight.db"),
+    previews: join(root, "previews"),
+    agent: join(root, "agent"),
+  };
 };
 
 export const measureAppData = async (): Promise<DiskUsage> => {
