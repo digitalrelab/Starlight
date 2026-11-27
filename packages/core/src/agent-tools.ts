@@ -45,7 +45,9 @@ const describe = (entry: Entry) =>
     : `- ${linkTo(entry.name, entry.ref)}: ${entry.size} bytes, modified ${new Date(entry.modifiedAt).toISOString()}`;
 
 const excerpt = (content: string, offset: number, limit: number, truncated: boolean) => {
+  if (content === "") return text("The file is empty.");
   const lines = content.replace(/\n$/, "").split("\n");
+  if (offset > lines.length) return text(`The file has ${lines.length} lines.`, true);
   const shown = lines.slice(offset - 1, offset - 1 + Math.min(limit, LINE_LIMIT));
   const last = offset - 1 + shown.length;
   const notes = [
@@ -53,7 +55,7 @@ const excerpt = (content: string, offset: number, limit: number, truncated: bool
     ...(last < lines.length ? [`Call read_file with offset ${last + 1} to continue.`] : []),
     ...(truncated ? [`Only the first ${READ_LIMIT} bytes of the file can be read.`] : []),
   ];
-  return notes.length === 0 ? shown.join("\n") : `${shown.join("\n")}\n\n[${notes.join(" ")}]`;
+  return text(notes.length === 0 ? shown.join("\n") : `${shown.join("\n")}\n\n[${notes.join(" ")}]`);
 };
 
 const tool = <A>(
@@ -133,7 +135,7 @@ export class AgentTools extends Context.Service<
               if (content.subarray(0, BINARY_PROBE).includes(0))
                 return text("Starlight can't read this kind of file.", true);
               const decoded = yield* Stream.mkString(Stream.decodeText(Stream.succeed(content)));
-              return text(excerpt(decoded, offset, limit, entry.size > content.length));
+              return excerpt(decoded, offset, limit, entry.size > content.length);
             }),
         ),
       ];

@@ -7,6 +7,7 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import type { AgentToolkit, AgentToolResult } from "@starlight/core";
 import { Effect, Option } from "effect";
+import { NO_FILE_ACCESS } from "#adapters/agent.ts";
 
 const SERVER = "starlight";
 
@@ -42,7 +43,7 @@ export const makeToolServer = () => {
     instance.server.setRequestHandler(CallToolRequestSchema, ({ params }) =>
       toolkit
         ? Effect.runPromise(toolkit.call(params.name, params.arguments ?? {})).then(toCallToolResult)
-        : { content: [{ type: "text", text: "This chat can't read files." }], isError: true },
+        : { content: [{ type: "text", text: NO_FILE_ACCESS }], isError: true },
     );
     return { type: "sdk", name: SERVER, instance };
   };
