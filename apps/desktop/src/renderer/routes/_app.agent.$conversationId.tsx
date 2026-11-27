@@ -29,14 +29,13 @@ function ConversationPage() {
           <Transcript messages={detail.messages} draft={detail.draft} failure={detail.failure} />
         </div>
       </div>
-      <div className="mx-auto flex w-full max-w-2xl flex-col gap-2 px-6 pb-6">
+      <div className="mx-auto w-full max-w-2xl px-6 pb-6">
         <Composer
           placeholder="Reply…"
           autoFocus
-          disabled={detail.draft !== null || send.isPending}
+          disabled={detail.draft !== null}
           onSubmit={(text) => send.mutateAsync({ conversationId, text })}
         />
-        {send.error ? <p className="text-sm text-danger">{send.error.message}</p> : null}
       </div>
     </>
   );

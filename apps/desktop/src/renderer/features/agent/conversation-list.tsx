@@ -2,11 +2,11 @@ import type { Conversation } from "@starlight/client";
 import { Link } from "@tanstack/react-router";
 import { formatAge } from "../../lib/format.ts";
 
-export const ConversationList = ({
-  conversations,
-}: {
+interface Props {
   readonly conversations: ReadonlyArray<Conversation>;
-}) => (
+}
+
+export const ConversationList = ({ conversations }: Props) => (
   <ul className="flex flex-col">
     {conversations.map((conversation) => (
       <li key={conversation.id}>

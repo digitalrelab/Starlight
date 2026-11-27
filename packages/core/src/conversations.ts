@@ -149,9 +149,11 @@ export class Conversations extends Context.Service<
             if (drafts.has(id)) return yield* new ConversationBusy({ conversationId: id });
             drafts.set(id, draft);
           }
-          const release = (conversationId: ConversationId | null) =>
-            Effect.sync(() => conversationId !== null && drafts.delete(conversationId));
-          const [stored, driver] = yield* begin(id, text).pipe(Effect.onError(() => release(id)));
+          const release = (conversationId: ConversationId) =>
+            Effect.sync(() => drafts.delete(conversationId));
+          const [stored, driver] = yield* begin(id, text).pipe(
+            Effect.onError(() => (id === null ? Effect.void : release(id))),
+          );
           const conversationId = stored.conversation.id;
           drafts.set(conversationId, draft);
           failures.delete(conversationId);

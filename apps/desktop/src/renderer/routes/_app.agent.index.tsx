@@ -26,7 +26,6 @@ function Agent() {
           <Composer
             placeholder="Ask Starlight…"
             autoFocus
-            disabled={send.isPending}
             onSubmit={(text) =>
               send
                 .mutateAsync({ conversationId: null, text })
@@ -35,7 +34,6 @@ function Agent() {
                 )
             }
           />
-          {send.error ? <p className="text-sm text-danger">{send.error.message}</p> : null}
           <ConversationList conversations={conversations} />
         </div>
       </div>
