@@ -18,7 +18,7 @@ export const notReady = (message: string): AgentProviderStatus => ({ _tag: "NotR
 export const unavailable = (message: string): AgentUsage => ({ _tag: "Unavailable", message });
 
 export const readUsage = <A>(
-  provider: string,
+  name: string,
   read: () => Promise<A>,
   toUsage: (response: A) => AgentUsage,
 ): Effect.Effect<AgentUsage> =>
@@ -26,7 +26,7 @@ export const readUsage = <A>(
     Effect.map(toUsage),
     Effect.timeoutOrElse({
       duration: COMMAND_TIMEOUT_MS,
-      orElse: () => Effect.succeed(unavailable(`${provider} didn't respond.`)),
+      orElse: () => Effect.succeed(unavailable(`${name} didn't respond.`)),
     }),
     Effect.catch((error) => Effect.succeed(unavailable(error.message))),
   );
