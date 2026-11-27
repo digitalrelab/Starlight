@@ -57,25 +57,28 @@ export const ConversationItem = ({
   return (
     <>
       <ContextMenu.Root>
-        <ContextMenu.Trigger className="group/conversation relative rounded-md data-[popup-open]:bg-neutral-subtle-hovered has-data-[popup-open]:bg-neutral-subtle-hovered">
-          <NavItem
-            className="pr-8"
-            render={<Link to="/agent/$conversationId" params={{ conversationId: id }} />}
-          >
-            {title}
-          </NavItem>
-          <Menu.Root>
-            <Menu.Trigger
-              render={
-                <IconButton
-                  icon={MoreHorizontalIcon}
-                  label="Conversation actions"
-                  className="absolute inset-y-0 right-1 my-auto size-6 rounded-md opacity-0 group-hover/conversation:opacity-100 focus-visible:opacity-100 group-data-[popup-open]/conversation:opacity-100 data-[popup-open]:opacity-100"
-                />
+        <ContextMenu.Trigger
+          render={
+            <NavItem
+              render={<Link to="/agent/$conversationId" params={{ conversationId: id }} />}
+              actions={
+                <Menu.Root>
+                  <Menu.Trigger
+                    render={
+                      <IconButton
+                        icon={MoreHorizontalIcon}
+                        label="Conversation actions"
+                        className="size-6 rounded-md"
+                      />
+                    }
+                  />
+                  <Menu.Popup>{actions}</Menu.Popup>
+                </Menu.Root>
               }
             />
-            <Menu.Popup>{actions}</Menu.Popup>
-          </Menu.Root>
+          }
+        >
+          {title}
         </ContextMenu.Trigger>
         <ContextMenu.Popup>{actions}</ContextMenu.Popup>
       </ContextMenu.Root>
