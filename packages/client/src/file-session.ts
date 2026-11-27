@@ -90,8 +90,8 @@ export const createFileSession = <T>(
     try {
       advance(await client.files.write(workspaceId, file, encode(read()), base));
       settled = startedAt;
-      update({ status: edits === startedAt ? "saved" : "dirty" });
-      if (edits !== startedAt) schedule();
+      update({ status: unsaved() ? "dirty" : "saved" });
+      if (unsaved()) schedule();
     } catch (error) {
       update({ status: error instanceof VersionConflict ? "conflict" : "failed" });
     }
