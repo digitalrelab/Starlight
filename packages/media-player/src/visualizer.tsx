@@ -11,21 +11,36 @@ const CONTRAST = 1.6;
 const ATTACK = 0.6;
 const RELEASE = 0.18;
 
+interface Tap {
+  readonly source: MediaElementAudioSourceNode;
+  readonly analyser: AnalyserNode;
+}
+
 let context: AudioContext | undefined;
-const analysers = new WeakMap<HTMLMediaElement, AnalyserNode>();
+const taps = new WeakMap<HTMLMediaElement, Tap>();
 
 const analyserOf = async (media: HTMLMediaElement) => {
-  const existing = analysers.get(media);
-  if (existing) return existing;
+  const existing = taps.get(media);
+  if (existing) return existing.analyser;
   context ??= new AudioContext();
   await context.resume();
-  if (context.state !== "running" || analysers.has(media)) return analysers.get(media);
-  const analyser = context.createAnalyser();
-  analyser.fftSize = FFT_SIZE;
-  context.createMediaElementSource(media).connect(analyser);
-  analyser.connect(context.destination);
-  analysers.set(media, analyser);
-  return analyser;
+  if (context.state !== "running" || !media.isConnected) return undefined;
+  const raced = taps.get(media);
+  if (raced) return raced.analyser;
+  const tap = { source: context.createMediaElementSource(media), analyser: context.createAnalyser() };
+  tap.analyser.fftSize = FFT_SIZE;
+  tap.source.connect(tap.analyser);
+  tap.analyser.connect(context.destination);
+  taps.set(media, tap);
+  return tap.analyser;
+};
+
+export const releaseDetached = (media: HTMLMediaElement) => {
+  const tap = taps.get(media);
+  if (!tap || media.isConnected) return;
+  tap.source.disconnect();
+  tap.analyser.disconnect();
+  taps.delete(media);
 };
 
 const bandsOf = (analyser: AnalyserNode) => {

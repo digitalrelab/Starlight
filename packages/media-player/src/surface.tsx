@@ -1,6 +1,7 @@
 import { cn } from "cn";
+import { useEffect } from "react";
 import { usePlayer } from "./engine.tsx";
-import { Visualizer } from "./visualizer.tsx";
+import { releaseDetached, Visualizer } from "./visualizer.tsx";
 
 const fit = "size-full object-contain";
 
@@ -33,6 +34,7 @@ export const VideoSurface = ({ poster }: { readonly poster: string | undefined }
 
 export const AudioSurface = () => {
   const { src, media, state, attachMedia, togglePlayback } = usePlayer();
+  useEffect(() => (media ? () => releaseDetached(media) : undefined), [media]);
   return (
     <>
       <div className="absolute inset-0 flex items-center justify-center p-6 pb-24" onClick={togglePlayback}>
