@@ -2,7 +2,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, type ErrorComponentProps, Link } from "@tanstack/react-router";
 import { Breadcrumbs } from "../features/browser/breadcrumbs.tsx";
 import { EntryList } from "../features/browser/entry-list.tsx";
-import { TitleBar } from "../features/layout/title-bar.tsx";
+import { PageHeader } from "../features/shell/page-header.tsx";
 import { useStarlight } from "../lib/context.ts";
 
 interface Search {
@@ -33,9 +33,9 @@ function Browser() {
 
   return (
     <>
-      <TitleBar>
+      <PageHeader>
         <Breadcrumbs workspace={workspace} path={path} />
-      </TitleBar>
+      </PageHeader>
       <EntryList
         key={path}
         entries={entries}
@@ -50,7 +50,7 @@ function Browser() {
 function BrowserError({ error }: ErrorComponentProps) {
   return (
     <>
-      <TitleBar />
+      <PageHeader />
       <div className="flex flex-1 flex-col items-center justify-center gap-2">
         <p className="max-w-md text-center text-muted">
           {error instanceof Error ? error.message : String(error)}

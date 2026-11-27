@@ -1,10 +1,12 @@
 import { FolderOpenIcon } from "@hugeicons-pro/core-stroke-rounded";
-import { Button, Icon } from "@starlight/ui";
+import { Button, type ButtonProps, Icon } from "@starlight/ui";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useStarlight } from "../../lib/context.ts";
 
-export const OpenWorkspaceButton = () => {
+type Props = Pick<ButtonProps, "variant" | "className">;
+
+export const OpenWorkspaceButton = ({ variant, className }: Props) => {
   const { mutations } = useStarlight();
   const navigate = useNavigate();
   const pick = useMutation(mutations.pickDirectory());
@@ -23,17 +25,17 @@ export const OpenWorkspaceButton = () => {
     });
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-1">
       <Button
-        variant="primary"
-        className="self-start"
+        variant={variant}
+        className={className}
         disabled={pick.isPending || open.isPending}
         onClick={onClick}
       >
         <Icon icon={FolderOpenIcon} />
         Open Folder…
       </Button>
-      {error ? <p className="text-danger">{error.message}</p> : null}
+      {error ? <p className="px-2 text-[12px] text-danger">{error.message}</p> : null}
     </div>
   );
 };

@@ -9,7 +9,7 @@
     height: 100%;
   }
   body {
-    @apply bg-canvas text-fg font-sans text-[13px] antialiased select-none;
+    @apply bg-chrome text-fg font-sans text-[13px] antialiased select-none;
     overflow: hidden;
   }
 }

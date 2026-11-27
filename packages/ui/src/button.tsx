@@ -8,8 +8,8 @@ const variants = {
 } as const;
 
 export interface ButtonProps extends Omit<ComponentProps<typeof BaseButton>, "className"> {
-  readonly variant?: keyof typeof variants;
-  readonly className?: string;
+  readonly variant?: keyof typeof variants | undefined;
+  readonly className?: string | undefined;
 }
 
 export const Button = ({ variant = "ghost", className, ...props }: ButtonProps) => (
