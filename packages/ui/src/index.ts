@@ -8,5 +8,6 @@ export * from "./nav-section.tsx";
 export * from "./popover.tsx";
 export * from "./progress.tsx";
 export * from "./prose.tsx";
+export * from "./segmented-control.tsx";
 export * from "./switch.tsx";
 export * from "./tooltip.tsx";

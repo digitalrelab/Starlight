@@ -1,14 +1,14 @@
-import {
-  type Entry,
-  type EntryChange,
-  type FileSystemError,
-  NotADirectory,
-  type PathOutsideWorkspace,
-  type WorkspaceId,
-  type WorkspaceNotFound,
+import type {
+  DirectoryError,
+  Entry,
+  EntryChange,
+  FileSystemError,
+  WorkspaceId,
+  WorkspaceNotFound,
 } from "@starlight/contracts";
 import { Context, Effect, Layer, Option, Result, Stream } from "effect";
 import { type FileWatchEvent, FileSystemPort, FileWatcherPort } from "./ports.ts";
+import { joinRelative } from "./relative-path.ts";
 import { Workspaces } from "./workspaces.ts";
 
 const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
@@ -31,18 +31,13 @@ const toChange =
     return paths.length === 0 ? Result.failVoid : Result.succeed({ _tag: "Changed", paths });
   };
 
-const join = (parent: string, name: string) => (parent === "" ? name : `${parent}/${name}`);
-
 export class Entries extends Context.Service<
   Entries,
   {
     readonly list: (
       workspaceId: WorkspaceId,
       path: string,
-    ) => Effect.Effect<
-      ReadonlyArray<Entry>,
-      WorkspaceNotFound | PathOutsideWorkspace | NotADirectory | FileSystemError
-    >;
+    ) => Effect.Effect<ReadonlyArray<Entry>, DirectoryError>;
     readonly watch: (
       workspaceId: WorkspaceId,
     ) => Stream.Stream<EntryChange, WorkspaceNotFound | FileSystemError>;
@@ -56,14 +51,12 @@ export class Entries extends Context.Service<
 
       return Entries.of({
         list: Effect.fn("Entries.list")(function* (workspaceId, path) {
-          const { absolute, relative } = yield* workspaces.resolve(workspaceId, path);
-          const info = yield* fs.stat(absolute);
-          if (info.kind !== "directory") return yield* new NotADirectory({ path: relative });
+          const { absolute, relative } = yield* workspaces.resolveDirectory(workspaceId, path);
           const entries = yield* fs.readDirectory(absolute);
           return entries
             .map((entry): Entry => ({
               ...entry,
-              path: join(relative, entry.name),
+              path: joinRelative(relative, entry.name),
               hidden: entry.name.startsWith("."),
             }))
             .sort(byKindThenName);

@@ -4,20 +4,20 @@ import { app, type MessagePortMain, type UtilityProcess, utilityProcess } from "
 
 const MIN_UPTIME_MS = 5_000;
 
-const fork = () =>
+const fork = (env: Readonly<Record<string, string>>) =>
   utilityProcess.fork(join(import.meta.dirname, "host.js"), [], {
     serviceName: "Starlight Host",
     stdio: "inherit",
-    env: { ...process.env, STARLIGHT_DATA_DIR: app.getPath("userData") },
+    env: { ...process.env, ...env, STARLIGHT_DATA_DIR: app.getPath("userData") },
   });
 
-export const superviseHost = (onRestart: () => void) => {
+export const superviseHost = (env: Readonly<Record<string, string>>, onRestart: () => void) => {
   let stopping = false;
   let current: UtilityProcess;
 
   const start = () => {
     const startedAt = Date.now();
-    current = fork();
+    current = fork(env);
     current.once("exit", (code) => {
       if (stopping) return;
       console.error(`[host] exited with code ${code}`);
