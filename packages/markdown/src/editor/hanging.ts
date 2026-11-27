@@ -1,27 +1,13 @@
 import { syntaxTree } from "@codemirror/language";
-import type { Tree } from "@lezer/common";
 import { type Line, RangeSetBuilder } from "@codemirror/state";
-import {
-  Decoration,
-  type DecorationSet,
-  type EditorView,
-  ViewPlugin,
-  type ViewUpdate,
-} from "@codemirror/view";
+import { Decoration, type EditorView } from "@codemirror/view";
+import type { Tree } from "@lezer/common";
+import { cachedDecoration, visibleDecorations } from "./decorations.ts";
 
 const MARKS = new Set(["HeaderMark", "ListMark", "QuoteMark", "TaskMarker"]);
 const SPACE = /[ \t]/;
 
-const decorations = new Map<string, Decoration>();
-
-const lineDecoration = (style: string) => {
-  let decoration = decorations.get(style);
-  if (!decoration) {
-    decoration = Decoration.line({ attributes: { style } });
-    decorations.set(style, decoration);
-  }
-  return decoration;
-};
+const lineDecoration = cachedDecoration((style) => Decoration.line({ attributes: { style } }));
 
 const widthOf = (text: string, tabSize: number) => {
   let width = 0;
@@ -61,23 +47,4 @@ const decorate = (view: EditorView) => {
   return builder.finish();
 };
 
-export const hangingIndents = ViewPlugin.fromClass(
-  class {
-    decorations: DecorationSet;
-
-    constructor(view: EditorView) {
-      this.decorations = decorate(view);
-    }
-
-    update(update: ViewUpdate) {
-      if (
-        update.docChanged ||
-        update.viewportChanged ||
-        syntaxTree(update.startState) !== syntaxTree(update.state)
-      ) {
-        this.decorations = decorate(update.view);
-      }
-    }
-  },
-  { decorations: (plugin) => plugin.decorations },
-);
+export const hangingIndents = visibleDecorations(decorate);

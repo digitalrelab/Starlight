@@ -98,20 +98,12 @@ const reparseWindow = (inner: Parser, input: Input, reuse: Reuse) => {
   return undefined;
 };
 
-class Parsed implements PartialParse {
-  readonly parsedPos: number;
-  readonly stoppedAt = null;
-
-  constructor(private readonly tree: Tree) {
-    this.parsedPos = tree.length;
-  }
-
-  advance() {
-    return this.tree;
-  }
-
-  stopAt() {}
-}
+const parsed = (tree: Tree): PartialParse => ({
+  parsedPos: tree.length,
+  stoppedAt: null,
+  advance: () => tree,
+  stopAt: () => undefined,
+});
 
 export class WindowedParser extends Parser {
   constructor(private readonly inner: Parser) {
@@ -126,6 +118,6 @@ export class WindowedParser extends Parser {
     const whole = ranges.length === 1 && ranges[0]?.from === 0 && ranges[0].to === input.length;
     const reuse = whole ? reuseOf(fragments, input.length) : undefined;
     const tree = reuse && reparseWindow(this.inner, input, reuse);
-    return tree ? new Parsed(tree) : this.inner.startParse(input, fragments, ranges);
+    return tree ? parsed(tree) : this.inner.startParse(input, fragments, ranges);
   }
 }

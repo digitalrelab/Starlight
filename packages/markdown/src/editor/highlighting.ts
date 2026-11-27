@@ -1,26 +1,12 @@
 import { syntaxTree } from "@codemirror/language";
 import { RangeSetBuilder } from "@codemirror/state";
-import {
-  Decoration,
-  type DecorationSet,
-  type EditorView,
-  ViewPlugin,
-  type ViewUpdate,
-} from "@codemirror/view";
+import { Decoration, type EditorView } from "@codemirror/view";
 import { Tree } from "@lezer/common";
 import { type Highlighter, highlightTree } from "@lezer/highlight";
+import { cachedDecoration, visibleDecorations } from "./decorations.ts";
 import { topLevelIn } from "./top-level.ts";
 
-const marks = new Map<string, Decoration>();
-
-const markOf = (classes: string) => {
-  let mark = marks.get(classes);
-  if (!mark) {
-    mark = Decoration.mark({ class: classes });
-    marks.set(classes, mark);
-  }
-  return mark;
-};
+const markOf = cachedDecoration((classes) => Decoration.mark({ class: classes }));
 
 const decorate = (view: EditorView, highlighters: readonly Highlighter[]) => {
   const builder = new RangeSetBuilder<Decoration>();
@@ -40,23 +26,4 @@ const decorate = (view: EditorView, highlighters: readonly Highlighter[]) => {
 };
 
 export const highlighting = (...highlighters: readonly Highlighter[]) =>
-  ViewPlugin.fromClass(
-    class {
-      decorations: DecorationSet;
-
-      constructor(view: EditorView) {
-        this.decorations = decorate(view, highlighters);
-      }
-
-      update(update: ViewUpdate) {
-        if (
-          update.docChanged ||
-          update.viewportChanged ||
-          syntaxTree(update.startState) !== syntaxTree(update.state)
-        ) {
-          this.decorations = decorate(update.view, highlighters);
-        }
-      }
-    },
-    { decorations: (plugin) => plugin.decorations },
-  );
+  visibleDecorations((view) => decorate(view, highlighters));
