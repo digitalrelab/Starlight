@@ -30,3 +30,11 @@ export class FileSystemError extends Schema.TaggedError<FileSystemError>()("File
   reason: Schema.Literals(["NotFound", "PermissionDenied", "Unknown"]),
   message: Schema.String,
 }) {}
+
+export const DirectoryError = Schema.Union([
+  WorkspaceNotFound,
+  PathOutsideWorkspace,
+  NotADirectory,
+  FileSystemError,
+]);
+export type DirectoryError = typeof DirectoryError.Type;

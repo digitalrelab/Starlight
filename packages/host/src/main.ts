@@ -2,9 +2,11 @@ import { NodePath, NodeRuntime } from "@effect/platform-node";
 import { ConnectRequest } from "@starlight/contracts";
 import { CoreLive } from "@starlight/core";
 import { Effect, Layer, Queue, Schema } from "effect";
+import { ImageProbeLive } from "./adapters/image-probe/index.ts";
 import { NodeFileSystemLive } from "./adapters/node-file-system.ts";
 import { ParcelFileWatcherLive } from "./adapters/parcel-file-watcher.ts";
 import { SqliteLive } from "./adapters/sqlite/index.ts";
+import { ThumbnailTokensLive } from "./adapters/thumbnail-tokens.ts";
 import { HostServerLive } from "./rpc/server.ts";
 import { type MainPortLike, serve } from "./rpc/transport.ts";
 
@@ -23,14 +25,27 @@ interface ParentPort {
 const parentPort = (process as unknown as { parentPort?: ParentPort }).parentPort;
 if (!parentPort) throw new Error("host must run inside an Electron utilityProcess");
 
-const dataDir = process.env["STARLIGHT_DATA_DIR"];
-if (!dataDir) throw new Error("STARLIGHT_DATA_DIR is not set");
+const requireEnv = (name: string) => {
+  const value = process.env[name];
+  if (!value) throw new Error(`${name} is not set`);
+  return value;
+};
+
+const dataDir = requireEnv("STARLIGHT_DATA_DIR");
+const thumbnailKey = Buffer.from(requireEnv("STARLIGHT_THUMBNAIL_KEY"), "hex");
 
 const decodeConnect = Schema.decodeUnknownEffect(ConnectRequest);
 
 const HostLive = CoreLive.pipe(
   Layer.provide(
-    Layer.mergeAll(NodeFileSystemLive, ParcelFileWatcherLive, SqliteLive(dataDir), NodePath.layer),
+    Layer.mergeAll(
+      NodeFileSystemLive,
+      ParcelFileWatcherLive,
+      ImageProbeLive,
+      ThumbnailTokensLive(thumbnailKey),
+      SqliteLive(dataDir),
+      NodePath.layer,
+    ),
   ),
 );
 

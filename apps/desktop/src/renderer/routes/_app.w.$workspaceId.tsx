@@ -1,8 +1,12 @@
+import type { Entry } from "@starlight/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, type ErrorComponentProps, Link } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { Breadcrumbs } from "../features/browser/breadcrumbs.tsx";
-import { EntryList } from "../features/browser/entry-list.tsx";
+import { DirectoryView } from "../features/browser/directory-view.tsx";
+import { readLayout, useLayoutPreference } from "../features/browser/layout-preference.ts";
+import { LayoutSwitcher } from "../features/browser/layout-switcher.tsx";
+import { layouts } from "../features/browser/layouts/registry.ts";
 import { PageHeader } from "../features/shell/page-header.tsx";
 import { useStarlight } from "../lib/context.ts";
 
@@ -15,11 +19,14 @@ export const Route = createFileRoute("/_app/w/$workspaceId")({
     path: typeof search["path"] === "string" ? search["path"] : "",
   }),
   loaderDeps: ({ search }) => ({ path: search.path }),
-  loader: ({ context: { queryClient, queries }, params, deps }) =>
-    Promise.all([
+  loader: ({ context, params, deps }) => {
+    const { queryClient, queries } = context;
+    return Promise.all([
       queryClient.ensureQueryData(queries.workspace(params.workspaceId)),
       queryClient.ensureQueryData(queries.entries(params.workspaceId, deps.path)),
-    ]),
+      layouts[readLayout(params.workspaceId)].preload?.(context, params.workspaceId, deps.path),
+    ]);
+  },
   component: Browser,
   errorComponent: BrowserError,
 });
@@ -32,18 +39,27 @@ function Browser() {
   useEffect(() => subscriptions.entries(workspaceId), [subscriptions, workspaceId]);
   const { data: workspace } = useSuspenseQuery(queries.workspace(workspaceId));
   const { data: entries } = useSuspenseQuery(queries.entries(workspaceId, path));
+  const [layout, setLayout] = useLayoutPreference(workspaceId);
+
+  const onOpen = useCallback(
+    (entry: Entry) => {
+      if (entry.kind === "directory") void navigate({ search: { path: entry.path } });
+    },
+    [navigate],
+  );
 
   return (
     <>
-      <PageHeader>
+      <PageHeader actions={<LayoutSwitcher value={layout} onChange={setLayout} />}>
         <Breadcrumbs workspace={workspace} path={path} />
       </PageHeader>
-      <EntryList
+      <DirectoryView
         key={path}
+        workspaceId={workspaceId}
+        path={path}
         entries={entries}
-        onOpen={(entry) => {
-          if (entry.kind === "directory") void navigate({ search: { path: entry.path } });
-        }}
+        layout={layout}
+        onOpen={onOpen}
       />
     </>
   );

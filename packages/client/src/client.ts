@@ -45,6 +45,10 @@ export const createClient = (ports: PortSources) => {
         return () => fiber.interruptUnsafe();
       },
     },
+    media: {
+      list: (workspaceId: string, path: string) =>
+        host((c) => c.ListMedia({ workspaceId: id(workspaceId), path })),
+    },
     shell: {
       pickDirectory: () => shell((c) => c.PickDirectory()),
     },

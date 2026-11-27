@@ -1,4 +1,5 @@
 import {
+  type DirectoryError,
   type FileSystemError,
   NotADirectory,
   PathOutsideWorkspace,
@@ -18,13 +19,10 @@ export class Workspaces extends Context.Service<
     readonly recent: Effect.Effect<ReadonlyArray<Workspace>>;
     readonly get: (id: WorkspaceId) => Effect.Effect<Workspace, WorkspaceNotFound>;
     readonly relativize: (workspace: Workspace, absolute: string) => Option.Option<string>;
-    readonly resolve: (
+    readonly resolveDirectory: (
       id: WorkspaceId,
       relative: string,
-    ) => Effect.Effect<
-      { readonly workspace: Workspace; readonly absolute: string; readonly relative: string },
-      WorkspaceNotFound | PathOutsideWorkspace | FileSystemError
-    >;
+    ) => Effect.Effect<{ readonly absolute: string; readonly relative: string }, DirectoryError>;
   }
 >()("@starlight/core/Workspaces") {
   static readonly layer = Layer.effect(Workspaces)(
@@ -64,7 +62,7 @@ export class Workspaces extends Context.Service<
         recent: store.recent(RECENT_LIMIT),
         get,
         relativize,
-        resolve: Effect.fn("Workspaces.resolve")(function* (id, relative) {
+        resolveDirectory: Effect.fn("Workspaces.resolveDirectory")(function* (id, relative) {
           const workspace = yield* get(id);
           const lexical = path.resolve(workspace.rootPath, relative);
           if (!isWithin(workspace.rootPath, lexical))
@@ -72,7 +70,9 @@ export class Workspaces extends Context.Service<
           const absolute = yield* fs.realPath(lexical);
           const inside = relativize(workspace, absolute);
           if (Option.isNone(inside)) return yield* new PathOutsideWorkspace({ path: relative });
-          return { workspace, absolute, relative: inside.value };
+          const info = yield* fs.stat(absolute);
+          if (info.kind !== "directory") return yield* new NotADirectory({ path: inside.value });
+          return { absolute, relative: inside.value };
         }),
       });
     }),
