@@ -1,6 +1,12 @@
 import { DirectoryMissing, type Entry, type EntryRef, entryKey } from "@starlight/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, type ErrorComponentProps, Navigate, useRouter } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  type ErrorComponentProps,
+  Navigate,
+  useLocation,
+  useRouter,
+} from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Breadcrumbs } from "#renderer/features/browser/breadcrumbs.tsx";
 import {
@@ -48,6 +54,7 @@ function Browser() {
   const fileKey = file ? entryKey(file) : undefined;
   const navigate = Route.useNavigate();
   const router = useRouter();
+  const fromDirectory = useLocation({ select: (location) => location.state.fromDirectory === true });
   const { queries, subscriptions } = useStarlight();
   const { data: project } = useSuspenseQuery(queries.project(projectId));
   const { data: listing, error, isFetching } = useSuspenseQuery(queries.entries(projectId, directory));
@@ -60,12 +67,18 @@ function Browser() {
   const selectedKey = fileKey ?? (selection.directory === directoryKey ? selection.key : undefined);
   const select = (key: string | undefined) => setSelection({ directory: directoryKey, key });
 
-  const showFile = (shown: EntryRef) => {
-    if (directory) void navigate({ search: toFileSearch(directory, shown), replace: true });
+  const showFile = (shown: EntryRef, replace: boolean) => {
+    if (!directory) return;
+    select(entryKey(shown));
+    void navigate({
+      search: toFileSearch(directory, shown),
+      replace,
+      state: replace ? true : { fromDirectory: true },
+    });
   };
   const onOpen = (entry: Entry) => {
     if (entry.kind === "directory") void navigate({ search: toDirectorySearch(entry.ref) });
-    else if (entry.kind === "file") showFile(entry.ref);
+    else if (entry.kind === "file") showFile(entry.ref, false);
   };
   const preloadFolder = (folder: EntryRef) =>
     router.preloadRoute({
@@ -78,8 +91,8 @@ function Browser() {
   };
   useFoldersAhead(projectId, listing.entries, preloadFolder);
   const closeViewer = () => {
-    select(fileKey);
-    void navigate({ search: toDirectorySearch(directory), replace: true });
+    if (fromDirectory) router.history.back();
+    else void navigate({ search: toDirectorySearch(directory), replace: true });
   };
 
   if (error && !isFetching) throw error;
@@ -114,7 +127,7 @@ function Browser() {
           directoryName={listing.trail.at(-1)?.name ?? project.name}
           entries={listing.entries}
           file={file}
-          onShow={showFile}
+          onShow={(shown) => showFile(shown, true)}
           onClose={closeViewer}
         />
       ) : null}
