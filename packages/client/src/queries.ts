@@ -4,7 +4,7 @@ import {
   queryOptions,
   type QueryClient,
 } from "@tanstack/react-query";
-import type { ChatDetail, EntryRef, Listing, ModelChoice, UpdaterState, Project } from "@starlight/contracts";
+import type { ChatDetail, EntryRef, Listing, ModelChoice, Project, UpdaterState } from "@starlight/contracts";
 import type { StarlightClient } from "./client.ts";
 import { createFileSession, type FileSessionOptions } from "./file-session.ts";
 import { entryKey } from "./refs.ts";

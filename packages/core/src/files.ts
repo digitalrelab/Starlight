@@ -3,8 +3,8 @@ import {
   type FileError,
   type FileSource,
   FileVersion,
-  VersionConflict,
   type ProjectId,
+  VersionConflict,
   type WriteError,
 } from "@starlight/contracts";
 import { Context, Effect, Layer, Option } from "effect";

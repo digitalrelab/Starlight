@@ -1,5 +1,5 @@
 import { Schema } from "effect";
-import { EntryRef, SourceId, ProjectId } from "./ids.ts";
+import { EntryRef, ProjectId, SourceId } from "./ids.ts";
 
 export class ProjectNotFound extends Schema.TaggedError<ProjectNotFound>()("ProjectNotFound", {
   projectId: ProjectId,

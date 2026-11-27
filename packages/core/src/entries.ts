@@ -5,11 +5,11 @@ import type {
   EntryRef,
   Listing,
   Mount,
+  ProjectId,
+  ProjectNotFound,
   SourceError,
   SourceId,
   SourceUnavailable,
-  ProjectId,
-  ProjectNotFound,
 } from "@starlight/contracts";
 import { Array as Arr, Context, Effect, Layer, Result, Stream } from "effect";
 import type { SourceChange, SourceDriver, SourceEntry } from "./ports.ts";

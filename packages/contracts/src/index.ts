@@ -9,6 +9,6 @@ export * from "./file-types.ts";
 export * from "./ids.ts";
 export * from "./imaging.ts";
 export * from "./media.ts";
+export * from "./project.ts";
 export * from "./rpc.ts";
 export * from "./update.ts";
-export * from "./project.ts";

@@ -8,20 +8,20 @@ import {
   NotADirectory,
   NotAFile,
   OutsideProject,
-  type SourceId,
-  SourceUnavailable,
   type Project,
   type ProjectId,
   ProjectNotFound,
+  type SourceId,
+  SourceUnavailable,
 } from "@starlight/contracts";
 import { Context, Effect, Layer, Option } from "effect";
 import {
   AuditLog,
   CurrentActor,
+  ProjectStore,
   type SourceDriver,
   SourceDrivers,
   type SourceEntry,
-  ProjectStore,
 } from "./ports.ts";
 
 export interface LocatedDirectory {
