@@ -15,11 +15,11 @@ const PARTS: ReadonlyArray<Part> = [
   {
     key: "previews",
     label: "Previews",
-    description: "Thumbnails and full-screen renditions, rebuilt as you browse",
+    description: "Made from your files, safe to clear",
     fill: "bg-series-1",
   },
-  { key: "library", label: "Library", description: "Workspaces, folders and settings", fill: "bg-series-2" },
-  { key: "other", label: "Other", description: "Caches kept by the app engine", fill: "bg-series-other" },
+  { key: "library", label: "Library", description: "Your workspaces and settings", fill: "bg-series-2" },
+  { key: "other", label: "Other", description: "Caches and app data", fill: "bg-series-other" },
 ];
 
 const shareFormat = new Intl.NumberFormat(undefined, { style: "percent", maximumFractionDigits: 1 });
@@ -60,10 +60,10 @@ export const DiskBreakdown = ({ usage }: { readonly usage: DiskUsage }) => {
   const total = PARTS.reduce((sum, part) => sum + usage[part.key], 0);
   return (
     <>
-      <section className="flex flex-col gap-4">
-        <div>
-          <p className="text-5xl font-semibold">{formatSize(total)}</p>
-          <p className="text-subtle">Used by Starlight on this Mac</p>
+      <section className="flex flex-col gap-1">
+        <div className="flex justify-between text-subtle">
+          <span>Used by Starlight</span>
+          <span className="tabular-nums">{formatSize(total)}</span>
         </div>
         <UsageBar usage={usage} total={total} />
       </section>
