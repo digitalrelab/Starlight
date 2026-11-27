@@ -1,7 +1,6 @@
 import { type CreatableKind, type Entry, type EntryRef, entryKey } from "@starlight/client";
 import { useEffect } from "react";
 import { defineStore, useStore } from "#renderer/lib/store.ts";
-import { type Blueprint, freeName } from "./blueprints.ts";
 
 interface Session {
   readonly key: number;
@@ -22,18 +21,10 @@ let started = 0;
 
 export const startCreating = (
   directory: EntryRef,
-  blueprint: Blueprint,
-  entries: ReadonlyArray<Entry>,
+  kind: CreatableKind,
+  name: string,
   problem: string | null = null,
-) =>
-  store.set({
-    key: ++started,
-    directory: entryKey(directory),
-    target: null,
-    kind: blueprint.kind,
-    name: freeName(blueprint, entries),
-    problem,
-  });
+) => store.set({ key: ++started, directory: entryKey(directory), target: null, kind, name, problem });
 
 export const startRenaming = (directory: EntryRef, entry: Entry) =>
   store.set({

@@ -25,6 +25,7 @@ interface Props {
   readonly directoryName: string;
   readonly entries: ReadonlyArray<Entry>;
   readonly file: EntryRef;
+  readonly composing: boolean;
   readonly onShow: (file: EntryRef) => void;
   readonly onClose: () => void;
 }
@@ -76,6 +77,7 @@ export const FileViewer = ({
   directoryName,
   entries,
   file,
+  composing,
   onShow,
   onClose,
 }: Props) => {
@@ -166,7 +168,13 @@ export const FileViewer = ({
         <Theater.Stage>
           {current ? (
             <StatusSlot value={statusSlot}>
-              <FileStage key={file.id} projectId={projectId} directory={directory} entry={current} />
+              <FileStage
+                key={file.id}
+                projectId={projectId}
+                directory={directory}
+                entry={current}
+                composing={composing}
+              />
             </StatusSlot>
           ) : null}
         </Theater.Stage>

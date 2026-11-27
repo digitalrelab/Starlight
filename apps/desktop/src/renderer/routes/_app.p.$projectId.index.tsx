@@ -1,6 +1,12 @@
 import { DirectoryMissing, type Entry, type EntryRef, entryKey } from "@starlight/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, type ErrorComponentProps, Navigate, useRouter } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  type ErrorComponentProps,
+  Navigate,
+  useRouter,
+  useRouterState,
+} from "@tanstack/react-router";
 import { useEffect } from "react";
 import { DirectoryBreadcrumbs } from "#renderer/features/browser/directory-breadcrumbs.tsx";
 import {
@@ -44,6 +50,7 @@ function Browser() {
   const file = toFile(Route.useSearch());
   const navigate = Route.useNavigate();
   const router = useRouter();
+  const composing = useRouterState({ select: ({ location }) => location.state.composing });
   const { queries, subscriptions } = useStarlight();
   const { data: project } = useSuspenseQuery(queries.project(projectId));
   const { data: listing, error, isFetching } = useSuspenseQuery(queries.entries(projectId, directory));
@@ -58,11 +65,15 @@ function Browser() {
   const showFile = (shown: EntryRef) => {
     if (directory) void navigate({ search: toFileSearch(directory, shown), replace: true, state: true });
   };
-  const onOpen = ({ ref, kind }: Pick<Entry, "ref" | "kind">) => {
-    if (kind === "directory") void navigate({ search: toDirectorySearch(ref) });
-    else if (kind === "file" && directory)
-      void navigate({ search: toFileSearch(directory, ref), state: { fromDirectory: true } });
+  const openFile = (opened: EntryRef, composing?: string) => {
+    if (directory)
+      void navigate({ search: toFileSearch(directory, opened), state: { fromDirectory: true, composing } });
   };
+  const onOpen = (entry: Entry) => {
+    if (entry.kind === "directory") void navigate({ search: toDirectorySearch(entry.ref) });
+    else if (entry.kind === "file") openFile(entry.ref);
+  };
+  const onCompose = (created: EntryRef) => openFile(created, entryKey(created));
   const preloadFolder = (folder: EntryRef) =>
     router.preloadRoute({
       to: "/p/$projectId",
@@ -90,7 +101,7 @@ function Browser() {
                 projectId={projectId}
                 directory={directory}
                 entries={listing.entries}
-                onOpen={onOpen}
+                onCompose={onCompose}
               />
             ) : null}
             <AddMountButton projectId={projectId} />
@@ -108,6 +119,7 @@ function Browser() {
         layout={layout}
         shown={file}
         onOpen={onOpen}
+        onCompose={onCompose}
         onIntent={prefetch}
       />
       {directory && file ? (
@@ -117,6 +129,7 @@ function Browser() {
           directoryName={listing.trail.at(-1)?.name ?? project.name}
           entries={entries}
           file={file}
+          composing={composing === entryKey(file)}
           onShow={showFile}
           onClose={closeViewer}
         />

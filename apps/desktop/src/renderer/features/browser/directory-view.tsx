@@ -13,7 +13,8 @@ interface Props {
   readonly entries: ReadonlyArray<Entry>;
   readonly layout: LayoutId;
   readonly shown: EntryRef | null;
-  readonly onOpen: (entry: Pick<Entry, "ref" | "kind">) => void;
+  readonly onOpen: (entry: Entry) => void;
+  readonly onCompose: (file: EntryRef) => void;
   readonly onIntent: (entry: Entry) => void;
 }
 
@@ -35,7 +36,16 @@ const useDwell = (onDwell: (entry: Entry) => void) => {
   };
 };
 
-export const DirectoryView = ({ projectId, directory, entries, layout, shown, onOpen, onIntent }: Props) => {
+export const DirectoryView = ({
+  projectId,
+  directory,
+  entries,
+  layout,
+  shown,
+  onOpen,
+  onCompose,
+  onIntent,
+}: Props) => {
   const [selection] = useState(createSelection);
   const ids = entries.map(selectionId);
   useLayoutEffect(() => selection.setItems(ids), [selection, ids]);
@@ -69,9 +79,7 @@ export const DirectoryView = ({ projectId, directory, entries, layout, shown, on
               directory={directory}
               naming={naming}
               onNamed={(ref) =>
-                naming.target === null && naming.kind === "file"
-                  ? onOpen({ ref, kind: "file" })
-                  : setLanding(ref)
+                naming.target === null && naming.kind === "file" ? onCompose(ref) : setLanding(ref)
               }
             />
           ),
@@ -105,7 +113,7 @@ export const DirectoryView = ({ projectId, directory, entries, layout, shown, on
       directory={directory}
       entries={entries}
       selection={selection}
-      onOpen={onOpen}
+      onCompose={onCompose}
     >
       {listing}
     </ListingMenu>

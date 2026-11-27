@@ -11,20 +11,19 @@ export interface NewEntryOptions {
   readonly projectId: string;
   readonly directory: EntryRef;
   readonly entries: ReadonlyArray<Entry>;
-  readonly onOpen: (entry: Pick<Entry, "ref" | "kind">) => void;
+  readonly onCompose: (file: EntryRef) => void;
 }
 
-export const useNewEntry = ({ projectId, directory, entries, onOpen }: NewEntryOptions) => {
+export const useNewEntry = ({ projectId, directory, entries, onCompose }: NewEntryOptions) => {
   const { mutations } = useStarlight();
   const create = useMutation(mutations.nameEntry(projectId, directory));
   return (blueprint: Blueprint) => {
-    if (!blueprint.instant) return startCreating(directory, blueprint, entries);
+    const { kind, instant } = blueprint;
+    const name = freeName(blueprint, entries);
+    if (!instant) return startCreating(directory, kind, name);
     create.mutate(
-      { name: freeName(blueprint, entries), kind: blueprint.kind },
-      {
-        onSuccess: (ref) => onOpen({ ref, kind: blueprint.kind }),
-        onError: (error) => startCreating(directory, blueprint, entries, error.message),
-      },
+      { name, kind },
+      { onSuccess: onCompose, onError: (error) => startCreating(directory, kind, name, error.message) },
     );
   };
 };
