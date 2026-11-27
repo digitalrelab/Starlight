@@ -111,7 +111,7 @@ const RailButton = ({
     aria-label={label}
     aria-pressed={pressed}
     onClick={onClick}
-    className="inline-flex size-control items-center justify-center rounded-md focus-ring highlighted:bg-neutral-subtle-hovered aria-pressed:bg-selected aria-pressed:highlighted:bg-selected-hovered"
+    className="inline-flex size-control items-center justify-center rounded-full focus-ring highlighted:bg-neutral-subtle-hovered aria-pressed:bg-selected aria-pressed:highlighted:bg-selected-hovered"
   >
     {children}
   </button>
