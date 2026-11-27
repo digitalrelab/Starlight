@@ -12,6 +12,7 @@ export * from "./icon.tsx";
 export * from "./icon-button.tsx";
 export * from "./interface.tsx";
 export * from "./kbd.tsx";
+export * from "./list.tsx";
 export * from "./item.tsx";
 export * from "./menu.tsx";
 export * from "./nav-item.tsx";

@@ -1,7 +1,6 @@
 import {
   type DirectoryError,
   DirectoryMissing,
-  type EntryLocation,
   type EntryRef,
   type FileError,
   type Mount,
@@ -13,7 +12,6 @@ import {
   type ProjectId,
   ProjectNotFound,
   type SourceId,
-  type SourceError,
   SourceUnavailable,
 } from "@starlight/contracts";
 import { Context, Effect, Layer, Option, PubSub, Stream } from "effect";
@@ -74,7 +72,6 @@ export class Projects extends Context.Service<
       directory: EntryRef,
     ) => Effect.Effect<LocatedDirectory, DirectoryError>;
     readonly locateFile: (id: ProjectId, file: EntryRef) => Effect.Effect<LocatedFile, FileError>;
-    readonly locateEntry: (ref: EntryRef) => Effect.Effect<EntryLocation, SourceUnavailable | SourceError>;
   }
 >()("@starlight/core/Projects") {
   static readonly layer = Layer.effect(Projects)(
@@ -219,18 +216,6 @@ export class Projects extends Context.Service<
           const entry = yield* driver.stat(file.id);
           if (entry.kind !== "file") return yield* new NotAFile({ entry: requested });
           return { mount, driver, file, entry };
-        }),
-        locateEntry: Effect.fn("Projects.locateEntry")(function* (requested) {
-          const driver = yield* driverFor(requested.source);
-          const ref = { source: requested.source, id: yield* driver.canonicalize(requested.id) };
-          const entry = yield* driver.stat(ref.id);
-          const project = ownerOf(yield* store.list, driver, ref)?.project;
-          return {
-            name: entry.name,
-            kind: entry.kind,
-            project: project?.id ?? null,
-            directory: entry.kind === "directory" ? ref : { source: ref.source, id: driver.parent(ref.id) },
-          };
         }),
       });
     }),

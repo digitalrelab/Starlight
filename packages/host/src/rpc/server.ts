@@ -4,11 +4,11 @@ import {
   Chats,
   CurrentActor,
   Entries,
-  EntrySearch,
   Files,
   IgnoreRules,
   MediaLibrary,
   Projects,
+  References,
 } from "@starlight/core";
 import { Effect, Layer } from "effect";
 import { RpcServer } from "effect/rpc";
@@ -21,8 +21,8 @@ const HandlersLive = HostRpcs.toLayer(
     const media = yield* MediaLibrary;
     const agentProviders = yield* AgentProviders;
     const chats = yield* Chats;
-    const search = yield* EntrySearch;
     const ignoreRules = yield* IgnoreRules;
+    const references = yield* References;
     return HostRpcs.of({
       CreateProject: ({ root }) => projects.create(root),
       ListProjects: () => projects.list,
@@ -33,14 +33,16 @@ const HandlersLive = HostRpcs.toLayer(
       RemoveMount: ({ projectId, root }) => projects.removeMount(projectId, root),
       ListEntries: ({ projectId, directory }) => entries.list(projectId, directory),
       CreateEntry: ({ projectId, directory, name, kind }) => entries.create(projectId, directory, name, kind),
+      RenameEntry: ({ projectId, entry, name }) => entries.rename(projectId, entry, name),
       WatchEntries: ({ projectId }) => entries.watch(projectId),
       ListMedia: ({ projectId, directory }) => media.list(projectId, directory),
       ProcessMedia: ({ projectId, directory }) => media.process(projectId, directory),
       GetFileSource: ({ projectId, file }) => files.source(projectId, file),
-      LocateEntry: ({ ref }) => projects.locateEntry(ref),
+      SearchReferences: ({ query, projectId, includeHidden }) =>
+        references.search(query, projectId, includeHidden),
+      LocateEntry: ({ ref }) => references.locate(ref),
       GetIgnorePatterns: () => ignoreRules.patterns,
       SetIgnorePatterns: ({ patterns }) => ignoreRules.replace(patterns),
-      SearchEntries: ({ query, projectId, includeHidden }) => search.search(query, projectId, includeHidden),
       GetFileDetails: ({ projectId, file }) => files.details(projectId, file),
       WriteFile: ({ projectId, file, content, base }) => files.write(projectId, file, content, base),
       ListAgentProviders: () => agentProviders.list,

@@ -1,9 +1,12 @@
-import { Compartment, EditorState, Transaction } from "@codemirror/state";
+import { Compartment, EditorState, type Extension, Transaction } from "@codemirror/state";
 import { EditorView, placeholder as placeholderText } from "@codemirror/view";
 import { cn } from "cn";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { changeBetween } from "#change.ts";
 import { submitOnEnter, type Variant, variants, writing } from "./writing.ts";
+
+export { insertLink, type MentionHosts, mentionChips } from "./mentions.ts";
+export { type ActiveTrigger, type TriggerSource, type TriggerStore, useTrigger } from "./trigger.ts";
 
 export interface MarkdownEditorProps {
   readonly value: string;
@@ -12,6 +15,7 @@ export interface MarkdownEditorProps {
   readonly editable?: boolean;
   readonly placeholder?: string;
   readonly autoFocus?: boolean;
+  readonly extensions?: Extension;
   readonly className?: string;
   readonly onChange?: (read: () => string) => void;
   readonly onSubmit?: () => void;
@@ -34,6 +38,7 @@ export const MarkdownEditor = ({
   editable = true,
   placeholder,
   autoFocus = false,
+  extensions = [],
   className,
   onChange,
   onSubmit,
@@ -48,6 +53,7 @@ export const MarkdownEditor = ({
     editable,
     placeholder,
     autoFocus,
+    extensions,
     submits: onSubmit !== undefined,
   });
   const [settings] = useState(() => new Compartment());
@@ -63,6 +69,7 @@ export const MarkdownEditor = ({
         extensions: [
           writing,
           variants[initial.variant],
+          initial.extensions,
           initial.submits ? submitOnEnter(submitted) : [],
           settings.of(settingsOf(initial.label, initial.editable, initial.placeholder)),
           EditorView.updateListener.of((update) => {

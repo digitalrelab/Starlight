@@ -104,5 +104,5 @@ export class EntryExists extends Schema.TaggedError<EntryExists>()("EntryExists"
   }
 }
 
-export const CreateError = Schema.Union([...DirectoryError.members, InvalidName, EntryExists]);
-export type CreateError = typeof CreateError.Type;
+export const NamingError = Schema.Union([...DirectoryError.members, InvalidName, EntryExists]);
+export type NamingError = typeof NamingError.Type;

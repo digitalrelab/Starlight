@@ -96,6 +96,7 @@ export interface SourceDriver {
     name: string,
     kind: CreatableKind,
   ) => Effect.Effect<SourceEntry, SourceError>;
+  readonly rename: (id: EntryId, name: string) => Effect.Effect<SourceEntry, SourceError>;
   readonly watch: (root: EntryId) => Stream.Stream<SourceChange, SourceError>;
   readonly extractors: Extractors;
   readonly sample: (entry: SourceEntry) => Effect.Effect<Option.Option<PixelSample>, SampleFailed>;
@@ -154,6 +155,7 @@ export class EntryStore extends Context.Service<
   EntryStore,
   {
     readonly roots: Effect.Effect<ReadonlyArray<EntryRef>>;
+    readonly find: (source: SourceId, id: EntryId) => Effect.Effect<Option.Option<StoredEntry>>;
     readonly children: (source: SourceId, directory: EntryId) => Effect.Effect<ReadonlyArray<StoredEntry>>;
     readonly withKeys: (
       source: SourceId,
@@ -251,6 +253,7 @@ export class ChatStore extends Context.Service<
   ChatStore,
   {
     readonly list: (projectId: ProjectId | null) => Effect.Effect<ReadonlyArray<Chat>>;
+    readonly search: (query: string, limit: number) => Effect.Effect<ReadonlyArray<Chat>>;
     readonly find: (id: ChatId) => Effect.Effect<Option.Option<StoredChat>>;
     readonly create: (input: {
       readonly projectId: ProjectId | null;
