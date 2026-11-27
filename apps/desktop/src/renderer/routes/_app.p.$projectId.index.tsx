@@ -17,11 +17,7 @@ import { layouts } from "#renderer/features/browser/layouts/registry.ts";
 import { useFoldersAhead } from "#renderer/features/browser/use-folders-ahead.ts";
 import { PageError } from "#renderer/features/shell/page-error.tsx";
 import { PageHeader } from "#renderer/features/shell/page-header.tsx";
-import { ShellAside } from "#renderer/features/shell/shell-aside.tsx";
 import { FileViewer } from "#renderer/features/viewer/file-viewer.tsx";
-import { Inspector } from "#renderer/features/inspector/inspector.tsx";
-import { inspectorPreference } from "#renderer/features/inspector/inspector-preference.ts";
-import { InspectorToggle, useInspectorShortcut } from "#renderer/features/inspector/inspector-toggle.tsx";
 import { AddMountButton } from "#renderer/features/projects/add-mount-button.tsx";
 import { useStarlight } from "#renderer/lib/context.ts";
 import { useStored } from "#renderer/lib/storage.ts";
@@ -57,8 +53,6 @@ function Browser() {
   const { data: listing, error, isFetching } = useSuspenseQuery(queries.entries(projectId, directory));
   const preference = layoutPreference(projectId);
   const layout = useStored(preference);
-  const inspector = useStored(inspectorPreference) === "open";
-  useInspectorShortcut();
   useEffect(() => subscriptions.entries(projectId), [subscriptions, projectId, project.mounts]);
 
   const directoryKey = directory ? entryKey(directory) : "";
@@ -99,7 +93,6 @@ function Browser() {
           <>
             <AddMountButton projectId={projectId} />
             <LayoutSwitcher value={layout} onChange={preference.set} />
-            <InspectorToggle />
           </>
         }
       >
@@ -116,16 +109,6 @@ function Browser() {
         onOpen={onOpen}
         onIntent={prefetch}
       />
-      {inspector ? (
-        <ShellAside>
-          <Inspector
-            projectId={projectId}
-            directory={directory}
-            entry={listing.entries.find((entry) => entryKey(entry.ref) === selectedKey)}
-            className="my-2 mr-2"
-          />
-        </ShellAside>
-      ) : null}
       {directory && file ? (
         <FileViewer
           projectId={projectId}
@@ -135,7 +118,6 @@ function Browser() {
           file={file}
           onShow={showFile}
           onClose={closeViewer}
-          inspector={inspector}
         />
       ) : null}
     </>

@@ -24,6 +24,7 @@ export * from "./slider.tsx";
 export * from "./spinner.tsx";
 export * from "./select.tsx";
 export * from "./status-pill.tsx";
+export * from "./swatch.tsx";
 export * from "./switch.tsx";
 export * from "./theater.tsx";
 export { Tooltip } from "./tooltip.tsx";

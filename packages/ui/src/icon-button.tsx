@@ -21,6 +21,7 @@ export const IconButton = ({ icon, label, shortcut, render, className, ...props 
         className: cn(
           "inline-flex size-control items-center justify-center rounded-full text-subtle focus-ring",
           "highlighted:bg-neutral-subtle-hovered highlighted:text-default aria-[current=page]:text-default",
+          "aria-pressed:bg-neutral aria-pressed:text-default",
           className,
         ),
         children: <Icon icon={icon} />,

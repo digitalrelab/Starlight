@@ -5,7 +5,13 @@ import { Button, Icon, IconButton, Theater } from "@starlight/ui";
 import { type KeyboardEvent, useEffect, useEffectEvent, useRef, useState } from "react";
 import { KindIcon, itemKindOf } from "#renderer/features/files/kind-icon.tsx";
 import { Inspector } from "#renderer/features/inspector/inspector.tsx";
-import { InspectorToggle } from "#renderer/features/inspector/inspector-toggle.tsx";
+import { inspectorPreference } from "#renderer/features/inspector/inspector-preference.ts";
+import {
+  INSPECTOR_KEY,
+  InspectorToggle,
+  toggleInspector,
+} from "#renderer/features/inspector/inspector-toggle.tsx";
+import { useStored } from "#renderer/lib/storage.ts";
 import { useStarlight } from "#renderer/lib/context.ts";
 import { FileStage } from "./file-stage.tsx";
 import { fileBytes } from "#renderer/features/files/file-bytes.ts";
@@ -21,7 +27,6 @@ interface Props {
   readonly file: EntryRef;
   readonly onShow: (file: EntryRef) => void;
   readonly onClose: () => void;
-  readonly inspector: boolean;
 }
 
 const PREVIOUS_KEY = "ArrowLeft";
@@ -70,8 +75,8 @@ export const FileViewer = ({
   file,
   onShow,
   onClose,
-  inspector,
 }: Props) => {
+  const inspector = useStored(inspectorPreference);
   const files = entries.filter((entry) => entry.kind === "file");
   const sequenced = files.length > 1;
   const [statusSlot, setStatusSlot] = useState<HTMLElement | null>(null);
@@ -97,6 +102,7 @@ export const FileViewer = ({
   const keys: Readonly<Record<string, (() => void) | undefined>> = {
     [PREVIOUS_KEY]: showPrevious,
     [NEXT_KEY]: showNext,
+    [INSPECTOR_KEY]: toggleInspector,
   };
   const onKeyDown = (event: KeyboardEvent) => {
     const run = keys[event.key];
@@ -147,7 +153,13 @@ export const FileViewer = ({
           <Theater.Close />
         </Theater.End>
       </Theater.Header>
-      <div className="flex min-h-0 flex-1">
+      <Theater.Body
+        aside={
+          current && inspector === "open" ? (
+            <Inspector projectId={projectId} directory={directory} entry={current} />
+          ) : null
+        }
+      >
         <Theater.Stage>
           {current ? (
             <StatusSlot value={statusSlot}>
@@ -155,10 +167,7 @@ export const FileViewer = ({
             </StatusSlot>
           ) : null}
         </Theater.Stage>
-        {inspector ? (
-          <Inspector projectId={projectId} directory={directory} entry={current} className="mr-2 mb-2" />
-        ) : null}
-      </div>
+      </Theater.Body>
     </Theater.Root>
   );
 };

@@ -1,5 +1,5 @@
 import type { Entry, EntryRef, FileDetails, Property } from "@starlight/client";
-import { Badge, Card, cn, Details, ScrollArea, Tooltip } from "@starlight/ui";
+import { Badge, Card, Details, ScrollArea, Swatch, Tooltip } from "@starlight/ui";
 import { useQuery } from "@tanstack/react-query";
 import { useStarlight } from "#renderer/lib/context.ts";
 import { formatDate, formatSize } from "#renderer/lib/format.ts";
@@ -20,10 +20,7 @@ const Palette = ({ palette }: Pick<FileDetails, "palette">) => (
   <div className="flex items-center gap-1">
     {palette.map((swatch) => (
       <Tooltip key={swatch.color} label={`${swatch.color} · ${shareFormat.format(swatch.share)}`}>
-        <span
-          className="size-4 rounded-full border border-default"
-          style={{ backgroundColor: swatch.color }}
-        />
+        <Swatch color={swatch.color} />
       </Tooltip>
     ))}
   </div>
@@ -64,45 +61,23 @@ const DetailsCard = ({ details }: { readonly details: FileDetails }) => (
   </Details.Root>
 );
 
-const FileCards = ({
-  projectId,
-  directory,
-  entry,
-}: {
+interface Props {
   readonly projectId: string;
   readonly directory: EntryRef;
   readonly entry: Entry;
-}) => {
-  const { queries } = useStarlight();
-  const { data: details } = useQuery(queries.fileDetails(projectId, directory, entry.ref));
-  if (!details) return null;
-  return (
-    <>
-      <DetailsCard details={details} />
-      <PropertyCards properties={details.properties} />
-    </>
-  );
-};
-
-interface Props {
-  readonly projectId: string;
-  readonly directory: EntryRef | null;
-  readonly entry: Entry | undefined;
-  readonly className?: string;
 }
 
-export const Inspector = ({ projectId, directory, entry, className }: Props) => (
-  <aside className={cn("flex min-h-0 w-72 shrink-0 flex-col [container-type:inline-size]", className)}>
-    <ScrollArea className="flex-1">
-      <div className="flex flex-col gap-2">
-        {directory && entry?.kind === "file" ? (
-          <FileCards projectId={projectId} directory={directory} entry={entry} />
-        ) : (
-          <Card surface="panel" className="p-3 text-subtle">
-            Select a file to see its details
-          </Card>
-        )}
-      </div>
+export const Inspector = ({ projectId, directory, entry }: Props) => {
+  const { queries } = useStarlight();
+  const { data: details } = useQuery(queries.fileDetails(projectId, directory, entry.ref));
+  return (
+    <ScrollArea className="flex-1 [container-type:inline-size]">
+      {details ? (
+        <div className="flex flex-col gap-2">
+          <DetailsCard details={details} />
+          <PropertyCards properties={details.properties} />
+        </div>
+      ) : null}
     </ScrollArea>
-  </aside>
-);
+  );
+};

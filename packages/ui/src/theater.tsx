@@ -69,10 +69,17 @@ const Close = () => (
   <Dialog.Close render={<IconButton label="Close" icon={Cancel01Icon} shortcut={["Escape"]} />} />
 );
 
+const Body = ({ aside, children }: { readonly aside?: ReactNode; readonly children: ReactNode }) => (
+  <div className="flex min-h-0 flex-1">
+    {children}
+    {aside ? <div className="mr-2 mb-2 flex w-72 shrink-0 flex-col">{aside}</div> : null}
+  </div>
+);
+
 const Stage = ({ children }: { readonly children: ReactNode }) => (
   <div className="relative mx-2 mb-2 min-h-0 flex-1 overflow-hidden rounded-lg bg-surface shadow-lifted">
     {children}
   </div>
 );
 
-export const Theater = { Root, Header, Start, Title, End, Separator, Close, Stage };
+export const Theater = { Root, Header, Start, Title, End, Separator, Close, Body, Stage };
