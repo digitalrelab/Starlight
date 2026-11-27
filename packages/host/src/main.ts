@@ -30,7 +30,7 @@ const requireEnv = (name: string) => {
   return value;
 };
 
-const dataDir = requireEnv("STARLIGHT_DATA_DIR");
+const databasePath = requireEnv("STARLIGHT_DATABASE_PATH");
 const fileKey = Buffer.from(requireEnv("STARLIGHT_FILE_KEY"), "hex");
 
 const decodeConnect = Schema.decodeUnknownEffect(ConnectRequest);
@@ -43,7 +43,12 @@ const AgentProviderDriversLive = Layer.succeed(AgentProviderDrivers)(
 
 const HostLive = CoreLive.pipe(
   Layer.provide(
-    Layer.mergeAll(SourceDriversLive, AgentProviderDriversLive, FileTokensLive(fileKey), SqliteLive(dataDir)),
+    Layer.mergeAll(
+      SourceDriversLive,
+      AgentProviderDriversLive,
+      FileTokensLive(fileKey),
+      SqliteLive(databasePath),
+    ),
   ),
 );
 

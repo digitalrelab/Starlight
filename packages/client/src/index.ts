@@ -1,8 +1,10 @@
 export type {
   AgentProvider,
   Crumb,
+  DiskUsage,
   Entry,
   EntryRef,
+  FileKind,
   FileSource,
   Listing,
   Media,
@@ -10,7 +12,7 @@ export type {
   UpdaterState,
   Workspace,
 } from "@starlight/contracts";
-export { ClaudeCodeProvider, DirectoryMissing } from "@starlight/contracts";
+export { ClaudeCodeProvider, DirectoryMissing, fileKindOf, mediaTypeOf } from "@starlight/contracts";
 export * from "./client.ts";
 export * from "./queries.ts";
 export * from "./refs.ts";
