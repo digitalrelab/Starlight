@@ -1,5 +1,5 @@
 import { type Entry, type EntryRef, entryKey } from "@starlight/client";
-import { type KeyboardEvent, Suspense, useCallback, useMemo } from "react";
+import { type KeyboardEvent, Suspense, useCallback, useEffect, useMemo, useRef } from "react";
 import { type LayoutId, layouts } from "./layouts/registry.ts";
 
 interface Props {
@@ -10,7 +10,22 @@ interface Props {
   readonly selectedKey: string | undefined;
   readonly onSelectKey: (key: string | undefined) => void;
   readonly onOpen: (entry: Entry) => void;
+  readonly onIntent: (entry: Entry) => void;
 }
+
+const INTENT_DWELL_MS = 100;
+
+const useDwell = (onDwell: (entry: Entry) => void) => {
+  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(timer.current), []);
+  return useCallback(
+    (entry: Entry | undefined) => {
+      clearTimeout(timer.current);
+      if (entry) timer.current = setTimeout(() => onDwell(entry), INTENT_DWELL_MS);
+    },
+    [onDwell],
+  );
+};
 
 export const DirectoryView = ({
   workspaceId,
@@ -20,17 +35,24 @@ export const DirectoryView = ({
   selectedKey,
   onSelectKey,
   onOpen,
+  onIntent,
 }: Props) => {
   const selected = useMemo(
     () => entries.findIndex((entry) => entryKey(entry.ref) === selectedKey),
     [entries, selectedKey],
   );
+  const dwell = useDwell(onIntent);
   const onSelect = useCallback(
     (index: number) => {
       const entry = entries[Math.max(0, Math.min(entries.length - 1, index))];
       onSelectKey(entry && entryKey(entry.ref));
+      dwell(entry);
     },
-    [entries, onSelectKey],
+    [entries, onSelectKey, dwell],
+  );
+  const onHover = useCallback(
+    (index: number | null) => dwell(index === null ? undefined : entries[index]),
+    [dwell, entries],
   );
 
   if (entries.length === 0) {
@@ -54,6 +76,7 @@ export const DirectoryView = ({
           entries={entries}
           selected={selected}
           onSelect={onSelect}
+          onHover={onHover}
           onOpen={onOpen}
         />
       </Suspense>

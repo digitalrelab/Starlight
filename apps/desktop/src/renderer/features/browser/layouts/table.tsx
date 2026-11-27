@@ -9,7 +9,7 @@ import type { LayoutProps } from "./types.ts";
 const ROW_HEIGHT = 26;
 const COLUMNS = "grid grid-cols-[minmax(0,1fr)_96px_168px] gap-4";
 
-export const TableLayout = ({ entries, selected, onSelect, onOpen }: LayoutProps) => {
+export const TableLayout = ({ entries, selected, onSelect, onHover, onOpen }: LayoutProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const virtualizer = useVirtualizer({
     count: entries.length,
@@ -49,6 +49,8 @@ export const TableLayout = ({ entries, selected, onSelect, onOpen }: LayoutProps
                 key={entryKey(entry.ref)}
                 onClick={() => onSelect(row.index)}
                 onDoubleClick={() => onOpen(entry)}
+                onPointerEnter={() => onHover(row.index)}
+                onPointerLeave={() => onHover(null)}
                 className={cn(
                   COLUMNS,
                   "absolute inset-x-2 items-center rounded-md px-2",

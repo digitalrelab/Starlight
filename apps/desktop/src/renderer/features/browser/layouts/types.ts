@@ -6,5 +6,6 @@ export interface LayoutProps {
   readonly entries: ReadonlyArray<Entry>;
   readonly selected: number;
   readonly onSelect: (index: number) => void;
+  readonly onHover: (index: number | null) => void;
   readonly onOpen: (entry: Entry) => void;
 }

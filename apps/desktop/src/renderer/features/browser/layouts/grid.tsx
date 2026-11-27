@@ -26,7 +26,15 @@ const indexByKey = (media: ReadonlyArray<Media>) => new Map(media.map((item) => 
 const aspectOf = (media: Media | undefined) =>
   media ? Math.min(MAX_ASPECT, Math.max(MIN_ASPECT, media.width / media.height)) : ICON_TILE_ASPECT;
 
-export const GridLayout = ({ workspaceId, directory, entries, selected, onSelect, onOpen }: LayoutProps) => {
+export const GridLayout = ({
+  workspaceId,
+  directory,
+  entries,
+  selected,
+  onSelect,
+  onHover,
+  onOpen,
+}: LayoutProps) => {
   const { queries } = useStarlight();
   const { data } = useSuspenseQuery(queries.media(workspaceId, directory));
   const media = useMemo(() => indexByKey(data), [data]);
@@ -119,6 +127,7 @@ export const GridLayout = ({ workspaceId, directory, entries, selected, onSelect
                     visible={visible}
                     selected={index === selected}
                     onSelect={onSelect}
+                    onHover={onHover}
                     onOpen={onOpen}
                   />
                 );
@@ -141,15 +150,18 @@ interface TileProps {
   readonly visible: boolean;
   readonly selected: boolean;
   readonly onSelect: (index: number) => void;
+  readonly onHover: (index: number | null) => void;
   readonly onOpen: (entry: Entry) => void;
 }
 
 const Tile = memo(
-  ({ index, entry, media, left, width, height, visible, selected, onSelect, onOpen }: TileProps) => {
+  ({ index, entry, media, left, width, height, visible, selected, onSelect, onHover, onOpen }: TileProps) => {
     return (
       <div
         onClick={() => onSelect(index)}
         onDoubleClick={() => onOpen(entry)}
+        onPointerEnter={() => onHover(index)}
+        onPointerLeave={() => onHover(null)}
         title={entry.name}
         className={cn(
           "absolute top-0 overflow-hidden rounded-md bg-neutral",

@@ -1,6 +1,6 @@
 import { DirectoryMissing, type Entry, type EntryRef, entryKey } from "@starlight/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, type ErrorComponentProps, Navigate } from "@tanstack/react-router";
+import { createFileRoute, type ErrorComponentProps, Navigate, useRouter } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { Breadcrumbs } from "#renderer/features/browser/breadcrumbs.tsx";
 import {
@@ -50,6 +50,7 @@ function Browser() {
   const file = toFile(Route.useSearch());
   const fileKey = file ? entryKey(file) : undefined;
   const navigate = Route.useNavigate();
+  const router = useRouter();
   const { queries, subscriptions } = useStarlight();
   const { data: workspace } = useSuspenseQuery(queries.workspace(workspaceId));
   const { data: listing, error, isFetching } = useSuspenseQuery(queries.entries(workspaceId, directory));
@@ -77,6 +78,17 @@ function Browser() {
       else if (entry.kind === "file") showFile(entry.ref);
     },
     [navigate, showFile],
+  );
+  const prefetch = useCallback(
+    (entry: Entry) => {
+      if (entry.kind !== "directory") return;
+      void router.preloadRoute({
+        to: Route.fullPath,
+        params: { workspaceId },
+        search: toDirectorySearch(entry.ref),
+      });
+    },
+    [router, workspaceId],
   );
   const closeViewer = useCallback(() => {
     select(fileKey);
@@ -106,6 +118,7 @@ function Browser() {
         selectedKey={selectedKey}
         onSelectKey={select}
         onOpen={onOpen}
+        onIntent={prefetch}
       />
       {directory && file ? (
         <FileViewer
