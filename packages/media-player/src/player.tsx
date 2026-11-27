@@ -73,7 +73,7 @@ const Player = ({
   const track = (event: PointerEvent) =>
     hover(event.target instanceof Node && Boolean(controls.current?.contains(event.target)));
 
-  const isChromeVisible =
+  const controlsVisible =
     !hidesControls ||
     active ||
     isScrubbing ||
@@ -84,7 +84,7 @@ const Player = ({
   return (
     <PlayerContext value={engine}>
       <PlayerFrame
-        className={cn(isPlaying && !isChromeVisible && "cursor-none", className)}
+        className={cn(isPlaying && !controlsVisible && "cursor-none", className)}
         onPointerMove={track}
         onPointerDown={track}
         onPointerLeave={(event) => {
@@ -101,7 +101,7 @@ const Player = ({
           <Controls
             ref={controls}
             media={media}
-            isVisible={isChromeVisible}
+            isVisible={controlsVisible}
             onScrubChange={setIsScrubbing}
             onMenuOpenChange={setIsMenuOpen}
           />

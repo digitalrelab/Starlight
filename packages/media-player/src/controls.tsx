@@ -130,7 +130,7 @@ interface Props {
 }
 
 export const Controls = ({ media, isVisible, onScrubChange, onMenuOpenChange, ref }: Props) => {
-  const { state } = usePlayer();
+  const { state, canFullscreen } = usePlayer();
   return (
     <div
       ref={ref}
@@ -154,7 +154,7 @@ export const Controls = ({ media, isVisible, onScrubChange, onMenuOpenChange, re
       </span>
       <Volume media={media} />
       <Settings media={media} onOpenChange={onMenuOpenChange} />
-      {media instanceof HTMLVideoElement ? <Fullscreen /> : null}
+      {canFullscreen ? <Fullscreen /> : null}
     </div>
   );
 };

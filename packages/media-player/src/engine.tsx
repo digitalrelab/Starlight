@@ -49,6 +49,7 @@ export const usePlayerEngine = ({ src, autoPlay, hasPageShortcuts, onKey }: Engi
   const state = useMediaSnapshot(media);
   const { isFullscreen, toggleFullscreen } = useFullscreen();
   const status = statusOf(state);
+  const canFullscreen = media instanceof HTMLVideoElement;
 
   const acknowledge = (acknowledgement: Acknowledgement) => {
     if (!isOccupied(status)) echo.acknowledge(acknowledgement);
@@ -76,7 +77,7 @@ export const usePlayerEngine = ({ src, autoPlay, hasPageShortcuts, onKey }: Engi
         ArrowUp: () => acknowledge({ kind: "volume", level: setVolume(media, media.volume + VOLUME_STEP) }),
         ArrowDown: () => acknowledge({ kind: "volume", level: setVolume(media, media.volume - VOLUME_STEP) }),
         m: () => acknowledge({ kind: "volume", level: toggleMute(media) }),
-        ...(media instanceof HTMLVideoElement && { f: toggleFullscreen }),
+        ...(canFullscreen && { f: toggleFullscreen }),
       }
     : {};
 
@@ -116,6 +117,7 @@ export const usePlayerEngine = ({ src, autoPlay, hasPageShortcuts, onKey }: Engi
     attachMedia,
     togglePlayback,
     echo,
+    canFullscreen,
     isFullscreen,
     toggleFullscreen,
     hasPageShortcuts,
