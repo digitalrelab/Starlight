@@ -1,16 +1,14 @@
-import { insertNewlineContinueMarkup } from "@codemirror/lang-markdown";
-import { Compartment, EditorState, Prec, Transaction } from "@codemirror/state";
-import { EditorView, keymap, placeholder as placeholderText } from "@codemirror/view";
+import { Compartment, EditorState, Transaction } from "@codemirror/state";
+import { EditorView, placeholder as placeholderText } from "@codemirror/view";
 import { cn } from "cn";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { changeBetween } from "#change.ts";
-import { hangingIndents } from "./hanging.ts";
-import { writing } from "./writing.ts";
+import { submitOnEnter, type Variant, variants, writing } from "./writing.ts";
 
 export interface MarkdownEditorProps {
   readonly value: string;
   readonly label: string;
-  readonly variant?: "document" | "message";
+  readonly variant?: Variant;
   readonly editable?: boolean;
   readonly placeholder?: string;
   readonly autoFocus?: boolean;
@@ -64,22 +62,8 @@ export const MarkdownEditor = ({
         doc: initial.value,
         extensions: [
           writing,
-          initial.variant === "document" ? hangingIndents : [],
-          initial.submits
-            ? Prec.highest(
-                keymap.of([
-                  {
-                    key: "Enter",
-                    run: (target) => {
-                      if (target.composing) return false;
-                      submitted();
-                      return true;
-                    },
-                    shift: insertNewlineContinueMarkup,
-                  },
-                ]),
-              )
-            : [],
+          variants[initial.variant],
+          initial.submits ? submitOnEnter(submitted) : [],
           settings.of(settingsOf(initial.label, initial.editable, initial.placeholder)),
           EditorView.updateListener.of((update) => {
             if (update.transactions.some(isLocal)) changed(() => update.state.sliceDoc());
