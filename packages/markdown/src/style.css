@@ -187,9 +187,16 @@
     @apply text-accent-indigo;
   }
 
+  .md-link {
+    @apply text-link;
+  }
+
   .tok-comment,
   .tok-meta,
-  .tok-punctuation {
+  .tok-punctuation,
+  .md-mark,
+  .md-meta,
+  .md-url {
     @apply text-subtlest;
   }
 
@@ -203,16 +210,28 @@
   }
 
   .tok-heading,
-  .tok-strong {
+  .tok-strong,
+  .md-heading,
+  .md-strong {
     @apply font-semibold;
   }
 
-  .tok-emphasis {
+  .tok-emphasis,
+  .md-emphasis {
     font-style: italic;
   }
 
   .tok-link {
     @apply underline;
+  }
+
+  .md-strikethrough {
+    text-decoration: line-through;
+  }
+
+  .md-code,
+  .md-quote {
+    @apply text-subtle;
   }
 }
 
@@ -227,12 +246,11 @@
 }
 
 .markdown-editor .cm-editor .cm-content {
-  @apply select-text;
+  @apply caret-(--text-color-brand) select-text;
   box-sizing: content-box;
   max-width: 64ch;
   margin-inline: auto;
-  padding: 12vh 8ch 40vh;
-  caret-color: var(--text-color-brand);
+  padding-inline: 8ch;
   cursor: text;
 }
 
@@ -242,35 +260,4 @@
 
 .markdown-editor .cm-editor .cm-content ::selection {
   @apply bg-selection;
-}
-
-.markdown-editor .md-mark,
-.markdown-editor .md-meta {
-  @apply text-subtlest;
-}
-
-.markdown-editor .md-heading,
-.markdown-editor .md-strong {
-  @apply font-semibold;
-}
-
-.markdown-editor .md-emphasis {
-  font-style: italic;
-}
-
-.markdown-editor .md-strikethrough {
-  text-decoration: line-through;
-}
-
-.markdown-editor .md-link {
-  @apply text-link;
-}
-
-.markdown-editor .md-url {
-  @apply text-subtlest;
-}
-
-.markdown-editor .md-code,
-.markdown-editor .md-quote {
-  @apply text-subtle;
 }

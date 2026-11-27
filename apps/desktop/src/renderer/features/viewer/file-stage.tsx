@@ -83,7 +83,7 @@ const MarkdownFile = ({ name, source }: { readonly name: string; readonly source
   return (
     <ScrollArea className="h-full">
       <Suspense fallback={null}>
-        <MarkdownEditor value={text.data} label={name} />
+        <MarkdownEditor value={text.data} label={name} className="pt-[12vh] pb-[40vh]" />
       </Suspense>
     </ScrollArea>
   );
