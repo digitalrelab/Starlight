@@ -5,8 +5,6 @@ import { Catalog } from "./catalog.ts";
 import { FileTokens, type SourceChange } from "./ports.ts";
 import { Projects } from "./projects.ts";
 
-const resync: SourceChange = { _tag: "Resync" };
-
 const touches = (directory: EntryId) => (change: SourceChange) =>
   change._tag === "Resync" || change.directories.includes(directory);
 
@@ -82,7 +80,7 @@ export class MediaLibrary extends Context.Service<
             ? Stream.empty
             : Stream.unwrap(
                 Effect.map(projects.locateDirectory(projectId, requested), ({ mount, driver, directory }) =>
-                  Stream.concat(Stream.make(resync), driver.watch(mount.root.id)).pipe(
+                  driver.watch(mount.root.id).pipe(
                     Stream.filter(touches(directory.id)),
                     Stream.switchMap(() => processDirectory(projectId, requested)),
                   ),

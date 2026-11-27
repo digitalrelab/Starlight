@@ -10,6 +10,10 @@
 - State the general rule, not the case that prompted it.
 - No code comments.
 
+## Sources
+
+- A source's watch emits `Resync` once it is live, and again whenever it may have missed changes.
+
 ## Git
 
 - Commits and PR titles follow Conventional Commits: `type(scope): summary`.
