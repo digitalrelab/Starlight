@@ -16,6 +16,7 @@ import type {
   SourceId,
   FileToken,
   PixelSample,
+  SampleFailed,
   Workspace,
   WorkspaceId,
 } from "@starlight/contracts";
@@ -74,7 +75,7 @@ export interface SourceDriver {
   readonly write: (id: EntryId, content: Uint8Array) => Effect.Effect<SourceEntry, SourceError>;
   readonly watch: (root: EntryId) => Stream.Stream<SourceChange, SourceError>;
   readonly extractors: Extractors;
-  readonly sample: (entry: SourceEntry) => Effect.Effect<Option.Option<PixelSample>>;
+  readonly sample: (entry: SourceEntry) => Effect.Effect<Option.Option<PixelSample>, SampleFailed>;
 }
 
 export class SourceDrivers extends Context.Service<SourceDrivers, ReadonlyMap<SourceId, SourceDriver>>()(

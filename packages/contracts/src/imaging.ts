@@ -8,9 +8,12 @@ export const PixelSample = Schema.Struct({
 });
 export type PixelSample = typeof PixelSample.Type;
 
+export class SampleFailed extends Schema.TaggedError<SampleFailed>()("SampleFailed", {}) {}
+
 export class ImagingRpcs extends RpcGroup.make(
   Rpc.make("SamplePixels", {
     payload: { path: Schema.String },
     success: Schema.NullOr(PixelSample),
+    error: SampleFailed,
   }),
 ) {}

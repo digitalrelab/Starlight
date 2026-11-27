@@ -1,4 +1,4 @@
-import { ImagingRpcs, type PixelSample } from "@starlight/contracts";
+import { ImagingRpcs, type PixelSample, SampleFailed } from "@starlight/contracts";
 import { serve } from "@starlight/host/transport";
 import { type MessagePortMain, nativeImage, screen } from "electron";
 import { Effect, Layer } from "effect";
@@ -39,7 +39,8 @@ const sample = async (path: string): Promise<PixelSample | null> => {
 const ImagingServerLive = RpcServer.layer(ImagingRpcs).pipe(
   Layer.provide(
     ImagingRpcs.toLayer({
-      SamplePixels: ({ path }) => Effect.promise(() => sample(path).catch(() => null)),
+      SamplePixels: ({ path }) =>
+        Effect.tryPromise({ try: () => sample(path), catch: () => new SampleFailed() }),
     }),
   ),
 );

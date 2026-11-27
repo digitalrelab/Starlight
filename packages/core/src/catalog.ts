@@ -200,12 +200,17 @@ export class Catalog extends Context.Service<
               return Stream.fromIterable(pending).pipe(
                 Stream.mapEffect(
                   (entry) =>
-                    Effect.map(driver.sample(entry), (sample) => ({
-                      entry,
-                      facts: Option.getOrNull(Option.map(sample, processSample)),
-                    })),
+                    driver.sample(entry).pipe(
+                      Effect.map((sample): Processed => ({
+                        entry,
+                        facts: Option.getOrNull(Option.map(sample, processSample)),
+                      })),
+                      Effect.option,
+                    ),
                   { concurrency: SAMPLE_CONCURRENCY },
                 ),
+                Stream.filter(Option.isSome),
+                Stream.map((processed) => processed.value),
                 Stream.groupedWithin(BATCH_SIZE, BATCH_WINDOW),
                 Stream.mapEffect((batch) =>
                   Effect.as(
