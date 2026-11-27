@@ -1,6 +1,16 @@
 import { BrowserWindow, Menu, type MenuItemConstructorOptions } from "electron";
 import { Channel } from "#shared/channels.ts";
 import type { ZoomStep } from "#shared/zoom.ts";
+import { goBack, goForward } from "./history.ts";
+
+const historyItem = (label: string, accelerator: string, go: typeof goBack): MenuItemConstructorOptions => ({
+  label,
+  accelerator,
+  click: () => {
+    const window = BrowserWindow.getFocusedWindow();
+    if (window) go(window.webContents);
+  },
+});
 
 const zoomItem = (label: string, accelerator: string, step: ZoomStep): MenuItemConstructorOptions => ({
   label,
@@ -26,6 +36,13 @@ export const installMenu = () =>
           zoomItem("Zoom Out", "CommandOrControl+-", "out"),
           { type: "separator" },
           { role: "togglefullscreen" },
+        ],
+      },
+      {
+        label: "Go",
+        submenu: [
+          historyItem("Back", "CommandOrControl+[", goBack),
+          historyItem("Forward", "CommandOrControl+]", goForward),
         ],
       },
       { role: "windowMenu" },
