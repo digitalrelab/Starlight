@@ -16,8 +16,8 @@ export const NavItem = ({ icon, render, className, children, ...props }: NavItem
       {
         className: cn(
           "group flex h-8 w-full items-center gap-2 rounded-md px-2 text-base text-default focus-ring",
-          "hover:bg-neutral-subtle-hovered disabled:opacity-50",
-          "aria-[current=page]:bg-selected aria-[current=page]:text-selected aria-[current=page]:hover:bg-selected-hovered",
+          "highlighted:bg-neutral-subtle-hovered disabled:opacity-50",
+          "aria-[current=page]:bg-selected aria-[current=page]:text-selected aria-[current=page]:highlighted:bg-selected-hovered",
           className,
         ),
         children: (
