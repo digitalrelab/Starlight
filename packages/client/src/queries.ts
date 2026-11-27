@@ -1,5 +1,5 @@
 import { mutationOptions, queryOptions, type QueryClient } from "@tanstack/react-query";
-import type { EntryChange, SettingsPatch } from "@starlight/contracts";
+import type { SettingsPatch } from "@starlight/contracts";
 import type { StarlightClient } from "./client.ts";
 
 const entriesKey = (workspaceId: string) => ["entries", workspaceId] as const;
@@ -67,7 +67,7 @@ const createMutations = (client: StarlightClient, queryClient: QueryClient, quer
 
 const createSubscriptions = (client: StarlightClient, queryClient: QueryClient) => ({
   entries: (workspaceId: string) =>
-    client.entries.watch(workspaceId, (change: EntryChange) => {
+    client.entries.watch(workspaceId, (change) => {
       const queryKey = entriesKey(workspaceId);
       if (change._tag === "Resync") return void queryClient.invalidateQueries({ queryKey });
       const affected = listingsAffectedBy(change.paths);

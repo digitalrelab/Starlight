@@ -26,10 +26,9 @@ const resync: EntryChange = { _tag: "Resync" };
 const toChange =
   (relativize: (absolute: string) => Option.Option<string>) =>
   (event: FileWatchEvent): Result.Result<EntryChange, void> => {
-    if (event._tag === "Resync") return Result.succeed(resync);
-    const paths = new Set(event.paths.flatMap((absolute) => Option.toArray(relativize(absolute))));
-    if (paths.size === 0) return Result.failVoid;
-    return Result.succeed(paths.size > MAX_CHANGED_PATHS ? resync : { _tag: "Changed", paths: [...paths] });
+    if (event._tag === "Resync" || event.paths.length > MAX_CHANGED_PATHS) return Result.succeed(resync);
+    const paths = event.paths.flatMap((absolute) => Option.toArray(relativize(absolute)));
+    return paths.length === 0 ? Result.failVoid : Result.succeed({ _tag: "Changed", paths });
   };
 
 const join = (parent: string, name: string) => (parent === "" ? name : `${parent}/${name}`);

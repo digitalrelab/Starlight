@@ -9,9 +9,9 @@
     ],
     "catalog": {
       "effect": "4.1.7",
-      "@parcel/watcher": "2.6.0",
       "@effect/platform-node": "4.1.7",
       "@effect/sql-sqlite-node": "4.1.7",
+      "@parcel/watcher": "2.6.0",
       "electron": "45.5.0",
       "electron-vite": "6.0.0",
       "electron-builder": "26.18.0",
