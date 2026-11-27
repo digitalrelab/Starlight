@@ -1,12 +1,11 @@
 import {
   Delete02Icon,
   FolderIcon,
-  MoreHorizontalIcon,
   PencilEdit02Icon,
   Settings02Icon,
 } from "@hugeicons-pro/core-stroke-rounded";
 import type { Workspace } from "@starlight/client";
-import { ContextMenu, IconButton, Menu, NavItem, RenameInput } from "@starlight/ui";
+import { Menu, NavItem, RenameInput } from "@starlight/ui";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { DeleteWorkspaceDialog } from "./delete-workspace-dialog.tsx";
@@ -31,7 +30,7 @@ export const WorkspaceItem = ({ workspace }: { readonly workspace: Workspace }) 
     );
   }
 
-  const actions = (
+  const items = (
     <>
       <Menu.Item icon={PencilEdit02Icon} onClick={() => setRenaming(true)}>
         Rename
@@ -51,33 +50,13 @@ export const WorkspaceItem = ({ workspace }: { readonly workspace: Workspace }) 
 
   return (
     <>
-      <ContextMenu.Root>
-        <ContextMenu.Trigger
-          render={
-            <NavItem
-              icon={FolderIcon}
-              render={<Link to="/w/$workspaceId" params={params} activeOptions={{ includeSearch: false }} />}
-              actions={
-                <Menu.Root>
-                  <Menu.Trigger
-                    render={
-                      <IconButton
-                        icon={MoreHorizontalIcon}
-                        label="Workspace actions"
-                        className="size-6 rounded-md"
-                      />
-                    }
-                  />
-                  <Menu.Popup>{actions}</Menu.Popup>
-                </Menu.Root>
-              }
-            />
-          }
-        >
-          {workspace.name}
-        </ContextMenu.Trigger>
-        <ContextMenu.Popup>{actions}</ContextMenu.Popup>
-      </ContextMenu.Root>
+      <NavItem
+        icon={FolderIcon}
+        render={<Link to="/w/$workspaceId" params={params} activeOptions={{ includeSearch: false }} />}
+        menu={{ label: "Workspace actions", items }}
+      >
+        {workspace.name}
+      </NavItem>
       <DeleteWorkspaceDialog workspace={workspace} open={deleting} onOpenChange={setDeleting} />
     </>
   );

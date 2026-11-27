@@ -85,13 +85,13 @@ const createQueries = (client: StarlightClient) => ({
 
 const createMutations = (client: StarlightClient, queryClient: QueryClient, queries: Queries) => {
   const listKey = queries.workspaces().queryKey;
-  const store = (workspace: Workspace) => {
+  const cacheWorkspace = (workspace: Workspace) => {
     queryClient.setQueryData(queries.workspace(workspace.id).queryKey, workspace);
-    queryClient.setQueryData(listKey, (list) =>
-      list && list.some(({ id }) => id === workspace.id)
-        ? list.map((existing) => (existing.id === workspace.id ? workspace : existing))
-        : list && [...list, workspace],
-    );
+    queryClient.setQueryData(listKey, (list) => {
+      if (!list) return list;
+      const index = list.findIndex(({ id }) => id === workspace.id);
+      return index === -1 ? [...list, workspace] : list.with(index, workspace);
+    });
   };
 
   return {
@@ -145,14 +145,14 @@ const createMutations = (client: StarlightClient, queryClient: QueryClient, quer
     createWorkspace: () =>
       mutationOptions({
         mutationFn: (root: EntryRef) => client.workspaces.create(root),
-        onSuccess: store,
+        onSuccess: cacheWorkspace,
       }),
 
     renameWorkspace: () =>
       mutationOptions({
         mutationFn: ({ workspaceId, name }: { readonly workspaceId: string; readonly name: string }) =>
           client.workspaces.rename(workspaceId, name),
-        onSuccess: store,
+        onSuccess: cacheWorkspace,
       }),
 
     deleteWorkspace: () =>
@@ -169,7 +169,7 @@ const createMutations = (client: StarlightClient, queryClient: QueryClient, quer
       mutationOptions({
         mutationFn: (root: EntryRef) => client.workspaces.addMount(workspaceId, root),
         onSuccess: (workspace) => {
-          store(workspace);
+          cacheWorkspace(workspace);
           return queryClient.invalidateQueries(queries.entries(workspaceId, null));
         },
       }),
@@ -178,7 +178,7 @@ const createMutations = (client: StarlightClient, queryClient: QueryClient, quer
       mutationOptions({
         mutationFn: (root: EntryRef) => client.workspaces.removeMount(workspaceId, root),
         onSuccess: (workspace) => {
-          store(workspace);
+          cacheWorkspace(workspace);
           return queryClient.invalidateQueries({ queryKey: directoryKey(workspaceId) });
         },
       }),

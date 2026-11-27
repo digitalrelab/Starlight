@@ -1,6 +1,6 @@
-import { Delete02Icon, MoreHorizontalIcon, PencilEdit02Icon } from "@hugeicons-pro/core-stroke-rounded";
+import { Delete02Icon, PencilEdit02Icon } from "@hugeicons-pro/core-stroke-rounded";
 import type { Chat } from "@starlight/client";
-import { ConfirmDialog, ContextMenu, IconButton, Menu, NavItem, RenameInput } from "@starlight/ui";
+import { ConfirmDialog, Menu, NavItem, RenameInput } from "@starlight/ui";
 import { useMutation } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useState } from "react";
@@ -27,7 +27,7 @@ export const ChatItem = ({ chat: { id, title } }: { readonly chat: Chat }) => {
     );
   }
 
-  const actions = (
+  const items = (
     <>
       <Menu.Item icon={PencilEdit02Icon} onClick={() => setRenaming(true)}>
         Rename
@@ -41,32 +41,12 @@ export const ChatItem = ({ chat: { id, title } }: { readonly chat: Chat }) => {
 
   return (
     <>
-      <ContextMenu.Root>
-        <ContextMenu.Trigger
-          render={
-            <NavItem
-              render={<Link to="/agent/$chatId" params={{ chatId: id }} />}
-              actions={
-                <Menu.Root>
-                  <Menu.Trigger
-                    render={
-                      <IconButton
-                        icon={MoreHorizontalIcon}
-                        label="Chat actions"
-                        className="size-6 rounded-md"
-                      />
-                    }
-                  />
-                  <Menu.Popup>{actions}</Menu.Popup>
-                </Menu.Root>
-              }
-            />
-          }
-        >
-          {title}
-        </ContextMenu.Trigger>
-        <ContextMenu.Popup>{actions}</ContextMenu.Popup>
-      </ContextMenu.Root>
+      <NavItem
+        render={<Link to="/agent/$chatId" params={{ chatId: id }} />}
+        menu={{ label: "Chat actions", items }}
+      >
+        {title}
+      </NavItem>
       <ConfirmDialog
         open={deleting}
         onOpenChange={setDeleting}
