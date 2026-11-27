@@ -2,7 +2,8 @@ import type { AgentProvider, Chat, ModelChoice } from "@starlight/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useStarlight } from "#renderer/lib/context.ts";
-import { anyString, defineStored, useStored } from "#renderer/lib/storage.ts";
+import { anyString } from "#shared/storage.ts";
+import { defineStored, useStored } from "#renderer/lib/storage.ts";
 
 interface Wanted {
   readonly provider?: string;
@@ -10,7 +11,7 @@ interface Wanted {
   readonly effort?: string | null;
 }
 
-const lastChoice = defineStored("agent.model", anyString, "");
+const lastChoice = defineStored("agent.model", anyString(""));
 
 const parse = (raw: string): Wanted => {
   try {

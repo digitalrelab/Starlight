@@ -1,18 +1,8 @@
 import { useSyncExternalStore } from "react";
-import { readStorage, storageKey, writeStorage } from "#shared/storage.ts";
+import { type Parse, readStorage, storageKey, writeStorage } from "#shared/storage.ts";
 
-type Guard<Value extends string> = (raw: string) => raw is Value;
-
-export const oneOf =
-  <Value extends string>(values: readonly Value[]): Guard<Value> =>
-  (raw): raw is Value =>
-    (values as readonly string[]).includes(raw);
-
-export const anyString: Guard<string> = (_raw): _raw is string => true;
-
-export const defineStored = <Value extends string>(name: string, guard: Guard<Value>, fallback: Value) => {
+export const defineStored = <Value extends string>(name: string, parse: Parse<Value>) => {
   const key = storageKey(name);
-  const parse = (raw: string | null) => (raw !== null && guard(raw) ? raw : fallback);
   const listeners = new Set<() => void>();
   let current = parse(readStorage(key));
 
@@ -48,14 +38,13 @@ export const useStored = <Value extends string>({ subscribe, get }: Stored<Value
 
 export const defineStoredFamily = <Value extends string>(
   nameOf: (id: string) => string,
-  guard: Guard<Value>,
-  fallback: Value,
+  parse: Parse<Value>,
 ) => {
   const members = new Map<string, Stored<Value>>();
   return (id: string) => {
     const existing = members.get(id);
     if (existing) return existing;
-    const member = defineStored(nameOf(id), guard, fallback);
+    const member = defineStored(nameOf(id), parse);
     members.set(id, member);
     return member;
   };

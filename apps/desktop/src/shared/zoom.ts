@@ -1,3 +1,5 @@
+import { oneOf } from "./storage.ts";
+
 export type ZoomStep = "in" | "out" | "reset";
 
 export const INTERFACE_SIZE_SETTING = "interface-size";
@@ -12,3 +14,5 @@ export const ZOOM_FACTORS: Record<InterfaceSize, number> = {
   large: 1.1,
   larger: 1.2,
 };
+
+export const parseInterfaceSize = oneOf(INTERFACE_SIZES, "default");
