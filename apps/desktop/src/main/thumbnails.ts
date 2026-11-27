@@ -1,5 +1,5 @@
+import { mediaTypeOf } from "@starlight/contracts";
 import { type CustomScheme, nativeImage, screen } from "electron";
-import { mediaTypeOf } from "../shared/media-types.ts";
 import { fitThumbnailSize, THUMBNAIL_SCHEME } from "../shared/thumbnails.ts";
 import { appData } from "./app-data.ts";
 import { serveLocalFiles } from "./local-files.ts";
