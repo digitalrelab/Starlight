@@ -30,8 +30,8 @@ export const SqliteFactStoreLive = Layer.effect(FactStore)(
       Result: Row,
       execute: ({ source, fact, directory }) => sql`
         SELECT f.file_id, f.size, f.modified_at, f.version, f.value
-        FROM facts f JOIN file_identities a ON a.id = f.file_id
-        WHERE a.source = ${source} AND a.parent = ${directory} AND f.fact = ${fact}
+        FROM facts f JOIN entries e ON e.file_id = f.file_id
+        WHERE e.source = ${source} AND e.parent = ${directory} AND f.fact = ${fact}
       `,
     });
 
@@ -70,6 +70,8 @@ export const SqliteFactStoreLive = Layer.effect(FactStore)(
               value = excluded.value
           `,
         ),
+      remove: (fileIds) =>
+        inBatches(fileIds, (batch) => sql`DELETE FROM facts WHERE file_id IN ${sql.in(batch)}`),
     });
   }),
 );

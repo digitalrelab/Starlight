@@ -2,7 +2,7 @@ import { SqliteClient, SqliteMigrator } from "@effect/sql-sqlite-node";
 import { Layer } from "effect";
 import { SqliteAuditLogLive } from "./audit-log.ts";
 import { SqliteChatStoreLive } from "./chat-store.ts";
-import { SqliteFileIdentityStoreLive } from "./file-identity-store.ts";
+import { SqliteEntryStoreLive } from "./entry-store.ts";
 import { SqliteFactStoreLive } from "./fact-store.ts";
 import { migrations } from "./migrations.ts";
 import { SqliteProjectStoreLive } from "./project-store.ts";
@@ -14,7 +14,7 @@ export const SqliteLive = (filename: string) => {
     SqliteProjectStoreLive,
     SqliteChatStoreLive,
     SqliteFactStoreLive,
-    SqliteFileIdentityStoreLive,
+    SqliteEntryStoreLive,
     SqliteAuditLogLive,
   ).pipe(Layer.provide(migrator), Layer.provide(client));
 };

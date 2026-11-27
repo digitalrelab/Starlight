@@ -1,6 +1,6 @@
 import type { DirectoryError, EntryId, EntryRef, Media, MediaUpdate, ProjectId } from "@starlight/contracts";
 import { Context, Effect, Layer, Stream } from "effect";
-import { FileIdentities } from "./file-identities.ts";
+import { EntryIndex } from "./entry-index.ts";
 import { Catalog } from "./catalog.ts";
 import { FileTokens, type SourceChange } from "./ports.ts";
 import { Projects } from "./projects.ts";
@@ -26,11 +26,11 @@ export class MediaLibrary extends Context.Service<
       const projects = yield* Projects;
       const tokens = yield* FileTokens;
       const catalog = yield* Catalog;
-      const identities = yield* FileIdentities;
+      const index = yield* EntryIndex;
 
       const locate = Effect.fnUntraced(function* (projectId: ProjectId, requested: EntryRef) {
         const { driver, directory } = yield* projects.locateDirectory(projectId, requested);
-        const files = yield* identities.bind(
+        const files = yield* index.bind(
           driver,
           directory,
           (yield* driver.list(directory.id)).filter((entry) => entry.kind === "file"),
