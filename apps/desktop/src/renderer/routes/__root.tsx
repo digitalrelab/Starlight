@@ -1,12 +1,13 @@
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
-import { AppShell } from "../features/shell/app-shell.tsx";
+import { useApplyAppearance } from "../features/settings/use-apply-appearance.ts";
 import type { RouterContext } from "../lib/context.ts";
 
 export const Route = createRootRouteWithContext<RouterContext>()({
-  loader: ({ context }) => context.queryClient.ensureQueryData(context.queries.recentWorkspaces()),
-  component: () => (
-    <AppShell>
-      <Outlet />
-    </AppShell>
-  ),
+  loader: ({ context: { queryClient, queries } }) => queryClient.ensureQueryData(queries.settings()),
+  component: Root,
 });
+
+function Root() {
+  useApplyAppearance();
+  return <Outlet />;
+}

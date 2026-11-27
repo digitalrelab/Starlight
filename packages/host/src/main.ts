@@ -4,7 +4,7 @@ import { CoreLive } from "@starlight/core";
 import { Effect, Layer, Queue, Schema } from "effect";
 import { NodeFileSystemLive } from "./adapters/node-file-system.ts";
 import { SqliteLive } from "./adapters/sqlite/index.ts";
-import { WorkspaceServerLive } from "./rpc/server.ts";
+import { HostServerLive } from "./rpc/server.ts";
 import { type MainPortLike, serve } from "./rpc/transport.ts";
 
 interface Connection {
@@ -32,10 +32,10 @@ const HostLive = CoreLive.pipe(
 );
 
 const accept = ({ data, port }: Connection) =>
-  serve(
-    port,
-    Layer.unwrap(decodeConnect(data).pipe(Effect.map(({ actor }) => WorkspaceServerLive(actor)))),
-  ).pipe(Effect.ignoreCause({ log: true }), Effect.forkChild);
+  serve(port, Layer.unwrap(decodeConnect(data).pipe(Effect.map(({ actor }) => HostServerLive(actor))))).pipe(
+    Effect.ignoreCause({ log: true }),
+    Effect.forkChild,
+  );
 
 const program = Effect.gen(function* () {
   const connections = yield* Queue.unbounded<Connection>();

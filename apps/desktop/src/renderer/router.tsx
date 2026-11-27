@@ -1,4 +1,4 @@
-import { createClient, createMutations, createQueries } from "@starlight/client";
+import { createClient, createQueryOptions } from "@starlight/client";
 import { QueryClient } from "@tanstack/react-query";
 import { createHashHistory, createRouter } from "@tanstack/react-router";
 import { portSources } from "./lib/ports.ts";
@@ -14,8 +14,7 @@ export const router = createRouter({
   routeTree,
   history: createHashHistory(),
   context: {
-    queries: createQueries(client),
-    mutations: createMutations(client, queryClient),
+    ...createQueryOptions(client, queryClient),
     queryClient,
   },
   defaultPreload: "intent",

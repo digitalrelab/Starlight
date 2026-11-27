@@ -22,4 +22,13 @@ export const migrations = Migrator.fromRecord({
       )
     `;
   }),
+  "0002_settings": Effect.gen(function* () {
+    const sql = yield* SqlClient.SqlClient;
+    yield* sql`
+      CREATE TABLE settings (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        value TEXT NOT NULL
+      )
+    `;
+  }),
 });
