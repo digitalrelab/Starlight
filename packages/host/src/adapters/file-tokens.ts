@@ -5,5 +5,6 @@ import { issueFileToken } from "#file-token.ts";
 
 export const FileTokensLive = (key: Buffer) =>
   Layer.succeed(FileTokens)({
-    issue: (file) => FileToken.make(issueFileToken(key, file)),
+    issue: (ref, { fileId, modifiedAt }) =>
+      FileToken.make(issueFileToken(key, { ref, fileId, version: modifiedAt })),
   });

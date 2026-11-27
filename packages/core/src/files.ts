@@ -51,7 +51,7 @@ export class Files extends Context.Service<
           const { driver, file, entry } = yield* identify(projectId, requested);
           const dimensions = yield* catalog.entry("dimensions", driver, entry);
           return {
-            token: tokens.issue({ ref: file, fileId: entry.fileId, version: entry.modifiedAt }),
+            token: tokens.issue(file, entry),
             version: versionOf(entry),
             dimensions: Option.getOrNull(dimensions),
           };
