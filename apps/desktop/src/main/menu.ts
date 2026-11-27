@@ -1,5 +1,6 @@
 import { BrowserWindow, Menu, type MenuItemConstructorOptions } from "electron";
 import { Channel } from "#shared/channels.ts";
+import { COMMAND_PALETTE_KEY } from "#shared/command-palette.ts";
 import type { ZoomStep } from "#shared/zoom.ts";
 import { historyMenu } from "./history.ts";
 
@@ -23,7 +24,7 @@ export const installMenu = () =>
         submenu: [
           {
             label: "Command Palette…",
-            accelerator: "CommandOrControl+K",
+            accelerator: `CommandOrControl+${COMMAND_PALETTE_KEY}`,
             click: () => sendToFocused(Channel.commandPalette),
           },
           { type: "separator" },

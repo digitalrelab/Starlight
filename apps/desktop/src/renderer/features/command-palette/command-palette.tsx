@@ -11,6 +11,7 @@ import { useQueries, useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { useState } from "react";
 import { Channel } from "#shared/channels.ts";
+import { COMMAND_PALETTE_KEY } from "#shared/command-palette.ts";
 import { chatLink, newChatLink } from "#renderer/features/agent/chat-links.ts";
 import { useCreateProject } from "#renderer/features/projects/use-create-project.ts";
 import { SETTINGS_SECTIONS } from "#renderer/features/settings/settings-pages.ts";
@@ -18,7 +19,7 @@ import { useStarlight } from "#renderer/lib/context.ts";
 import { onMainMessage } from "#renderer/lib/main-messages.ts";
 import { defineStore, useStore } from "#renderer/lib/store.ts";
 
-export const COMMAND_PALETTE_SHORTCUT = ["Meta", "k"];
+export const COMMAND_PALETTE_SHORTCUT = ["Meta", COMMAND_PALETTE_KEY];
 
 const RECENT_CHATS = 5;
 
