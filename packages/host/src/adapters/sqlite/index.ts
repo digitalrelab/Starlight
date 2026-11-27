@@ -3,13 +3,12 @@ import { SqliteClient, SqliteMigrator } from "@effect/sql-sqlite-node";
 import { Layer } from "effect";
 import { SqliteAuditLogLive } from "./audit-log.ts";
 import { migrations } from "./migrations.ts";
-import { SqliteSettingsStoreLive } from "./settings-store.ts";
 import { SqliteWorkspaceStoreLive } from "./workspace-store.ts";
 
 export const SqliteLive = (dataDir: string) => {
   const client = SqliteClient.layer({ filename: join(dataDir, "starlight.db") });
   const migrator = SqliteMigrator.layer({ loader: migrations });
-  return Layer.mergeAll(SqliteWorkspaceStoreLive, SqliteSettingsStoreLive, SqliteAuditLogLive).pipe(
+  return Layer.mergeAll(SqliteWorkspaceStoreLive, SqliteAuditLogLive).pipe(
     Layer.provide(migrator),
     Layer.provide(client),
   );

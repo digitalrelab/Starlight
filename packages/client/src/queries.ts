@@ -1,5 +1,5 @@
 import { mutationOptions, queryOptions, type QueryClient } from "@tanstack/react-query";
-import type { SettingsPatch, Theme } from "@starlight/contracts";
+import type { ColorScheme } from "@starlight/contracts";
 import type { StarlightClient } from "./client.ts";
 
 const entriesKey = (workspaceId: string) => ["entries", workspaceId] as const;
@@ -30,14 +30,13 @@ const createQueries = (client: StarlightClient) => ({
       queryKey: [...entriesKey(workspaceId), path],
       queryFn: () => client.entries.list(workspaceId, path),
     }),
-
-  settings: () => queryOptions({ queryKey: ["settings"], queryFn: () => client.settings.get() }),
 });
 
 const createMutations = (client: StarlightClient, queryClient: QueryClient, queries: Queries) => ({
   pickDirectory: () => mutationOptions({ mutationFn: () => client.shell.pickDirectory() }),
 
-  setNativeTheme: () => mutationOptions({ mutationFn: (theme: Theme) => client.shell.setTheme(theme) }),
+  setColorScheme: () =>
+    mutationOptions({ mutationFn: (colorScheme: ColorScheme) => client.shell.setColorScheme(colorScheme) }),
 
   openWorkspace: () =>
     mutationOptions({
@@ -47,24 +46,6 @@ const createMutations = (client: StarlightClient, queryClient: QueryClient, quer
         return queryClient.invalidateQueries(queries.recentWorkspaces());
       },
     }),
-
-  updateSettings: () => {
-    const { queryKey } = queries.settings();
-    return mutationOptions({
-      scope: { id: "settings" },
-      mutationFn: (patch: SettingsPatch) => client.settings.update(patch),
-      onMutate: async (patch) => {
-        await queryClient.cancelQueries({ queryKey });
-        const previous = queryClient.getQueryData(queryKey);
-        if (previous) queryClient.setQueryData(queryKey, { ...previous, ...patch });
-        return { previous };
-      },
-      onError: (_error, _patch, result) => {
-        if (result?.previous) queryClient.setQueryData(queryKey, result.previous);
-      },
-      onSuccess: (settings) => queryClient.setQueryData(queryKey, settings),
-    });
-  },
 });
 
 const createSubscriptions = (client: StarlightClient, queryClient: QueryClient) => ({

@@ -1,39 +1,37 @@
-import type { Theme } from "@starlight/client";
-import { SegmentedControl, Switch } from "@starlight/ui";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import { COLOR_SCHEMES, type ColorScheme, ColorSchemeSwatch, Switch } from "@starlight/ui";
 import { createFileRoute } from "@tanstack/react-router";
+import { colorScheme, cursor } from "../features/settings/appearance.ts";
 import { SettingRow } from "../features/settings/setting-row.tsx";
 import { SettingsPage } from "../features/settings/settings-page.tsx";
-import { useStarlight } from "../lib/context.ts";
+import { SettingsSelect } from "../features/settings/settings-select.tsx";
 
-const themes: ReadonlyArray<{ value: Theme; label: string }> = [
-  { value: "system", label: "System" },
-  { value: "light", label: "Light" },
-  { value: "dark", label: "Dark" },
-];
+const COLOR_SCHEME_LABELS: Record<ColorScheme, string> = {
+  system: "System",
+  light: "Daylight",
+  dark: "Starlight",
+};
 
 export const Route = createFileRoute("/settings/appearance")({
   component: Appearance,
 });
 
 function Appearance() {
-  const { queries, mutations } = useStarlight();
-  const { data: settings } = useSuspenseQuery(queries.settings());
-  const update = useMutation(mutations.updateSettings());
-
   return (
     <SettingsPage title="Appearance">
-      <SettingRow label="Theme" description="Follow the system, or always use light or dark.">
-        <SegmentedControl
-          value={settings.theme}
-          options={themes}
-          onValueChange={(theme) => update.mutate({ theme })}
+      <SettingRow label="Theme" description="Choose light or dark, or match your device">
+        <SettingsSelect
+          id="theme"
+          values={COLOR_SCHEMES}
+          labels={COLOR_SCHEME_LABELS}
+          swatch={(scheme) => <ColorSchemeSwatch scheme={scheme} />}
+          value={colorScheme.useValue()}
+          onValueChange={colorScheme.set}
         />
       </SettingRow>
-      <SettingRow label="Pointer cursors" description="Show a pointer cursor over interactive elements.">
+      <SettingRow label="Use pointer cursors" description="Show a hand cursor over anything you can click">
         <Switch
-          checked={settings.pointerCursors}
-          onCheckedChange={(pointerCursors) => update.mutate({ pointerCursors })}
+          checked={cursor.useValue() === "pointer"}
+          onCheckedChange={(checked) => cursor.set(checked ? "pointer" : "default")}
         />
       </SettingRow>
     </SettingsPage>

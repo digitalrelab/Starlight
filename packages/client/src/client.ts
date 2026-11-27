@@ -1,9 +1,8 @@
 import {
   type EntryChange,
   HostRpcs,
-  type SettingsPatch,
   ShellRpcs,
-  type Theme,
+  type ColorScheme,
   type WorkspaceId,
 } from "@starlight/contracts";
 import { Context, Effect, Layer, ManagedRuntime, Stream } from "effect";
@@ -52,13 +51,9 @@ export const createClient = (ports: PortSources) => {
         return () => fiber.interruptUnsafe();
       },
     },
-    settings: {
-      get: () => host((c) => c.GetSettings()),
-      update: (patch: SettingsPatch) => host((c) => c.UpdateSettings(patch)),
-    },
     shell: {
       pickDirectory: () => shell((c) => c.PickDirectory()),
-      setTheme: (theme: Theme) => shell((c) => c.SetTheme({ theme })),
+      setColorScheme: (colorScheme: ColorScheme) => shell((c) => c.SetColorScheme({ colorScheme })),
     },
   };
 };

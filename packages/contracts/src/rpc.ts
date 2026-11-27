@@ -1,9 +1,9 @@
 import { Schema } from "effect";
 import { Rpc, RpcGroup } from "effect/rpc";
+import { ColorScheme } from "./appearance.ts";
 import { Entry, EntryChange } from "./entry.ts";
 import { FileSystemError, NotADirectory, PathOutsideWorkspace, WorkspaceNotFound } from "./errors.ts";
 import { RelativePath, WorkspaceId } from "./ids.ts";
-import { Settings, SettingsPatch, Theme } from "./settings.ts";
 import { Workspace } from "./workspace.ts";
 
 export class HostRpcs extends RpcGroup.make(
@@ -31,20 +31,13 @@ export class HostRpcs extends RpcGroup.make(
     error: Schema.Union([WorkspaceNotFound, FileSystemError]),
     stream: true,
   }),
-  Rpc.make("GetSettings", {
-    success: Settings,
-  }),
-  Rpc.make("UpdateSettings", {
-    payload: SettingsPatch,
-    success: Settings,
-  }),
 ) {}
 
 export class ShellRpcs extends RpcGroup.make(
   Rpc.make("PickDirectory", {
     success: Schema.NullOr(Schema.String),
   }),
-  Rpc.make("SetTheme", {
-    payload: { theme: Theme },
+  Rpc.make("SetColorScheme", {
+    payload: { colorScheme: ColorScheme },
   }),
 ) {}

@@ -80,6 +80,7 @@
       "dependencies": {
         "@base-ui/react": "catalog:",
         "@fontsource-variable/geist": "catalog:",
+        "@hugeicons-pro/core-stroke-rounded": "catalog:",
         "@hugeicons/react": "catalog:",
         "cn": "catalog:",
       },

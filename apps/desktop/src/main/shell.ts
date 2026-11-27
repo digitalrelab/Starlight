@@ -12,9 +12,9 @@ const ShellServerLive = (window: BrowserWindow) =>
           Effect.promise(() =>
             dialog.showOpenDialog(window, { properties: ["openDirectory", "createDirectory"] }),
           ).pipe(Effect.map((result) => (result.canceled ? null : (result.filePaths[0] ?? null)))),
-        SetTheme: ({ theme }) =>
+        SetColorScheme: ({ colorScheme }) =>
           Effect.sync(() => {
-            nativeTheme.themeSource = theme;
+            nativeTheme.themeSource = colorScheme;
           }),
       }),
     ),
