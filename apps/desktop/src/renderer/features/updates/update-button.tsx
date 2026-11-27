@@ -1,9 +1,9 @@
 import { CircleArrowUp01Icon } from "@hugeicons-pro/core-stroke-rounded";
-import { Button, Icon, NavItem, Popover, PopoverContent, PopoverTrigger, Prose } from "@starlight/ui";
+import { Button, cn, IconButton, Popover, PopoverContent, PopoverTrigger, Prose } from "@starlight/ui";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useStarlight } from "../../lib/context.ts";
 
-export const UpdateNotice = () => {
+export const UpdateButton = ({ className }: { readonly className?: string }) => {
   const { queries, mutations } = useStarlight();
   const { data: update } = useQuery(queries.update());
   const install = useMutation(mutations.installUpdate());
@@ -11,13 +11,15 @@ export const UpdateNotice = () => {
 
   return (
     <Popover>
-      <PopoverTrigger render={<NavItem className="text-accent hover:text-accent" />}>
-        <Icon icon={CircleArrowUp01Icon} className="shrink-0" />
-        Update available
-      </PopoverTrigger>
+      <IconButton
+        icon={CircleArrowUp01Icon}
+        label="Update available"
+        className={cn("text-accent hover:text-accent", className)}
+        render={<PopoverTrigger />}
+      />
       <PopoverContent
         side="top"
-        align="start"
+        align="end"
         aria-label={`Starlight ${update.version}`}
         className="flex w-80 flex-col gap-3"
       >
