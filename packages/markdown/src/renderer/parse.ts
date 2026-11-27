@@ -1,5 +1,5 @@
 import { type Tree, TreeFragment } from "@lezer/common";
-import { changeBetween } from "#change.ts";
+import { changeBetween } from "@starlight/editor/change";
 import { parser } from "#dialect.ts";
 
 export const createIncrementalParser = () => {

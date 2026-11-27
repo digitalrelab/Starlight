@@ -19,6 +19,7 @@
         "@hugeicons-pro/core-stroke-rounded": "catalog:",
         "@starlight/client": "workspace:*",
         "@starlight/contracts": "workspace:*",
+        "@starlight/editor": "workspace:*",
         "@starlight/host": "workspace:*",
         "@starlight/markdown": "workspace:*",
         "@starlight/media-player": "workspace:*",
@@ -68,6 +69,24 @@
         "thumbhash": "catalog:",
       },
     },
+    "packages/editor": {
+      "name": "@starlight/editor",
+      "dependencies": {
+        "@codemirror/commands": "catalog:",
+        "@codemirror/language": "catalog:",
+        "@codemirror/language-data": "catalog:",
+        "@codemirror/state": "catalog:",
+        "@codemirror/view": "catalog:",
+        "@lezer/highlight": "catalog:",
+        "cn": "catalog:",
+      },
+      "devDependencies": {
+        "@types/react": "catalog:",
+      },
+      "peerDependencies": {
+        "react": "catalog:",
+      },
+    },
     "packages/host": {
       "name": "@starlight/host",
       "dependencies": {
@@ -90,7 +109,6 @@
     "packages/markdown": {
       "name": "@starlight/markdown",
       "dependencies": {
-        "@codemirror/commands": "catalog:",
         "@codemirror/lang-markdown": "catalog:",
         "@codemirror/language": "catalog:",
         "@codemirror/language-data": "catalog:",
@@ -99,6 +117,7 @@
         "@lezer/common": "catalog:",
         "@lezer/highlight": "catalog:",
         "@lezer/markdown": "catalog:",
+        "@starlight/editor": "workspace:*",
         "cn": "catalog:",
         "decode-named-character-reference": "catalog:",
       },
@@ -648,6 +667,8 @@
     "@starlight/core": ["@starlight/core@workspace:packages/core"],
 
     "@starlight/desktop": ["@starlight/desktop@workspace:apps/desktop"],
+
+    "@starlight/editor": ["@starlight/editor@workspace:packages/editor"],
 
     "@starlight/host": ["@starlight/host@workspace:packages/host"],
 

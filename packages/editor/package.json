@@ -1,0 +1,26 @@
+{
+  "name": "@starlight/editor",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/editor.tsx",
+    "./change": "./src/change.ts",
+    "./code": "./src/code-editor.tsx",
+    "./style.css": "./src/style.css"
+  },
+  "dependencies": {
+    "@codemirror/commands": "catalog:",
+    "@codemirror/language": "catalog:",
+    "@codemirror/language-data": "catalog:",
+    "@codemirror/state": "catalog:",
+    "@codemirror/view": "catalog:",
+    "@lezer/highlight": "catalog:",
+    "cn": "catalog:"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:"
+  },
+  "peerDependencies": {
+    "react": "catalog:"
+  }
+}

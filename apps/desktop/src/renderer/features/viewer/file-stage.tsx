@@ -1,4 +1,4 @@
-import { type Entry, type EntryRef, type FileSource, textCodec } from "@starlight/client";
+import { type Entry, type EntryRef, type FileDocument, type FileSource, textCodec } from "@starlight/client";
 import { MediaPlayer } from "@starlight/media-player";
 import { cn, ScrollArea } from "@starlight/ui";
 import { useQuery } from "@tanstack/react-query";
@@ -11,8 +11,9 @@ import { reveal } from "#renderer/lib/reveal.ts";
 import { FileSessionBanner } from "#renderer/features/files/file-session-banner.tsx";
 import { type ItemKind, KindIcon, itemKindOf } from "#renderer/features/files/kind-icon.tsx";
 import { UnsavedDot } from "#renderer/features/files/unsaved-dot.tsx";
+import { fileIsText } from "#renderer/features/files/file-is-text.ts";
 import { useFileSession } from "#renderer/features/files/use-file-session.ts";
-import { MarkdownEditor } from "./markdown-file.ts";
+import { CodeEditor, MarkdownEditor } from "./editors.ts";
 import { playerSettings } from "./player-settings.ts";
 import { pictureUrl, presentationOf } from "./presentation.ts";
 import { StatusSlot } from "./status-slot.ts";
@@ -96,33 +97,65 @@ const Audio = ({ source }: { readonly source: FileSource }) => (
   />
 );
 
-interface MarkdownFileProps {
+interface FileProps {
   readonly projectId: string;
   readonly entry: Entry;
   readonly source: FileSource;
 }
 
-const MarkdownFile = ({ projectId, entry, source }: MarkdownFileProps) => {
+interface DocumentFileProps extends FileProps {
+  readonly children: (document: FileDocument<string>, onChange: (read: () => string) => void) => ReactNode;
+}
+
+const DocumentFile = ({ projectId, entry, source, children }: DocumentFileProps) => {
   const { session, document, status, unsaved } = useFileSession(projectId, entry.ref, source, textCodec);
   const statusSlot = useContext(StatusSlot);
-  if (!document) return status === "failed" ? <Notice kind="markdown">Can’t open this file</Notice> : null;
+  if (!document)
+    return status === "failed" ? <Notice kind={itemKindOf(entry)}>Can’t open this file</Notice> : null;
   return (
     <>
       <FileSessionBanner status={status} session={session} />
       {unsaved && statusSlot ? createPortal(<UnsavedDot />, statusSlot) : null}
       <ScrollArea className="h-full">
-        <Suspense fallback={null}>
-          <MarkdownEditor
-            key={document.revision}
-            value={document.value}
-            label={entry.name}
-            editable={document.editable}
-            onChange={session.edit}
-            className="pt-[12vh] pb-[40vh]"
-          />
-        </Suspense>
+        <Suspense fallback={null}>{children(document, session.edit)}</Suspense>
       </ScrollArea>
     </>
+  );
+};
+
+const MarkdownFile = (props: FileProps) => (
+  <DocumentFile {...props}>
+    {(document, onChange) => (
+      <MarkdownEditor
+        key={document.revision}
+        value={document.value}
+        label={props.entry.name}
+        editable={document.editable}
+        onChange={onChange}
+        className="pt-[12vh] pb-[40vh]"
+      />
+    )}
+  </DocumentFile>
+);
+
+const TextFile = (props: FileProps) => {
+  const isText = useQuery(fileIsText(props.source));
+  if (isText.data === false || isText.isError)
+    return <Notice kind={itemKindOf(props.entry)}>No preview available</Notice>;
+  if (!isText.data) return null;
+  return (
+    <DocumentFile {...props}>
+      {(document, onChange) => (
+        <CodeEditor
+          key={document.revision}
+          value={document.value}
+          fileName={props.entry.name}
+          editable={document.editable}
+          onChange={onChange}
+          className="pt-4 pb-[40vh]"
+        />
+      )}
+    </DocumentFile>
   );
 };
 
@@ -146,5 +179,6 @@ export const FileStage = ({ projectId, directory, entry }: Props) => {
   if (presentation === "audio") return <Audio source={source.data} />;
   if (presentation === "markdown")
     return <MarkdownFile projectId={projectId} entry={entry} source={source.data} />;
+  if (presentation === "text") return <TextFile projectId={projectId} entry={entry} source={source.data} />;
   return <Picture name={entry.name} source={source.data} presentation={presentation} />;
 };

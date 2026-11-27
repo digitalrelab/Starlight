@@ -23,6 +23,7 @@
     "@hugeicons-pro/core-stroke-rounded": "catalog:",
     "@starlight/client": "workspace:*",
     "@starlight/contracts": "workspace:*",
+    "@starlight/editor": "workspace:*",
     "@starlight/host": "workspace:*",
     "@starlight/markdown": "workspace:*",
     "@starlight/media-player": "workspace:*",

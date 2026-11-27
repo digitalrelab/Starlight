@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "@starlight/ui/styles.css";
+@import "@starlight/editor/style.css";
 @import "@starlight/markdown/style.css";
 @import "@starlight/media-player/style.css";
 @source "./";

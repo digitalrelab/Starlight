@@ -3,7 +3,7 @@ import { type CreatableKind, type Entry, type EntryRef, entryKey } from "@starli
 import type { IconProps } from "@starlight/ui";
 import { useEffect } from "react";
 import { MarkdownIcon } from "#renderer/features/files/markdown-icon.ts";
-import { loadEditor } from "#renderer/features/viewer/markdown-file.ts";
+import { loadMarkdownEditor } from "#renderer/features/viewer/editors.ts";
 import { defineStore, useStore } from "#renderer/lib/store.ts";
 
 const STEM = "Untitled";
@@ -18,7 +18,7 @@ export interface Blueprint {
 
 export const BLUEPRINTS: ReadonlyArray<Blueprint> = [
   { label: "Folder", icon: FolderIcon, kind: "directory", extension: "" },
-  { label: "Markdown", icon: MarkdownIcon, kind: "file", extension: ".md", prepare: loadEditor },
+  { label: "Markdown", icon: MarkdownIcon, kind: "file", extension: ".md", prepare: loadMarkdownEditor },
 ];
 
 export interface Draft {

@@ -15,7 +15,8 @@ import { useStore } from "#renderer/lib/store.ts";
 import { useStarlight } from "#renderer/lib/context.ts";
 import { FileStage } from "./file-stage.tsx";
 import { fileBytes } from "#renderer/features/files/file-bytes.ts";
-import { loadEditor } from "./markdown-file.ts";
+import { fileIsText } from "#renderer/features/files/file-is-text.ts";
+import { loadCodeEditor, loadMarkdownEditor } from "./editors.ts";
 import { pictureUrl, presentationOf } from "./presentation.ts";
 import { StatusSlot } from "./status-slot.ts";
 
@@ -58,9 +59,15 @@ const usePrefetch = (
       void queryClient.query(queries.fileSource(projectId, directory, entry.ref)).then(
         (source) => {
           if (presentation === "markdown") {
-            void loadEditor();
+            void loadMarkdownEditor();
             return queryClient.prefetchQuery(fileBytes(source));
           }
+          if (presentation === "text")
+            return queryClient.query(fileIsText(source)).then((isText) => {
+              if (!isText) return;
+              void loadCodeEditor().then(({ preloadLanguage }) => preloadLanguage(entry.name));
+              return queryClient.prefetchQuery(fileBytes(source));
+            });
           if (presentation === "image" || presentation === "preview")
             new Image().src = pictureUrl(source, presentation);
         },
