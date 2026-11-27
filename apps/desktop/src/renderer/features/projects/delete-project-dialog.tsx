@@ -4,7 +4,7 @@ import { ConfirmDialog } from "@starlight/ui";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { useStarlight } from "#renderer/lib/context.ts";
-import { byRecency, forgetProject, projectDestination } from "./project-memory.ts";
+import { byRecentUse, forgetProject, projectDestination } from "./project-memory.ts";
 
 interface Props {
   readonly project: Project;
@@ -22,11 +22,8 @@ export const DeleteProjectDialog = ({ project, open, onOpenChange }: Props) => {
     forgetProject(project.id);
     if (projectId !== project.id) return remove.mutate(project.id);
     const projects = await queryClient.ensureQueryData(queries.projects());
-    const [next] = byRecency(projects.filter(({ id }) => id !== project.id));
-    if (!next) {
-      await remove.mutateAsync(project.id);
-      return navigate({ to: "/" });
-    }
+    const [next] = byRecentUse(projects.filter(({ id }) => id !== project.id));
+    if (!next) return remove.mutate(project.id, { onSuccess: () => navigate({ to: "/" }) });
     await navigate(projectDestination(next.id));
     remove.mutate(project.id);
   };

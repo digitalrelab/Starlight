@@ -13,7 +13,7 @@ import { useState } from "react";
 import { Channel } from "#shared/channels.ts";
 import { COMMAND_PALETTE_KEY } from "#shared/command-palette.ts";
 import { chatLink, newChatLink } from "#renderer/features/agent/chat-links.ts";
-import { byRecency, projectDestination } from "#renderer/features/projects/project-memory.ts";
+import { byRecentUse, projectDestination } from "#renderer/features/projects/project-memory.ts";
 import { useCreateProject } from "#renderer/features/projects/use-create-project.ts";
 import { SETTINGS_SECTIONS } from "#renderer/features/settings/settings-pages.ts";
 import { useStarlight } from "#renderer/lib/context.ts";
@@ -62,7 +62,7 @@ const Palette = ({ createProject }: { readonly createProject: () => void }) => {
   const chats = useChatItems(projects);
   const entries = useEntryGroups(text, projectId ?? null);
 
-  const projectItems = byRecency(projects).map(({ id, name }): CommandItem => ({
+  const projectItems = byRecentUse(projects).map(({ id, name }): CommandItem => ({
     key: id,
     label: name,
     leading: <Icon icon={FolderIcon} />,

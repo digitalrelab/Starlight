@@ -16,7 +16,7 @@ export const projectDestination = (projectId: string) => {
   return { ...linkOptions({ to: "/p/$projectId", params: { projectId } }), ...(href ? { href } : {}) };
 };
 
-export const byRecency = (projects: ReadonlyArray<Project>) => {
+export const byRecentUse = (projects: ReadonlyArray<Project>) => {
   const ids = recentIds();
   const rank = (project: Project) => {
     const index = ids.indexOf(project.id);
