@@ -234,10 +234,15 @@ const createMutations = (client: StarlightClient, queryClient: QueryClient, quer
       },
     }),
 
-  createEntry: (projectId: string, directory: EntryRef) =>
+  createEntry: (projectId: string, directory: EntryRef, kind: CreatableKind) =>
     mutationOptions({
-      mutationFn: ({ name, kind }: { readonly name: string; readonly kind: CreatableKind }) =>
-        client.entries.create(projectId, directory, name, kind),
+      mutationFn: (name: string) => client.entries.create(projectId, directory, name, kind),
+      onSuccess: () => queryClient.invalidateQueries(queries.entries(projectId, directory)),
+    }),
+
+  renameEntry: (projectId: string, directory: EntryRef, entry: EntryRef) =>
+    mutationOptions({
+      mutationFn: (name: string) => client.entries.rename(projectId, entry, name),
       onSuccess: () => queryClient.invalidateQueries(queries.entries(projectId, directory)),
     }),
 

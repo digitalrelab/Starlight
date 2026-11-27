@@ -1,5 +1,5 @@
 import type { Stats } from "node:fs";
-import { lstat, mkdir, open, readdir, realpath, stat, writeFile } from "node:fs/promises";
+import { lstat, mkdir, open, readdir, realpath, rename, stat, writeFile } from "node:fs/promises";
 import { basename, dirname, join, relative, resolve, sep } from "node:path";
 import { subscribe } from "@parcel/watcher";
 import { type CreatableKind, EntryId, type EntryKind, type SourceError } from "@starlight/contracts";
@@ -7,7 +7,7 @@ import type { SourceChange, SourceCrumb, SourceDriver, SourceEntry } from "@star
 import { Effect, Queue, Stream } from "effect";
 import type { Imaging } from "#adapters/imaging.ts";
 import { dimensionsExtractor, durationExtractor } from "./extractors.ts";
-import { toSourceError } from "./source-error.ts";
+import { sourceError, toSourceError } from "./source-error.ts";
 
 const resync: SourceChange = { _tag: "Resync" };
 
@@ -61,6 +61,17 @@ const createNew = async (path: string, kind: CreatableKind) => {
   await (kind === "directory" ? mkdir(path) : writeFile(path, "", { flag: "wx" }));
   return stat(path);
 };
+
+const lstatIfPresent = (path: string) =>
+  lstat(path).catch((error: NodeJS.ErrnoException) => {
+    if (error.code === "ENOENT") return undefined;
+    throw error;
+  });
+
+const sameEntry = (a: Stats, b: Stats) => a.dev === b.dev && a.ino === b.ino;
+
+const attempt = <A>(id: EntryId, task: () => Promise<A>) =>
+  Effect.tryPromise({ try: task, catch: toSourceError(id) });
 
 const staleDirectories = (paths: ReadonlyArray<string>) =>
   [...new Set(paths.flatMap((path) => [dirname(path), path]))].map((path) => EntryId.make(path));
@@ -122,6 +133,18 @@ export const makeLocalSource = (imaging: Imaging["Service"]): SourceDriver => {
       const id = EntryId.make(join(parent, name));
       return Effect.tryPromise({ try: () => createNew(id, kind), catch: toSourceError(id) }).pipe(
         Effect.map((s) => toEntry(id, s)),
+      );
+    },
+    rename: (id, name) => {
+      const target = EntryId.make(join(dirname(id), name));
+      return Effect.all([attempt(id, () => lstat(id)), attempt(target, () => lstatIfPresent(target))]).pipe(
+        Effect.filterOrFail(
+          ([entry, taken]) => taken === undefined || sameEntry(entry, taken),
+          () => sourceError(target, "AlreadyExists", `Already exists: ${target}`),
+        ),
+        Effect.andThen(attempt(target, () => rename(id, target))),
+        Effect.andThen(attempt(target, () => lstat(target))),
+        Effect.map((s) => toEntry(target, s)),
       );
     },
     watch,

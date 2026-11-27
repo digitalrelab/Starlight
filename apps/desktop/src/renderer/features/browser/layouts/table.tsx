@@ -1,11 +1,12 @@
 import { type Entry, entryKey } from "@starlight/client";
 import { cn, ScrollArea } from "@starlight/ui";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { memo, useRef } from "react";
+import { memo, type ReactElement, useRef } from "react";
 import { formatDate, formatSize } from "#renderer/lib/format.ts";
 import { KindIcon, itemKindOf } from "#renderer/features/files/kind-icon.tsx";
 import { useRevealFocus } from "#renderer/features/browser/selection.ts";
 import { type ItemHandlers, listProps, type Step, useItem } from "./events.ts";
+import { draftOf, fieldFor } from "./naming-slot.ts";
 import type { LayoutProps } from "./types.ts";
 
 const ROW_HEIGHT = 26;
@@ -15,7 +16,8 @@ const NAME = "flex min-w-0 items-center gap-2";
 
 const step: Step = (from, key) => (key === "ArrowDown" ? from + 1 : key === "ArrowUp" ? from - 1 : undefined);
 
-export const TableLayout = ({ entries, selection, draft, onHover, onOpen }: LayoutProps) => {
+export const TableLayout = ({ entries, selection, naming, onHover, onOpen }: LayoutProps) => {
+  const draft = draftOf(naming);
   const scrollRef = useRef<HTMLDivElement>(null);
   const virtualizer = useVirtualizer({
     count: entries.length,
@@ -38,22 +40,28 @@ export const TableLayout = ({ entries, selection, draft, onHover, onOpen }: Layo
         <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
           {draft ? (
             <div className={ROW} style={{ height: ROW_HEIGHT }}>
-              <span className={NAME}>{draft}</span>
+              <span className={NAME}>
+                <KindIcon kind={draft.kind} className="shrink-0" />
+                {draft.field}
+              </span>
             </div>
           ) : null}
           {virtualizer.getVirtualItems().map((row) => {
             const entry = entries[row.index];
-            return entry ? (
+            if (!entry) return null;
+            const key = entryKey(entry.ref);
+            return (
               <Row
-                key={entryKey(entry.ref)}
+                key={key}
                 index={row.index}
                 entry={entry}
+                field={fieldFor(naming, key)}
                 start={row.start}
                 selection={selection}
                 onHover={onHover}
                 onOpen={onOpen}
               />
-            ) : null;
+            );
           })}
         </div>
       </ScrollArea>
@@ -64,10 +72,11 @@ export const TableLayout = ({ entries, selection, draft, onHover, onOpen }: Layo
 interface RowProps extends ItemHandlers {
   readonly index: number;
   readonly entry: Entry;
+  readonly field: ReactElement | undefined;
   readonly start: number;
 }
 
-const Row = memo(({ index, entry, start, ...handlers }: RowProps) => {
+const Row = memo(({ index, entry, field, start, ...handlers }: RowProps) => {
   const { selected, props } = useItem(index, entry, handlers);
   return (
     <div
@@ -81,7 +90,7 @@ const Row = memo(({ index, entry, start, ...handlers }: RowProps) => {
     >
       <span className={NAME}>
         <KindIcon kind={itemKindOf(entry)} />
-        <span className="truncate">{entry.name}</span>
+        {field ?? <span className="truncate">{entry.name}</span>}
       </span>
       <span className="text-right text-subtle tabular-nums">
         {entry.kind === "directory" ? "—" : formatSize(entry.size)}
