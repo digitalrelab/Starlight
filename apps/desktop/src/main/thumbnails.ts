@@ -23,14 +23,15 @@ const createLifoQueue = (concurrency: number) => {
       job();
     }
   };
-  return <A>(task: () => Promise<A>, signal: AbortSignal) =>
+  return <A>(task: () => Promise<A>) =>
     new Promise<A>((resolve, reject) => {
       pending.push(() => {
-        const settle = signal.aborted ? Promise.reject(signal.reason) : task();
-        void settle.then(resolve, reject).finally(() => {
-          active--;
-          drain();
-        });
+        void task()
+          .then(resolve, reject)
+          .finally(() => {
+            active--;
+            drain();
+          });
       });
       drain();
     });
@@ -56,8 +57,6 @@ export const serveThumbnails = (key: Buffer) => {
     const absolute = verifyThumbnailToken(key, url.pathname.slice(1));
     if (!absolute) return new Response(null, { status: 403 });
     const size = fitThumbnailSize(Number(url.searchParams.get("size")));
-    return enqueue(() => render(absolute, size), request.signal).catch(
-      () => new Response(null, { status: 404 }),
-    );
+    return enqueue(() => render(absolute, size)).catch(() => new Response(null, { status: 404 }));
   });
 };

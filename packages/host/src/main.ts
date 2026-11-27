@@ -2,7 +2,7 @@ import { NodePath, NodeRuntime } from "@effect/platform-node";
 import { ConnectRequest } from "@starlight/contracts";
 import { CoreLive } from "@starlight/core";
 import { Effect, Layer, Queue, Schema } from "effect";
-import { ImageProbeLive } from "./adapters/image-probe.ts";
+import { ImageProbeLive } from "./adapters/image-probe/index.ts";
 import { NodeFileSystemLive } from "./adapters/node-file-system.ts";
 import { SqliteLive } from "./adapters/sqlite/index.ts";
 import { ThumbnailTokensLive } from "./adapters/thumbnail-tokens.ts";

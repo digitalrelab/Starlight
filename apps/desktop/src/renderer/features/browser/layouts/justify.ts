@@ -35,13 +35,13 @@ export const justify = (aspects: Float64Array, options: JustifyOptions): Justifi
     let aspectSum = 0;
     let height = targetHeight;
     while (end < count) {
-      aspectSum += aspects[end] ?? 1;
+      aspectSum += aspects[end]!;
       end++;
       const fit = fitHeight(width, gap, end - start, aspectSum);
       if (fit > targetHeight) continue;
       height = fit;
       if (end - start > 1) {
-        const shorterSum = aspectSum - (aspects[end - 1] ?? 1);
+        const shorterSum = aspectSum - aspects[end - 1]!;
         const shorterFit = fitHeight(width, gap, end - start - 1, shorterSum);
         if (shorterFit <= maxHeight && shorterFit - targetHeight < targetHeight - fit) {
           end--;
@@ -55,7 +55,7 @@ export const justify = (aspects: Float64Array, options: JustifyOptions): Justifi
     const rowIndex = rows.length;
     let x = 0;
     for (let i = start; i < end; i++) {
-      const next = x + (aspects[i] ?? 1) * height;
+      const next = x + aspects[i]! * height;
       left[i] = Math.round(x);
       widths[i] = Math.round(next) - left[i]!;
       rowOf[i] = rowIndex;
