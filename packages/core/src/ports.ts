@@ -23,6 +23,7 @@ import type {
   Project,
   ProjectId,
 } from "@starlight/contracts";
+import { FileVersion } from "@starlight/contracts";
 import { Context, Data, type Effect, type Option, type Stream } from "effect";
 
 export interface SourceEntry {
@@ -35,6 +36,8 @@ export interface SourceEntry {
   readonly modifiedAt: number;
   readonly hidden: boolean;
 }
+
+export const versionOf = ({ modifiedAt, size }: SourceEntry) => FileVersion.make(`${modifiedAt}:${size}`);
 
 export interface IdentifiedEntry extends SourceEntry {
   readonly fileId: FileId;
