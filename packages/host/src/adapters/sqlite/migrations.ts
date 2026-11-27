@@ -107,4 +107,50 @@ export const migrations = Migrator.fromRecord({
     yield* sql`ALTER TABLE conversations ADD COLUMN model TEXT`;
     yield* sql`ALTER TABLE conversations ADD COLUMN effort TEXT`;
   }),
+  "0008_chats": Effect.gen(function* () {
+    const sql = yield* SqlClient.SqlClient;
+    yield* sql`ALTER TABLE conversations RENAME TO chats`;
+    yield* sql`ALTER TABLE conversation_messages RENAME TO chat_messages`;
+    yield* sql`ALTER TABLE chat_messages RENAME COLUMN conversation_id TO chat_id`;
+    yield* sql`DROP INDEX conversation_messages_by_conversation`;
+    yield* sql`CREATE INDEX chat_messages_by_chat ON chat_messages (chat_id, created_at)`;
+  }),
+  "0009_file_identities": Effect.gen(function* () {
+    const sql = yield* SqlClient.SqlClient;
+    yield* sql`
+      CREATE TABLE file_identities (
+        id TEXT PRIMARY KEY,
+        source TEXT NOT NULL,
+        entry TEXT NOT NULL,
+        parent TEXT NOT NULL,
+        key TEXT NOT NULL,
+        UNIQUE (source, entry)
+      )
+    `;
+    yield* sql`CREATE INDEX file_identities_by_parent ON file_identities (source, parent)`;
+    yield* sql`CREATE INDEX file_identities_by_key ON file_identities (source, key)`;
+    yield* sql`DROP TABLE facts`;
+    yield* sql`
+      CREATE TABLE facts (
+        file_id TEXT NOT NULL,
+        fact TEXT NOT NULL,
+        size INTEGER NOT NULL,
+        modified_at REAL NOT NULL,
+        version INTEGER NOT NULL,
+        value TEXT,
+        PRIMARY KEY (file_id, fact)
+      ) WITHOUT ROWID
+    `;
+  }),
+  "0010_projects": Effect.gen(function* () {
+    const sql = yield* SqlClient.SqlClient;
+    yield* sql`ALTER TABLE workspaces RENAME TO projects`;
+    yield* sql`ALTER TABLE projects RENAME COLUMN opened_at TO created_at`;
+    yield* sql`ALTER TABLE mounts RENAME COLUMN workspace_id TO project_id`;
+  }),
+  "0011_project_chats": Effect.gen(function* () {
+    const sql = yield* SqlClient.SqlClient;
+    yield* sql`ALTER TABLE chats ADD COLUMN project_id TEXT REFERENCES projects (id) ON DELETE SET NULL`;
+    yield* sql`CREATE INDEX chats_by_project ON chats (project_id, updated_at)`;
+  }),
 });

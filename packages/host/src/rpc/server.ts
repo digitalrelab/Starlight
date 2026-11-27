@@ -1,39 +1,39 @@
 import { type Actor, HostRpcs } from "@starlight/contracts";
-import {
-  AgentProviders,
-  Conversations,
-  CurrentActor,
-  Entries,
-  Files,
-  MediaLibrary,
-  Workspaces,
-} from "@starlight/core";
+import { AgentProviders, Chats, CurrentActor, Entries, Files, MediaLibrary, Projects } from "@starlight/core";
 import { Effect, Layer } from "effect";
 import { RpcServer } from "effect/rpc";
 
 const HandlersLive = HostRpcs.toLayer(
   Effect.gen(function* () {
-    const workspaces = yield* Workspaces;
+    const projects = yield* Projects;
     const entries = yield* Entries;
     const files = yield* Files;
     const media = yield* MediaLibrary;
     const agentProviders = yield* AgentProviders;
-    const conversations = yield* Conversations;
+    const chats = yield* Chats;
     return HostRpcs.of({
-      OpenWorkspace: ({ root }) => workspaces.open(root),
-      AddMount: ({ workspaceId, root }) => workspaces.addMount(workspaceId, root),
-      ListRecentWorkspaces: () => workspaces.recent,
-      GetWorkspace: ({ workspaceId }) => workspaces.get(workspaceId),
-      ListEntries: ({ workspaceId, directory }) => entries.list(workspaceId, directory),
-      WatchEntries: ({ workspaceId }) => entries.watch(workspaceId),
-      ListMedia: ({ workspaceId, directory }) => media.list(workspaceId, directory),
-      GetFileSource: ({ workspaceId, file }) => files.source(workspaceId, file),
-      WriteFile: ({ workspaceId, file, content, base }) => files.write(workspaceId, file, content, base),
+      CreateProject: ({ root }) => projects.create(root),
+      ListProjects: () => projects.list,
+      GetProject: ({ projectId }) => projects.get(projectId),
+      RenameProject: ({ projectId, name }) => projects.rename(projectId, name),
+      DeleteProject: ({ projectId }) => projects.remove(projectId),
+      AddMount: ({ projectId, root }) => projects.addMount(projectId, root),
+      RemoveMount: ({ projectId, root }) => projects.removeMount(projectId, root),
+      ListEntries: ({ projectId, directory }) => entries.list(projectId, directory),
+      WatchEntries: ({ projectId }) => entries.watch(projectId),
+      ListMedia: ({ projectId, directory }) => media.list(projectId, directory),
+      ProcessMedia: ({ projectId, directory }) => media.process(projectId, directory),
+      GetFileSource: ({ projectId, file }) => files.source(projectId, file),
+      WriteFile: ({ projectId, file, content, base }) => files.write(projectId, file, content, base),
       ListAgentProviders: () => agentProviders.list,
-      ListConversations: () => conversations.list,
-      GetConversation: ({ conversationId }) => conversations.get(conversationId),
-      SendMessage: ({ conversationId, text, model }) => conversations.send(conversationId, text, model),
-      WatchConversation: ({ conversationId }) => conversations.watch(conversationId),
+      PrepareAgentProviders: () => agentProviders.prepare,
+      ListChats: ({ projectId }) => chats.list(projectId),
+      GetChat: ({ chatId }) => chats.get(chatId),
+      StartChat: ({ projectId, text, model }) => chats.start(projectId, text, model),
+      SendMessage: ({ chatId, text, model }) => chats.send(chatId, text, model),
+      RenameChat: ({ chatId, title }) => chats.rename(chatId, title),
+      DeleteChat: ({ chatId }) => chats.remove(chatId),
+      WatchChat: ({ chatId }) => chats.watch(chatId),
     });
   }),
 );

@@ -1,7 +1,7 @@
 import type { Entry, EntryRef } from "@starlight/client";
 
 export interface LayoutProps {
-  readonly workspaceId: string;
+  readonly projectId: string;
   readonly directory: EntryRef | null;
   readonly entries: ReadonlyArray<Entry>;
   readonly selected: number;

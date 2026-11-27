@@ -1,16 +1,19 @@
 import { type Entry, type EntryRef, type FileSource, textCodec } from "@starlight/client";
 import { cn, ScrollArea } from "@starlight/ui";
 import { useQuery } from "@tanstack/react-query";
-import { type ReactNode, Suspense, useState } from "react";
+import { type ReactNode, Suspense, useContext, useState } from "react";
+import { createPortal } from "react-dom";
 import { fileUrl } from "#shared/files.ts";
 import { previewUrl } from "#shared/previews.ts";
 import { useStarlight } from "#renderer/lib/context.ts";
 import { reveal } from "#renderer/lib/reveal.ts";
 import { FileSessionBanner } from "#renderer/features/files/file-session-banner.tsx";
 import { type ItemKind, KindIcon, itemKindOf } from "#renderer/features/files/kind-icon.tsx";
+import { UnsavedDot } from "#renderer/features/files/unsaved-dot.tsx";
 import { useFileSession } from "#renderer/features/files/use-file-session.ts";
 import { MarkdownEditor } from "./markdown-file.ts";
 import { pictureUrl, presentationOf } from "./presentation.ts";
+import { StatusSlot } from "./status-slot.ts";
 
 const PLACEHOLDER_PIXELS = 512;
 const POSTER_PIXELS = 1024;
@@ -79,17 +82,19 @@ const Video = ({ source }: { readonly source: FileSource }) => {
 };
 
 interface MarkdownFileProps {
-  readonly workspaceId: string;
+  readonly projectId: string;
   readonly entry: Entry;
   readonly source: FileSource;
 }
 
-const MarkdownFile = ({ workspaceId, entry, source }: MarkdownFileProps) => {
-  const { session, document, status } = useFileSession(workspaceId, entry.ref, source, textCodec);
+const MarkdownFile = ({ projectId, entry, source }: MarkdownFileProps) => {
+  const { session, document, status, unsaved } = useFileSession(projectId, entry.ref, source, textCodec);
+  const statusSlot = useContext(StatusSlot);
   if (!document) return status === "failed" ? <Notice kind="markdown">Can’t open this file</Notice> : null;
   return (
     <>
       <FileSessionBanner status={status} session={session} />
+      {unsaved && statusSlot ? createPortal(<UnsavedDot />, statusSlot) : null}
       <ScrollArea className="h-full">
         <Suspense fallback={null}>
           <MarkdownEditor
@@ -107,16 +112,16 @@ const MarkdownFile = ({ workspaceId, entry, source }: MarkdownFileProps) => {
 };
 
 interface Props {
-  readonly workspaceId: string;
+  readonly projectId: string;
   readonly directory: EntryRef;
   readonly entry: Entry;
 }
 
-export const FileStage = ({ workspaceId, directory, entry }: Props) => {
+export const FileStage = ({ projectId, directory, entry }: Props) => {
   const { queries } = useStarlight();
   const presentation = presentationOf(entry);
   const source = useQuery({
-    ...queries.fileSource(workspaceId, directory, entry.ref),
+    ...queries.fileSource(projectId, directory, entry.ref),
     enabled: presentation !== "none",
   });
   if (presentation === "none") return <Notice kind={itemKindOf(entry)}>No preview available</Notice>;
@@ -124,6 +129,6 @@ export const FileStage = ({ workspaceId, directory, entry }: Props) => {
   if (!source.data) return null;
   if (presentation === "video") return <Video source={source.data} />;
   if (presentation === "markdown")
-    return <MarkdownFile workspaceId={workspaceId} entry={entry} source={source.data} />;
+    return <MarkdownFile projectId={projectId} entry={entry} source={source.data} />;
   return <Picture name={entry.name} source={source.data} presentation={presentation} />;
 };

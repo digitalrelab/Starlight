@@ -2,10 +2,10 @@ import { useNavigate } from "@tanstack/react-router";
 import { useStarlight } from "#renderer/lib/context.ts";
 import { useFolderAction } from "./use-folder-action.ts";
 
-export const useOpenWorkspace = () => {
+export const useCreateProject = () => {
   const { mutations } = useStarlight();
   const navigate = useNavigate();
-  return useFolderAction(mutations.openWorkspace(), (workspace) =>
-    navigate({ to: "/w/$workspaceId", params: { workspaceId: workspace.id }, search: {} }),
+  return useFolderAction(mutations.createProject(), (project) =>
+    navigate({ to: "/p/$projectId", params: { projectId: project.id } }),
   );
 };

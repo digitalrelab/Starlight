@@ -1,11 +1,10 @@
-import { query, type SDKMessage } from "@anthropic-ai/claude-agent-sdk";
+import type { SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 import { type AgentTurnEvent, AgentTurnFailed, type AgentTurnInput } from "@starlight/core";
-import { Effect, Option, Stream } from "effect";
-import { findExecutable } from "./executable.ts";
-import { isEffort } from "./models.ts";
+import { Effect, Exit, Option, Stream } from "effect";
+import type { Pool } from "./pool.ts";
 
-const SYSTEM_PROMPT =
-  "You are the assistant inside Starlight, a desktop file manager. Answer clearly and concisely. You cannot see or change the user's files yet.";
+const failure = (cause: unknown) =>
+  new AgentTurnFailed({ message: cause instanceof Error ? cause.message : String(cause) });
 
 const toEvents = (message: SDKMessage): Stream.Stream<AgentTurnEvent, AgentTurnFailed> => {
   if (
@@ -24,31 +23,17 @@ const toEvents = (message: SDKMessage): Stream.Stream<AgentTurnEvent, AgentTurnF
 };
 
 export const respond =
-  (workingDirectory: string) =>
+  (pool: Pool) =>
   ({ prompt, session, model }: AgentTurnInput): Stream.Stream<AgentTurnEvent, AgentTurnFailed> =>
     Stream.unwrap(
-      Effect.gen(function* () {
-        const executable = yield* findExecutable;
-        if (Option.isNone(executable)) {
-          return yield* new AgentTurnFailed({ message: "Claude Code isn't installed." });
-        }
-        const conversation = query({
-          prompt,
-          options: {
-            pathToClaudeCodeExecutable: executable.value,
-            cwd: workingDirectory,
-            model: model.model,
-            ...(model.effort !== null && isEffort(model.effort) ? { effort: model.effort } : {}),
-            systemPrompt: SYSTEM_PROMPT,
-            tools: [],
-            settingSources: [],
-            includePartialMessages: true,
-            ...(Option.isSome(session) ? { resume: session.value } : {}),
-          },
-        });
-        return Stream.fromAsyncIterable(
-          conversation,
-          (cause) => new AgentTurnFailed({ message: cause instanceof Error ? cause.message : String(cause) }),
-        ).pipe(Stream.flatMap(toEvents), Stream.ensuring(Effect.sync(() => conversation.close())));
-      }),
+      Effect.map(
+        Effect.tryPromise({ try: () => pool.acquire(Option.getOrUndefined(session)), catch: failure }),
+        (claude) =>
+          Stream.fromAsyncIterable(claude.turn(prompt, model), failure).pipe(
+            Stream.flatMap(toEvents),
+            Stream.onExit((exit) =>
+              Effect.sync(() => (Exit.isSuccess(exit) ? pool.park(claude) : claude.close())),
+            ),
+          ),
+      ),
     );
