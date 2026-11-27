@@ -78,6 +78,10 @@ const displaySizeOf = (view: DataView, header: Box): Dimensions | null => {
   return rotated ? { width: height, height: width } : { width, height };
 };
 
+const TRACK_ENABLED = 0x1;
+
+const isEnabled = (view: DataView, header: Box) => (view.getUint32(header.start) & TRACK_ENABLED) !== 0;
+
 const isVideoTrack = (bytes: Uint8Array, track: Box) => {
   const media = childOf(bytes, track, "mdia");
   const handler = media && childOf(bytes, media, "hdlr");
@@ -94,7 +98,7 @@ export const readVideoHeader = async (path: string, size: number): Promise<Video
     const header = childOf(movie, root, "mvhd");
     for (const track of childrenOf(movie, root).filter((box) => box.type === "trak")) {
       const trackHeader = childOf(movie, track, "tkhd");
-      if (!trackHeader || !isVideoTrack(movie, track)) continue;
+      if (!trackHeader || !isEnabled(view, trackHeader) || !isVideoTrack(movie, track)) continue;
       const dimensions = displaySizeOf(view, trackHeader);
       if (dimensions) return { dimensions, duration: header ? durationOf(view, header) : null };
     }
