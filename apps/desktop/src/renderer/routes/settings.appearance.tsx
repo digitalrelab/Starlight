@@ -1,15 +1,10 @@
 import { COLOR_SCHEMES, type ColorScheme, ColorSchemeSwatch, Item, Switch } from "@starlight/ui";
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  colorScheme,
-  cursor,
-  INTERFACE_SIZES,
-  type InterfaceSize,
-  interfaceSize,
-} from "#renderer/features/settings/appearance.ts";
+import { colorScheme, cursor, interfaceSize } from "#renderer/features/settings/appearance.ts";
 import { SettingsPage } from "#renderer/features/settings/settings-page.tsx";
 import { SettingsSelect } from "#renderer/features/settings/settings-select.tsx";
 import { useStored } from "#renderer/lib/storage.ts";
+import { INTERFACE_SIZES, type InterfaceSize } from "#shared/zoom.ts";
 
 const COLOR_SCHEME_LABELS: Record<ColorScheme, string> = {
   system: "System",

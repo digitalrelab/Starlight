@@ -1,6 +1,5 @@
 import { useSyncExternalStore } from "react";
-
-const PREFIX = "starlight.";
+import { readStorage, storageKey, writeStorage } from "#shared/storage.ts";
 
 type Guard<Value extends string> = (raw: string) => raw is Value;
 
@@ -11,25 +10,11 @@ export const oneOf =
 
 export const anyString: Guard<string> = (_raw): _raw is string => true;
 
-const read = (key: string) => {
-  try {
-    return localStorage.getItem(key);
-  } catch {
-    return null;
-  }
-};
-
-const write = (key: string, value: string) => {
-  try {
-    localStorage.setItem(key, value);
-  } catch {}
-};
-
 export const defineStored = <Value extends string>(name: string, guard: Guard<Value>, fallback: Value) => {
-  const key = PREFIX + name;
+  const key = storageKey(name);
   const parse = (raw: string | null) => (raw !== null && guard(raw) ? raw : fallback);
   const listeners = new Set<() => void>();
-  let current = parse(read(key));
+  let current = parse(readStorage(key));
 
   const update = (next: Value) => {
     current = next;
@@ -49,7 +34,7 @@ export const defineStored = <Value extends string>(name: string, guard: Guard<Va
   return {
     get,
     set: (next: Value) => {
-      write(key, next);
+      writeStorage(key, next);
       update(next);
     },
     subscribe,

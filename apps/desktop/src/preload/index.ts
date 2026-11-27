@@ -1,5 +1,10 @@
 import { ipcRenderer, webFrame } from "electron";
 import { Channel } from "#shared/channels.ts";
+import { readStorage, storageKey } from "#shared/storage.ts";
+import { INTERFACE_SIZE_SETTING, INTERFACE_SIZES, ZOOM_FACTORS } from "#shared/zoom.ts";
+
+const savedSize = readStorage(storageKey(INTERFACE_SIZE_SETTING));
+webFrame.setZoomFactor(ZOOM_FACTORS[INTERFACE_SIZES.find((size) => size === savedSize) ?? "default"]);
 
 window.addEventListener("message", (event) => {
   if (event.source !== window) return;

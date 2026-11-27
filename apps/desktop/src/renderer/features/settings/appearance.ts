@@ -1,25 +1,20 @@
 import { COLOR_SCHEMES } from "@starlight/ui";
 import { useEffect, useLayoutEffect } from "react";
 import { Channel } from "#shared/channels.ts";
-import type { ZoomStep } from "#shared/zoom.ts";
+import {
+  INTERFACE_SIZE_SETTING,
+  INTERFACE_SIZES,
+  type InterfaceSize,
+  ZOOM_FACTORS,
+  type ZoomStep,
+} from "#shared/zoom.ts";
 import { defineStored, oneOf, useStored } from "#renderer/lib/storage.ts";
 
 export const colorScheme = defineStored("color-scheme", oneOf(COLOR_SCHEMES), "system");
 
 export const cursor = defineStored("cursor", oneOf(["default", "pointer"]), "default");
 
-export const INTERFACE_SIZES = ["smaller", "small", "default", "large", "larger"] as const;
-export type InterfaceSize = (typeof INTERFACE_SIZES)[number];
-
-const ZOOM_FACTORS: Record<InterfaceSize, number> = {
-  smaller: 0.8,
-  small: 0.9,
-  default: 1,
-  large: 1.1,
-  larger: 1.2,
-};
-
-export const interfaceSize = defineStored("interface-size", oneOf(INTERFACE_SIZES), "default");
+export const interfaceSize = defineStored(INTERFACE_SIZE_SETTING, oneOf(INTERFACE_SIZES), "default");
 
 const stepped = (size: InterfaceSize, step: ZoomStep) => {
   if (step === "reset") return "default";
