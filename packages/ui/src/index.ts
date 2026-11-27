@@ -1,3 +1,3 @@
 export * from "./button.tsx";
-export * from "./cn.ts";
+export { cn } from "cn";
 export * from "./icon.tsx";

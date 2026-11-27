@@ -1,6 +1,6 @@
 import { Button as BaseButton } from "@base-ui/react/button";
 import type { ComponentProps } from "react";
-import { cn } from "./cn.ts";
+import { cn } from "cn";
 
 const variants = {
   primary: "bg-accent text-accent-fg hover:brightness-110",
