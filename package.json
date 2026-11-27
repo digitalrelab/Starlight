@@ -41,6 +41,7 @@
   "type": "module",
   "scripts": {
     "dev": "bun run --cwd apps/desktop dev",
+    "dev:stop": "bun run --cwd apps/desktop dev:stop",
     "build": "bun run --cwd apps/desktop build",
     "package": "bun run --cwd apps/desktop package"
   },

@@ -1,6 +1,6 @@
 {
   "extends": "../../tooling/tsconfig/node.json",
-  "include": ["src/main", "src/preload", "electron.vite.config.ts"],
+  "include": ["src/main", "src/preload", "scripts", "electron.vite.config.ts"],
   "compilerOptions": {
     "lib": ["es2024", "dom"]
   }
