@@ -1,5 +1,5 @@
 import { Image01Icon } from "@hugeicons-pro/core-stroke-rounded";
-import { type Entry, entryKey, type Media } from "@starlight/client";
+import { type Entry, type EntryRef, entryKey, type Media } from "@starlight/client";
 import { cn, Icon, ScrollArea } from "@starlight/ui";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
@@ -29,11 +29,7 @@ const tilePreviewUrl = (media: Media, width: number, height: number) =>
 const aspectOf = (media: Media | undefined) =>
   media ? Math.min(MAX_ASPECT, Math.max(MIN_ASPECT, media.width / media.height)) : ICON_TILE_ASPECT;
 
-const useMedia = ({
-  workspaceId,
-  directory,
-  entries,
-}: Pick<LayoutProps, "workspaceId" | "directory" | "entries">) => {
+const useMedia = (workspaceId: string, directory: EntryRef | null, entries: ReadonlyArray<Entry>) => {
   const { queries } = useStarlight();
   const { data } = useSuspenseQuery(queries.media(workspaceId, directory));
   const byKey = indexByKey(data);
@@ -41,7 +37,7 @@ const useMedia = ({
 };
 
 const useGridLayout = (
-  entries: LayoutProps["entries"],
+  entries: ReadonlyArray<Entry>,
   { byKey, aspects }: ReturnType<typeof useMedia>,
   width: number,
 ) => {
@@ -73,7 +69,7 @@ export const GridLayout = ({
 }: LayoutProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const width = useElementWidth(scrollRef);
-  const media = useMedia({ workspaceId, directory, entries });
+  const media = useMedia(workspaceId, directory, entries);
   const layout = useGridLayout(entries, media, width);
 
   const virtualizer = useVirtualizer({
