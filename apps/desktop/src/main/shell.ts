@@ -3,7 +3,7 @@ import { serve } from "@starlight/host/transport";
 import { app, type BrowserWindow, dialog, type MessagePortMain } from "electron";
 import { Effect, Layer } from "effect";
 import { RpcServer } from "effect/rpc";
-import { sizeOf } from "./disk-usage.ts";
+import { measure } from "./disk-usage.ts";
 import type { ThumbnailCache } from "./thumbnail-cache.ts";
 import type { Updater } from "./updater.ts";
 
@@ -24,11 +24,8 @@ const ShellServerLive = (window: BrowserWindow, updater: Updater, thumbnails: Th
         InstallUpdate: () => Effect.sync(updater.install),
         GetStorageUsage: () =>
           Effect.promise(async () => {
-            const [totalBytes, bytes] = await Promise.all([
-              sizeOf(app.getPath("userData")),
-              thumbnails.size(),
-            ]);
-            return { totalBytes, thumbnails: { bytes, limitBytes: thumbnails.limitBytes } };
+            const { totalBytes, partBytes } = await measure(app.getPath("userData"), thumbnails.directory);
+            return { totalBytes, thumbnails: { bytes: partBytes, limitBytes: thumbnails.limitBytes } };
           }),
         ClearThumbnails: () => Effect.promise(thumbnails.clear),
       }),
