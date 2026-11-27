@@ -69,10 +69,10 @@ const createQueries = (client: StarlightClient) => ({
   entryLocation: (ref: EntryRef) =>
     queryOptions({ queryKey: ["entryLocation", entryKey(ref)], queryFn: () => client.entries.locate(ref) }),
 
-  entrySearch: (query: string, projectId: string | null, includeHidden: boolean) =>
+  referenceSearch: (query: string, projectId: string | null, includeHidden: boolean) =>
     queryOptions({
-      queryKey: ["entrySearch", query, projectId, includeHidden],
-      queryFn: () => client.entries.search(query, projectId, includeHidden),
+      queryKey: ["referenceSearch", query, projectId, includeHidden],
+      queryFn: () => client.references.search(query, projectId, includeHidden),
       staleTime: 0,
     }),
 
@@ -237,10 +237,15 @@ const createMutations = (client: StarlightClient, queryClient: QueryClient, quer
       },
     }),
 
-  createEntry: (projectId: string, directory: EntryRef) =>
+  createEntry: (projectId: string, directory: EntryRef, kind: CreatableKind) =>
     mutationOptions({
-      mutationFn: ({ name, kind }: { readonly name: string; readonly kind: CreatableKind }) =>
-        client.entries.create(projectId, directory, name, kind),
+      mutationFn: (name: string) => client.entries.create(projectId, directory, name, kind),
+      onSuccess: () => queryClient.invalidateQueries(queries.entries(projectId, directory)),
+    }),
+
+  renameEntry: (projectId: string, directory: EntryRef, entry: EntryRef) =>
+    mutationOptions({
+      mutationFn: (name: string) => client.entries.rename(projectId, entry, name),
       onSuccess: () => queryClient.invalidateQueries(queries.entries(projectId, directory)),
     }),
 
