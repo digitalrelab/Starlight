@@ -55,6 +55,7 @@ export class Projects extends Context.Service<
     ) => Effect.Effect<Project, ProjectNotFound, CurrentActor>;
     readonly get: (id: ProjectId) => Effect.Effect<Project, ProjectNotFound>;
     readonly watch: (id: ProjectId) => Stream.Stream<Project, ProjectNotFound>;
+    readonly watchAll: Stream.Stream<ReadonlyArray<Project>>;
     readonly driverFor: (source: SourceId) => Effect.Effect<SourceDriver, SourceUnavailable>;
     readonly locateDirectory: (
       id: ProjectId,
@@ -103,6 +104,19 @@ export class Projects extends Context.Service<
         yield* audit.record({ actor: yield* CurrentActor, action, target });
         yield* PubSub.publish(changes, projectId);
       });
+
+      const observe = <A, E>(load: Effect.Effect<A, E>, concerns: (changed: ProjectId) => boolean) =>
+        Stream.unwrap(
+          Effect.map(PubSub.subscribe(changes), (subscription) =>
+            Stream.concat(
+              Stream.fromEffect(load),
+              Stream.fromSubscription(subscription).pipe(
+                Stream.filter(concerns),
+                Stream.mapEffect(() => load),
+              ),
+            ),
+          ),
+        );
 
       const mountOf = (project: Project, driver: SourceDriver, directory: EntryRef) =>
         project.mounts.find(
@@ -172,20 +186,8 @@ export class Projects extends Context.Service<
           return yield* get(id);
         }),
         get,
-        watch: (id) =>
-          Stream.unwrap(
-            Effect.gen(function* () {
-              const subscription = yield* PubSub.subscribe(changes);
-              const project = yield* get(id);
-              return Stream.concat(
-                Stream.make(project),
-                Stream.fromSubscription(subscription).pipe(
-                  Stream.filter((changed) => changed === id),
-                  Stream.mapEffect(() => get(id)),
-                ),
-              );
-            }),
-          ),
+        watch: (id) => observe(get(id), (changed) => changed === id),
+        watchAll: observe(store.list, () => true),
         driverFor,
         locateDirectory: Effect.fn("Projects.locateDirectory")(function* (id, requested) {
           const project = yield* get(id);

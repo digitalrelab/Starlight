@@ -10,7 +10,7 @@ import {
   type WriteError,
 } from "@starlight/contracts";
 import { Context, Effect, Layer, Option } from "effect";
-import { FileIdentities } from "./file-identities.ts";
+import { EntryIndex } from "./entry-index.ts";
 import { Catalog } from "./catalog.ts";
 import { AuditLog, CurrentActor, FileTokens, versionOf } from "./ports.ts";
 import { Projects } from "./projects.ts";
@@ -33,13 +33,13 @@ export class Files extends Context.Service<
       const projects = yield* Projects;
       const tokens = yield* FileTokens;
       const catalog = yield* Catalog;
-      const identities = yield* FileIdentities;
+      const index = yield* EntryIndex;
       const audit = yield* AuditLog;
 
       const identify = Effect.fnUntraced(function* (projectId: ProjectId, requested: EntryRef) {
         const { driver, file, entry } = yield* projects.locateFile(projectId, requested);
         const folder = { source: file.source, id: driver.parent(file.id) };
-        const [identified] = yield* identities.bind(driver, folder, [entry]);
+        const [identified] = yield* index.bind(driver, folder, [entry]);
         if (!identified) return yield* Effect.die(new Error(`No identity bound for ${file.id}`));
         return { driver, file, folder, entry: identified };
       });

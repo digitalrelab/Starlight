@@ -121,33 +121,31 @@ export class FactStore extends Context.Service<
     readonly inDirectory: (scope: FactScope, directory: EntryId) => Effect.Effect<ReadonlyArray<StoredFact>>;
     readonly find: (fact: FactName, fileId: FileId) => Effect.Effect<Option.Option<StoredFact>>;
     readonly save: (fact: FactName, facts: ReadonlyArray<StoredFact>) => Effect.Effect<void>;
+    readonly remove: (fileIds: ReadonlyArray<FileId>) => Effect.Effect<void>;
   }
 >()("@starlight/core/FactStore") {}
 
-export interface FileIdentity {
-  readonly id: FileId;
-  readonly entry: EntryId;
-  readonly key: string;
+export interface StoredEntry extends SourceEntry {
+  readonly fileId: FileId | null;
 }
 
-export class FileIdentityStore extends Context.Service<
-  FileIdentityStore,
+export class EntryStore extends Context.Service<
+  EntryStore,
   {
-    readonly inDirectory: (
-      source: SourceId,
-      directory: EntryId,
-    ) => Effect.Effect<ReadonlyArray<FileIdentity>>;
+    readonly roots: Effect.Effect<ReadonlyArray<EntryRef>>;
+    readonly children: (source: SourceId, directory: EntryId) => Effect.Effect<ReadonlyArray<StoredEntry>>;
     readonly withKeys: (
       source: SourceId,
       keys: ReadonlyArray<string>,
-    ) => Effect.Effect<ReadonlyArray<FileIdentity>>;
+    ) => Effect.Effect<ReadonlyArray<StoredEntry>>;
     readonly save: (
       source: SourceId,
       directory: EntryId,
-      identities: ReadonlyArray<FileIdentity>,
+      entries: ReadonlyArray<StoredEntry>,
     ) => Effect.Effect<void>;
+    readonly remove: (source: SourceId, ids: ReadonlyArray<EntryId>) => Effect.Effect<ReadonlyArray<FileId>>;
   }
->()("@starlight/core/FileIdentityStore") {}
+>()("@starlight/core/EntryStore") {}
 
 export class ProjectStore extends Context.Service<
   ProjectStore,
