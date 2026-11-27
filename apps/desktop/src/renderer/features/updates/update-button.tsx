@@ -9,6 +9,7 @@ import {
   PopoverTrigger,
   ProgressRing,
   Prose,
+  ScrollArea,
 } from "@starlight/ui";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useStarlight } from "../../lib/context.ts";
@@ -19,6 +20,11 @@ const LABELS = {
   downloaded: "Restart to update",
 } as const;
 
+const FAILURES = {
+  download: "Couldn't download the update.",
+  install: "Couldn't install the update.",
+} as const;
+
 const UpdateAction = ({ update }: { readonly update: Update }) => {
   const { mutations } = useStarlight();
   const download = useMutation(mutations.downloadUpdate());
@@ -27,20 +33,20 @@ const UpdateAction = ({ update }: { readonly update: Update }) => {
   switch (update.status) {
     case "available":
       return (
-        <Button className="self-end" onClick={() => download.mutate()} disabled={download.isPending}>
-          Download update
+        <Button onClick={() => download.mutate()} disabled={download.isPending}>
+          {update.failure ? "Try again" : "Download update"}
         </Button>
       );
     case "downloading":
       return (
-        <p className="flex h-control items-center self-end px-2.5 text-subtle tabular-nums">
+        <p className="flex h-control items-center px-2.5 text-subtle tabular-nums">
           Downloading… {Math.round(update.progress * 100)}%
         </p>
       );
     case "downloaded":
       return (
-        <Button className="self-end" onClick={() => install.mutate()} disabled={install.isPending}>
-          Restart to update
+        <Button onClick={() => install.mutate()} disabled={install.isPending}>
+          {update.failure ? "Try again" : "Restart to update"}
         </Button>
       );
   }
@@ -56,8 +62,10 @@ export const UpdateButton = ({ className }: { readonly className?: string }) => 
       <span className={cn("relative inline-flex", className)}>
         <IconButton
           icon={RefreshDotIcon}
-          label={LABELS[update.status]}
-          className="text-brand highlighted:text-brand"
+          label={update.failure ? FAILURES[update.failure] : LABELS[update.status]}
+          className={
+            update.failure ? "text-danger highlighted:text-danger" : "text-brand highlighted:text-brand"
+          }
           render={<PopoverTrigger />}
         />
         {update.status === "downloading" ? (
@@ -67,15 +75,23 @@ export const UpdateButton = ({ className }: { readonly className?: string }) => 
             className="pointer-events-none absolute inset-0 size-full text-brand"
           />
         ) : null}
+        {update.status === "downloaded" && !update.failure ? (
+          <span className="pointer-events-none absolute top-0.5 right-0.5 size-2 rounded-full bg-brand-bold ring-2 ring-(--background-color-surface-sunken)" />
+        ) : null}
       </span>
       <PopoverContent
         side="top"
         align="end"
         aria-label={`Starlight ${update.version}`}
-        className="flex w-80 flex-col gap-3"
+        className="max-h-[min(28rem,var(--available-height))] w-80 gap-3"
       >
-        <Prose html={update.releaseNotes} />
-        <UpdateAction update={update} />
+        <ScrollArea className="-mx-3" contentClassName="px-3">
+          <Prose html={update.releaseNotes} />
+        </ScrollArea>
+        <div className="flex items-center justify-end gap-3">
+          {update.failure ? <p className="mr-auto text-sm text-danger">{FAILURES[update.failure]}</p> : null}
+          <UpdateAction update={update} />
+        </div>
       </PopoverContent>
     </Popover>
   );
