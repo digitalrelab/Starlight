@@ -1,7 +1,21 @@
 import { PauseIcon, PlayIcon } from "@hugeicons-pro/core-solid-rounded";
-import { FullScreenIcon, MinimizeScreenIcon, RefreshCcwIcon } from "@hugeicons-pro/core-stroke-rounded";
-import { Button, cn, IconButton, Select, Slider } from "@starlight/ui";
-import { type Ref, useLayoutEffect, useRef } from "react";
+import {
+  FullScreenIcon,
+  MinimizeScreenIcon,
+  RefreshCcwIcon,
+  Settings02Icon,
+} from "@hugeicons-pro/core-stroke-rounded";
+import {
+  Button,
+  cn,
+  IconButton,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  Select,
+  Slider,
+} from "@starlight/ui";
+import { type ReactNode, type Ref, useLayoutEffect, useRef } from "react";
 import { usePlayer } from "./engine.tsx";
 import { formatDuration } from "./format.ts";
 import { setPlaybackRate, setVolume, toggleMute, useMediaClock } from "./media.ts";
@@ -54,22 +68,18 @@ const Volume = ({ media }: { readonly media: HTMLMediaElement }) => {
 
 const rateLabel = (rate: number) => `${rate}×`;
 
-interface SpeedProps {
-  readonly media: HTMLMediaElement;
-  readonly onOpenChange: (open: boolean) => void;
-}
+const Setting = ({ label, children }: { readonly label: string; readonly children: ReactNode }) => (
+  <div className="flex min-h-8 items-center justify-between gap-4 pl-2">
+    <span className="text-subtle">{label}</span>
+    {children}
+  </div>
+);
 
-const Speed = ({ media, onOpenChange }: SpeedProps) => {
+const Speed = ({ media }: { readonly media: HTMLMediaElement }) => {
   const rate = useSetting("playbackRate");
   return (
-    <Select.Root
-      value={String(rate)}
-      onValueChange={(next) => setPlaybackRate(media, Number(next))}
-      onOpenChange={onOpenChange}
-    >
-      <Select.Trigger
-        render={<Button aria-label="Playback speed" className="px-2 text-subtle tabular-nums" />}
-      >
+    <Select.Root value={String(rate)} onValueChange={(next) => setPlaybackRate(media, Number(next))}>
+      <Select.Trigger render={<Button intent="secondary" aria-label="Speed" className="w-28 tabular-nums" />}>
         {rateLabel(rate)}
       </Select.Trigger>
       <Select.Popup>
@@ -82,6 +92,22 @@ const Speed = ({ media, onOpenChange }: SpeedProps) => {
     </Select.Root>
   );
 };
+
+interface SettingsProps {
+  readonly media: HTMLMediaElement;
+  readonly onOpenChange: (open: boolean) => void;
+}
+
+const Settings = ({ media, onOpenChange }: SettingsProps) => (
+  <Popover onOpenChange={(open) => onOpenChange(open)}>
+    <PopoverTrigger render={<IconButton label="Playback settings" icon={Settings02Icon} />} />
+    <PopoverContent side="top" align="end" className="w-64 gap-1 p-1.5">
+      <Setting label="Speed">
+        <Speed media={media} />
+      </Setting>
+    </PopoverContent>
+  </Popover>
+);
 
 const Fullscreen = () => {
   const { isFullscreen, toggleFullscreen } = usePlayer();
@@ -127,7 +153,7 @@ export const Controls = ({ media, isVisible, onScrubChange, onMenuOpenChange, re
         {formatDuration(state.duration)}
       </span>
       <Volume media={media} />
-      <Speed media={media} onOpenChange={onMenuOpenChange} />
+      <Settings media={media} onOpenChange={onMenuOpenChange} />
       <Fullscreen />
     </div>
   );
