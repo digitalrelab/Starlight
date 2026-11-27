@@ -66,7 +66,7 @@ const Volume = ({ media }: { readonly media: HTMLMediaElement }) => {
   );
 };
 
-const rateLabel = (rate: number) => `${rate}×`;
+const rateLabel = (rate: number) => (rate === 1 ? "Normal" : `${rate}×`);
 
 const Setting = ({ label, children }: { readonly label: string; readonly children: ReactNode }) => (
   <div className="flex min-h-8 items-center justify-between gap-4 pl-2">
@@ -79,7 +79,7 @@ const Speed = ({ media }: { readonly media: HTMLMediaElement }) => {
   const rate = useSetting("playbackRate");
   return (
     <Select.Root value={String(rate)} onValueChange={(next) => setPlaybackRate(media, Number(next))}>
-      <Select.Trigger render={<Button intent="secondary" aria-label="Speed" className="w-28 tabular-nums" />}>
+      <Select.Trigger render={<Button aria-label="Speed" className="w-32 justify-between tabular-nums" />}>
         {rateLabel(rate)}
       </Select.Trigger>
       <Select.Popup>
