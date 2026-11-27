@@ -2,6 +2,7 @@ import { Dialog } from "@base-ui/react";
 import { Cancel01Icon } from "@hugeicons-pro/core-stroke-rounded";
 import { cn } from "cn";
 import { type KeyboardEventHandler, type ReactNode, useRef } from "react";
+import { Card } from "./card.tsx";
 import { IconButton } from "./icon-button.tsx";
 
 interface RootProps {
@@ -77,9 +78,9 @@ const Body = ({ aside, children }: { readonly aside?: ReactNode; readonly childr
 );
 
 const Stage = ({ children }: { readonly children: ReactNode }) => (
-  <div className="relative mx-2 mb-2 min-h-0 flex-1 overflow-hidden rounded-lg bg-surface shadow-lifted">
+  <Card surface="panel" className="relative mx-2 mb-2 min-h-0 flex-1 overflow-hidden">
     {children}
-  </div>
+  </Card>
 );
 
 export const Theater = { Root, Header, Start, Title, End, Separator, Close, Body, Stage };

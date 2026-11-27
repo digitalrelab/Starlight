@@ -1,7 +1,8 @@
 import { PanelRightIcon } from "@hugeicons-pro/core-stroke-rounded";
 import { IconButton } from "@starlight/ui";
-import { useStored } from "#renderer/lib/storage.ts";
-import { inspectorPreference } from "./inspector-preference.ts";
+import { defineStored, oneOf, useStored } from "#renderer/lib/storage.ts";
+
+export const inspectorPreference = defineStored("inspector", oneOf(["open", "closed"]), "closed");
 
 export const INSPECTOR_KEY = "i";
 

@@ -5,10 +5,10 @@ import { Button, Icon, IconButton, Theater } from "@starlight/ui";
 import { type KeyboardEvent, useEffect, useEffectEvent, useRef, useState } from "react";
 import { KindIcon, itemKindOf } from "#renderer/features/files/kind-icon.tsx";
 import { Inspector } from "#renderer/features/inspector/inspector.tsx";
-import { inspectorPreference } from "#renderer/features/inspector/inspector-preference.ts";
 import {
   INSPECTOR_KEY,
   InspectorToggle,
+  inspectorPreference,
   toggleInspector,
 } from "#renderer/features/inspector/inspector-toggle.tsx";
 import { useStored } from "#renderer/lib/storage.ts";
