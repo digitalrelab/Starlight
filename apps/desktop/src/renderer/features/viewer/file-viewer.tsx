@@ -1,9 +1,11 @@
 import { ArrowLeft01Icon, ArrowRight01Icon } from "@hugeicons-pro/core-stroke-rounded";
 import type { Entry, EntryRef } from "@starlight/client";
+import { PLAYER_ATTRIBUTE } from "@starlight/media-player";
 import { Button, Icon, IconButton, Theater } from "@starlight/ui";
 import { type KeyboardEvent, useEffect, useEffectEvent, useRef, useState } from "react";
 import { KindIcon, itemKindOf } from "#renderer/features/files/kind-icon.tsx";
 import { useStarlight } from "#renderer/lib/context.ts";
+import { FileDetails } from "./file-details.tsx";
 import { FileStage } from "./file-stage.tsx";
 import { fileBytes } from "#renderer/features/files/file-bytes.ts";
 import { loadEditor } from "./markdown-file.ts";
@@ -29,8 +31,8 @@ const isKeyConsumed = (event: KeyboardEvent) =>
   event.ctrlKey ||
   event.metaKey ||
   event.shiftKey ||
-  event.target instanceof HTMLMediaElement ||
-  (event.target instanceof HTMLElement && event.target.isContentEditable);
+  (event.target instanceof HTMLElement &&
+    (event.target.isContentEditable || event.target.closest(`[${PLAYER_ATTRIBUTE}]`) !== null));
 
 const usePrefetch = (
   projectId: string,
@@ -119,6 +121,9 @@ export const FileViewer = ({
           <span ref={setStatusSlot} className="flex shrink-0 items-center empty:hidden" />
         </Theater.Title>
         <Theater.End className="app-no-drag">
+          {current ? (
+            <FileDetails key={file.id} projectId={projectId} directory={directory} entry={current} />
+          ) : null}
           {sequenced ? (
             <>
               <IconButton

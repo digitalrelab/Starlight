@@ -13,6 +13,7 @@ const SYMBOLS: Readonly<Record<string, string>> = {
   Escape: "esc",
   Meta: "⌘",
   Shift: "⇧",
+  Space: "space",
 };
 
 interface Props {

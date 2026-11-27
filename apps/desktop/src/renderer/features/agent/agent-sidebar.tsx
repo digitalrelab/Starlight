@@ -11,7 +11,7 @@ const byRecency = (chats: ReadonlyArray<Chat>) => Map.groupBy(chats, (chat) => f
 
 export const AgentSidebar = () => {
   const { queries } = useStarlight();
-  const { data: chats } = useSuspenseQuery(queries.chats());
+  const { data: chats } = useSuspenseQuery(queries.chats(null));
 
   return (
     <>

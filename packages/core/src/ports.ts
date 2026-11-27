@@ -16,7 +16,9 @@ import type {
   SourceId,
   FileToken,
   FileId,
+  Palette,
   PixelSample,
+  Property,
   SampleFailed,
   Project,
   ProjectId,
@@ -52,6 +54,8 @@ export interface ProbedFacts {
 
 export interface ProcessedFacts {
   readonly placeholder: string;
+  readonly palette: Palette;
+  readonly traits: ReadonlyArray<Property>;
 }
 
 export type Facts = ProbedFacts & ProcessedFacts;
@@ -208,9 +212,13 @@ export interface StoredChat {
 export class ChatStore extends Context.Service<
   ChatStore,
   {
-    readonly list: Effect.Effect<ReadonlyArray<Chat>>;
+    readonly list: (projectId: ProjectId | null) => Effect.Effect<ReadonlyArray<Chat>>;
     readonly find: (id: ChatId) => Effect.Effect<Option.Option<StoredChat>>;
-    readonly create: (input: { readonly model: ModelChoice; readonly title: string }) => Effect.Effect<Chat>;
+    readonly create: (input: {
+      readonly projectId: ProjectId | null;
+      readonly model: ModelChoice;
+      readonly title: string;
+    }) => Effect.Effect<Chat>;
     readonly append: (id: ChatId, message: ChatMessage) => Effect.Effect<void>;
     readonly saveSession: (id: ChatId, session: string) => Effect.Effect<void>;
     readonly saveModel: (id: ChatId, model: ModelChoice) => Effect.Effect<void>;

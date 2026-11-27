@@ -47,6 +47,7 @@ export const createClient = (ports: PortSources) => {
     return () => fiber.interruptUnsafe();
   };
   const id = (projectId: string) => projectId as ProjectId;
+  const optionalId = (projectId: string | null) => projectId as ProjectId | null;
   const chat = (chatId: string) => chatId as ChatId;
 
   return {
@@ -88,16 +89,12 @@ export const createClient = (ports: PortSources) => {
       prepare: () => host((c) => c.PrepareAgentProviders()),
     },
     chats: {
-      list: () => host((c) => c.ListChats()),
+      list: (projectId: string | null) => host((c) => c.ListChats({ projectId: optionalId(projectId) })),
       get: (chatId: string) => host((c) => c.GetChat({ chatId: chat(chatId) })),
-      send: (chatId: string | null, text: string, model: ModelChoice) =>
-        host((c) =>
-          c.SendMessage({
-            chatId: chatId === null ? null : chat(chatId),
-            text,
-            model,
-          }),
-        ),
+      start: (projectId: string | null, text: string, model: ModelChoice) =>
+        host((c) => c.StartChat({ projectId: optionalId(projectId), text, model })),
+      send: (chatId: string, text: string, model: ModelChoice) =>
+        host((c) => c.SendMessage({ chatId: chat(chatId), text, model })),
       rename: (chatId: string, title: string) => host((c) => c.RenameChat({ chatId: chat(chatId), title })),
       remove: (chatId: string) => host((c) => c.DeleteChat({ chatId: chat(chatId) })),
       watch: (chatId: string, onEvent: (event: ChatEvent) => void) =>

@@ -1,11 +1,12 @@
 import { randomUUID } from "node:crypto";
-import { AgentProviderId, ChatMessage, type Chat, ChatId, ModelId } from "@starlight/contracts";
+import { AgentProviderId, ChatMessage, type Chat, ChatId, ModelId, ProjectId } from "@starlight/contracts";
 import { ChatStore } from "@starlight/core";
 import { Effect, Layer, Option, Schema } from "effect";
 import { SqlClient, SqlSchema } from "effect/sql";
 
 const ChatRow = Schema.Struct({
   id: ChatId,
+  project_id: Schema.NullOr(ProjectId),
   provider: AgentProviderId,
   model: Schema.NullOr(ModelId),
   effort: Schema.NullOr(Schema.String),
@@ -24,6 +25,7 @@ const MessageRow = Schema.Struct({
 
 const toChat = (row: typeof ChatRow.Type): Chat => ({
   id: row.id,
+  projectId: row.project_id,
   provider: row.provider,
   model: row.model,
   effort: row.effort,
@@ -44,9 +46,10 @@ export const SqliteChatStoreLive = Layer.effect(ChatStore)(
     const sql = yield* SqlClient.SqlClient;
 
     const list = SqlSchema.findAll({
-      Request: Schema.Void,
+      Request: Schema.NullOr(ProjectId),
       Result: ChatRow,
-      execute: () => sql`SELECT * FROM chats ORDER BY updated_at DESC`,
+      execute: (projectId) =>
+        sql`SELECT * FROM chats WHERE project_id IS ${projectId} ORDER BY updated_at DESC`,
     });
 
     const findChat = SqlSchema.findOneOption({
@@ -63,10 +66,11 @@ export const SqliteChatStoreLive = Layer.effect(ChatStore)(
     });
 
     return ChatStore.of({
-      list: list(undefined).pipe(
-        Effect.map((rows) => rows.map(toChat)),
-        Effect.orDie,
-      ),
+      list: (projectId) =>
+        list(projectId).pipe(
+          Effect.map((rows) => rows.map(toChat)),
+          Effect.orDie,
+        ),
       find: (id) =>
         Effect.gen(function* () {
           const row = yield* findChat(id);
@@ -78,11 +82,12 @@ export const SqliteChatStoreLive = Layer.effect(ChatStore)(
             session: Option.fromNullishOr(row.value.session),
           });
         }).pipe(Effect.orDie),
-      create: ({ model: { provider, model, effort }, title }) =>
+      create: ({ projectId, model: { provider, model, effort }, title }) =>
         Effect.gen(function* () {
           const now = Date.now();
           const chat: Chat = {
             id: ChatId.make(randomUUID()),
+            projectId,
             provider,
             model,
             effort,
@@ -91,8 +96,8 @@ export const SqliteChatStoreLive = Layer.effect(ChatStore)(
             updatedAt: now,
           };
           yield* sql`
-            INSERT INTO chats (id, provider, model, effort, title, created_at, updated_at)
-            VALUES (${chat.id}, ${provider}, ${model}, ${effort}, ${title}, ${now}, ${now})
+            INSERT INTO chats (id, project_id, provider, model, effort, title, created_at, updated_at)
+            VALUES (${chat.id}, ${projectId}, ${provider}, ${model}, ${effort}, ${title}, ${now}, ${now})
           `;
           return chat;
         }).pipe(Effect.orDie),

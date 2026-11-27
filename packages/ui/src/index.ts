@@ -1,4 +1,5 @@
 export * from "./badge.tsx";
+export * from "./breadcrumbs.tsx";
 export * from "./button.tsx";
 export { cn } from "cn";
 export * from "./color-scheme-swatch.tsx";
@@ -17,6 +18,8 @@ export * from "./progress-ring.tsx";
 export * from "./rename-input.tsx";
 export * from "./scroll-area.tsx";
 export * from "./segmented-control.tsx";
+export * from "./slider.tsx";
+export * from "./spinner.tsx";
 export * from "./select.tsx";
 export * from "./status-pill.tsx";
 export * from "./switch.tsx";

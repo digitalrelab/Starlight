@@ -1,11 +1,13 @@
 import { Schema } from "effect";
 import { AgentProviderId, ModelId } from "./agent.ts";
+import { ProjectId } from "./ids.ts";
 
 export const ChatId = Schema.String.pipe(Schema.brand("ChatId"));
 export type ChatId = typeof ChatId.Type;
 
 export const Chat = Schema.Struct({
   id: ChatId,
+  projectId: Schema.NullOr(ProjectId),
   provider: AgentProviderId,
   model: Schema.NullOr(ModelId),
   effort: Schema.NullOr(Schema.String),

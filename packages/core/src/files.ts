@@ -43,11 +43,19 @@ export class Files extends Context.Service<
             { source: file.source, id: driver.parent(file.id) },
             [entry],
           );
-          const dimensions = bound ? yield* catalog.entry("dimensions", driver, bound) : Option.none();
+          const [dimensions, palette, traits] = bound
+            ? yield* Effect.all([
+                catalog.entry("dimensions", driver, bound),
+                catalog.processedEntry("palette", bound),
+                catalog.processedEntry("traits", bound),
+              ])
+            : [Option.none(), Option.none(), Option.none()];
           return {
             token: tokens.issue(file, entry.modifiedAt),
             version: versionOf(entry),
             dimensions: Option.getOrNull(dimensions),
+            palette: Option.getOrElse(palette, () => []),
+            properties: Option.getOrElse(traits, () => []),
           };
         }),
         write: Effect.fn("Files.write")(function* (projectId, requested, content, base) {

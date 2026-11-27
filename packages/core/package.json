@@ -2,10 +2,14 @@
   "name": "@starlight/core",
   "private": true,
   "type": "module",
+  "imports": {
+    "#*": "./src/*"
+  },
   "exports": {
     ".": "./src/index.ts"
   },
   "dependencies": {
+    "@material/material-color-utilities": "catalog:",
     "@starlight/contracts": "workspace:*",
     "effect": "catalog:",
     "thumbhash": "catalog:"

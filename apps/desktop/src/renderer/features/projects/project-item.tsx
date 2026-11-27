@@ -6,9 +6,10 @@ import {
 } from "@hugeicons-pro/core-stroke-rounded";
 import type { Project } from "@starlight/client";
 import { Menu, NavItem, RenameInput } from "@starlight/ui";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useState } from "react";
 import { DeleteProjectDialog } from "./delete-project-dialog.tsx";
+import { ProjectChats } from "./project-chats.tsx";
 import { useRenameProject } from "./use-rename-project.ts";
 
 export const ProjectItem = ({ project }: { readonly project: Project }) => {
@@ -17,6 +18,7 @@ export const ProjectItem = ({ project }: { readonly project: Project }) => {
   const rename = useRenameProject(project.id);
   const navigate = useNavigate();
   const params = { projectId: project.id };
+  const active = useParams({ strict: false }).projectId === project.id;
 
   if (renaming) {
     return (
@@ -57,6 +59,7 @@ export const ProjectItem = ({ project }: { readonly project: Project }) => {
       >
         {project.name}
       </NavItem>
+      {active ? <ProjectChats projectId={project.id} /> : null}
       <DeleteProjectDialog project={project} open={deleting} onOpenChange={setDeleting} />
     </>
   );

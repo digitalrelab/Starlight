@@ -90,6 +90,7 @@ export class HostRpcs extends RpcGroup.make(
   }),
   Rpc.make("PrepareAgentProviders"),
   Rpc.make("ListChats", {
+    payload: { projectId: Schema.NullOr(ProjectId) },
     success: Schema.Array(Chat),
   }),
   Rpc.make("GetChat", {
@@ -97,9 +98,18 @@ export class HostRpcs extends RpcGroup.make(
     success: ChatDetail,
     error: ChatNotFound,
   }),
+  Rpc.make("StartChat", {
+    payload: {
+      projectId: Schema.NullOr(ProjectId),
+      text: Schema.NonEmptyString,
+      model: ModelChoice,
+    },
+    success: Chat,
+    error: Schema.Union([ProjectNotFound, ModelUnavailable]),
+  }),
   Rpc.make("SendMessage", {
     payload: {
-      chatId: Schema.NullOr(ChatId),
+      chatId: ChatId,
       text: Schema.NonEmptyString,
       model: ModelChoice,
     },
