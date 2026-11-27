@@ -89,7 +89,8 @@ const Star = ({
     aria-label={starred ? `Remove ${model} from favorites` : `Add ${model} to favorites`}
     aria-pressed={starred}
     onClick={onToggle}
-    className="size-6 rounded-md text-subtlest opacity-0 group-hover/row:opacity-100 highlighted:bg-neutral-hovered focus-visible:opacity-100 aria-pressed:text-accent-yellow aria-pressed:opacity-100 aria-pressed:highlighted:text-accent-yellow"
+    size="sm"
+    className="text-subtlest opacity-0 group-hover/row:opacity-100 highlighted:bg-neutral-hovered focus-visible:opacity-100 aria-pressed:text-accent-yellow aria-pressed:opacity-100 aria-pressed:highlighted:text-accent-yellow"
   />
 );
 
