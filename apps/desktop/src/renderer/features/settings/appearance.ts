@@ -1,5 +1,6 @@
-import { COLOR_SCHEMES, definePreference } from "@starlight/ui";
+import { COLOR_SCHEMES } from "@starlight/ui";
+import { defineStored, oneOf } from "../../lib/storage.ts";
 
-export const colorScheme = definePreference("color-scheme", COLOR_SCHEMES, "system");
+export const colorScheme = defineStored("color-scheme", oneOf(COLOR_SCHEMES), "system");
 
-export const cursor = definePreference("cursor", ["default", "pointer"], "default");
+export const cursor = defineStored("cursor", oneOf(["default", "pointer"]), "default");

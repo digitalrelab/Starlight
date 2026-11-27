@@ -2,13 +2,14 @@ import type {
   Actor,
   AgentProviderId,
   AgentProviderStatus,
+  Dimensions,
   EntryId,
   EntryKind,
   EntryRef,
   Mount,
   SourceError,
   SourceId,
-  ThumbnailToken,
+  FileToken,
   Workspace,
   WorkspaceId,
 } from "@starlight/contracts";
@@ -26,11 +27,6 @@ export interface SourceEntry {
 export interface SourceCrumb {
   readonly id: EntryId;
   readonly name: string;
-}
-
-export interface Dimensions {
-  readonly width: number;
-  readonly height: number;
 }
 
 export type SourceChange =
@@ -51,10 +47,10 @@ export class SourceDrivers extends Context.Service<SourceDrivers, ReadonlyMap<So
   "@starlight/core/SourceDrivers",
 ) {}
 
-export class ThumbnailTokens extends Context.Service<
-  ThumbnailTokens,
-  { readonly issue: (ref: EntryRef, version: number) => ThumbnailToken }
->()("@starlight/core/ThumbnailTokens") {}
+export class FileTokens extends Context.Service<
+  FileTokens,
+  { readonly issue: (ref: EntryRef, version: number) => FileToken }
+>()("@starlight/core/FileTokens") {}
 
 export class WorkspaceStore extends Context.Service<
   WorkspaceStore,

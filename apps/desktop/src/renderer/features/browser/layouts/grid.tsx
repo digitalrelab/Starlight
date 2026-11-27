@@ -3,18 +3,10 @@ import { type Entry, entryKey, type Media } from "@starlight/client";
 import { cn, Icon } from "@starlight/ui";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import {
-  type KeyboardEvent,
-  memo,
-  type SyntheticEvent,
-  useEffect,
-  useEffectEvent,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-} from "react";
+import { type KeyboardEvent, memo, useEffect, useEffectEvent, useLayoutEffect, useMemo, useRef } from "react";
 import { thumbnailUrl } from "../../../../shared/thumbnails.ts";
 import { useStarlight } from "../../../lib/context.ts";
+import { reveal } from "../../../lib/reveal.ts";
 import { useElementWidth } from "../../../lib/use-element-width.ts";
 import { EntryIcon } from "../entry-icon.tsx";
 import { justify, nearestInRow } from "./justify.ts";
@@ -33,10 +25,6 @@ const indexByKey = (media: ReadonlyArray<Media>) => new Map(media.map((item) => 
 
 const aspectOf = (media: Media | undefined) =>
   media ? Math.min(MAX_ASPECT, Math.max(MIN_ASPECT, media.width / media.height)) : ICON_TILE_ASPECT;
-
-const reveal = (event: SyntheticEvent<HTMLImageElement>) => {
-  event.currentTarget.dataset["loaded"] = "";
-};
 
 export const GridLayout = ({ workspaceId, directory, entries, selected, onSelect, onOpen }: LayoutProps) => {
   const { queries } = useStarlight();
@@ -162,31 +150,33 @@ interface TileProps {
 }
 
 const Tile = memo(
-  ({ index, entry, media, left, width, height, visible, selected, onSelect, onOpen }: TileProps) => (
-    <div
-      onClick={() => onSelect(index)}
-      onDoubleClick={() => onOpen(entry)}
-      title={entry.name}
-      className={cn(
-        "absolute top-0 overflow-hidden rounded-md bg-neutral",
-        selected && "ring-3 ring-selected",
-        entry.hidden && "opacity-50",
-      )}
-      style={{ left, width, height }}
-    >
-      {media ? (
-        <Thumbnail
-          url={thumbnailUrl(media.thumbnail, Math.max(width, height) * window.devicePixelRatio)}
-          visible={visible}
-        />
-      ) : (
-        <div className="flex size-full flex-col items-center justify-center gap-2 p-3">
-          <EntryIcon entry={entry} size={40} strokeWidth={1.25} />
-          <span className="w-full truncate text-center text-sm">{entry.name}</span>
-        </div>
-      )}
-    </div>
-  ),
+  ({ index, entry, media, left, width, height, visible, selected, onSelect, onOpen }: TileProps) => {
+    return (
+      <div
+        onClick={() => onSelect(index)}
+        onDoubleClick={() => onOpen(entry)}
+        title={entry.name}
+        className={cn(
+          "absolute top-0 overflow-hidden rounded-md bg-neutral",
+          selected && "ring-3 ring-selected",
+          entry.hidden && "opacity-50",
+        )}
+        style={{ left, width, height }}
+      >
+        {media ? (
+          <Thumbnail
+            url={thumbnailUrl(media.token, Math.max(width, height) * window.devicePixelRatio)}
+            visible={visible}
+          />
+        ) : (
+          <div className="flex size-full flex-col items-center justify-center gap-2 p-3">
+            <EntryIcon entry={entry} size={40} strokeWidth={1.25} />
+            <span className="w-full truncate text-center text-sm">{entry.name}</span>
+          </div>
+        )}
+      </div>
+    );
+  },
 );
 
 const Thumbnail = ({ url, visible }: { readonly url: string; readonly visible: boolean }) => {

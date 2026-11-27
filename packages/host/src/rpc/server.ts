@@ -17,6 +17,7 @@ const HandlersLive = HostRpcs.toLayer(
       ListEntries: ({ workspaceId, directory }) => entries.list(workspaceId, directory),
       WatchEntries: ({ workspaceId }) => entries.watch(workspaceId),
       ListMedia: ({ workspaceId, directory }) => media.list(workspaceId, directory),
+      GetFileSource: ({ workspaceId, file }) => media.source(workspaceId, file),
       ListAgentProviders: () => agentProviders.list,
     });
   }),

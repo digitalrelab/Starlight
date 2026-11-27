@@ -33,6 +33,14 @@ export class NotADirectory extends Schema.TaggedError<NotADirectory>()("NotADire
   }
 }
 
+export class NotAFile extends Schema.TaggedError<NotAFile>()("NotAFile", {
+  entry: EntryRef,
+}) {
+  override get message() {
+    return `Not a file: ${this.entry.id}`;
+  }
+}
+
 export class DirectoryMissing extends Schema.TaggedError<DirectoryMissing>()("DirectoryMissing", {
   entry: EntryRef,
   nearest: Schema.NullOr(EntryRef),
@@ -59,3 +67,12 @@ export const DirectoryError = Schema.Union([
   SourceError,
 ]);
 export type DirectoryError = typeof DirectoryError.Type;
+
+export const FileError = Schema.Union([
+  WorkspaceNotFound,
+  SourceUnavailable,
+  OutsideWorkspace,
+  NotAFile,
+  SourceError,
+]);
+export type FileError = typeof FileError.Type;

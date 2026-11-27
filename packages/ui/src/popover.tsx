@@ -24,7 +24,7 @@ export const PopoverContent = ({ side, align, className, ...props }: PopoverCont
     >
       <BasePopover.Popup
         className={cn(
-          "max-h-(--available-height) origin-(--transform-origin) overflow-y-auto rounded-lg p-3",
+          "flex max-h-(--available-height) origin-(--transform-origin) flex-col overflow-hidden rounded-lg p-3",
           "bg-surface-overlay text-default shadow-overlay outline-none transition-[opacity,scale]",
           "data-[ending-style]:scale-95 data-[ending-style]:opacity-0",
           "data-[starting-style]:scale-95 data-[starting-style]:opacity-0",
