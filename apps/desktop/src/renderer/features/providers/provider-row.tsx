@@ -13,19 +13,16 @@ export const ProviderRow = ({ provider: { id, name, status } }: { readonly provi
           <Icon icon={appearance.icon} size={20} />
         </Item.Media>
         <Item.Content>
-          <div className="flex items-center gap-2">
+          <div className="flex items-baseline gap-2">
             <Item.Title>{name}</Item.Title>
-            {status._tag === "Ready" ? (
-              <StatusPill tone="success">Connected</StatusPill>
-            ) : (
-              <StatusPill tone="warning">Not set up</StatusPill>
-            )}
+            {status._tag === "Ready" && status.version ? (
+              <span className="text-sm text-subtlest tabular-nums">v{status.version}</span>
+            ) : null}
           </div>
           {status._tag === "Ready" ? (
             <Item.Description className="flex min-w-0 items-center gap-2">
               {status.account ? <span className="truncate">{status.account}</span> : null}
               {status.plan ? <Badge>{status.plan}</Badge> : null}
-              {status.version ? <span className="text-subtlest tabular-nums">v{status.version}</span> : null}
             </Item.Description>
           ) : (
             <Item.Description className="flex items-center gap-1.5">
@@ -35,6 +32,11 @@ export const ProviderRow = ({ provider: { id, name, status } }: { readonly provi
           )}
         </Item.Content>
       </Item.Main>
+      {status._tag === "Ready" ? (
+        <StatusPill tone="success">Connected</StatusPill>
+      ) : (
+        <StatusPill tone="warning">Not set up</StatusPill>
+      )}
     </Item.Root>
   );
 };
