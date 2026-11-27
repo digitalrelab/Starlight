@@ -1,4 +1,4 @@
-import { ShellRpcs } from "@starlight/contracts";
+import { EntryId, LocalSource, ShellRpcs } from "@starlight/contracts";
 import { serve } from "@starlight/host/transport";
 import { type BrowserWindow, dialog, type MessagePortMain } from "electron";
 import { Effect, Layer } from "effect";
@@ -12,7 +12,11 @@ const ShellServerLive = (window: BrowserWindow, updater: Updater) =>
         PickDirectory: () =>
           Effect.promise(() =>
             dialog.showOpenDialog(window, { properties: ["openDirectory", "createDirectory"] }),
-          ).pipe(Effect.map((result) => (result.canceled ? null : (result.filePaths[0] ?? null)))),
+          ).pipe(
+            Effect.map(({ canceled, filePaths: [path] }) =>
+              canceled || path === undefined ? null : { source: LocalSource, id: EntryId.make(path) },
+            ),
+          ),
         WatchUpdates: () => updater.updates,
         DownloadUpdate: () => Effect.sync(updater.download),
         InstallUpdate: () => Effect.sync(updater.install),

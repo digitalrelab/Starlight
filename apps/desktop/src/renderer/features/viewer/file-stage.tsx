@@ -1,4 +1,4 @@
-import type { Entry, FileSource } from "@starlight/client";
+import type { Entry, EntryRef, FileSource } from "@starlight/client";
 import { cn, Icon, type IconProps } from "@starlight/ui";
 import { useQuery } from "@tanstack/react-query";
 import { type ReactNode, type SyntheticEvent, useState } from "react";
@@ -83,14 +83,15 @@ const Video = ({ source }: { readonly source: FileSource }) => {
 
 interface Props {
   readonly workspaceId: string;
+  readonly directory: EntryRef;
   readonly entry: Entry;
 }
 
-export const FileStage = ({ workspaceId, entry }: Props) => {
+export const FileStage = ({ workspaceId, directory, entry }: Props) => {
   const { queries } = useStarlight();
   const presentation = presentationOf(entry.name);
   const source = useQuery({
-    ...queries.fileSource(workspaceId, entry.path),
+    ...queries.fileSource(workspaceId, directory, entry.ref),
     enabled: presentation !== "none",
   });
   if (presentation === "none") return <Notice icon={presentationIcons.none}>No preview available</Notice>;

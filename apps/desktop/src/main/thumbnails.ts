@@ -1,7 +1,7 @@
 import { extname } from "node:path";
-import { verifyFileToken } from "@starlight/host/file-token";
-import { type CustomScheme, nativeImage, protocol, screen } from "electron";
+import { type CustomScheme, nativeImage, screen } from "electron";
 import { fitThumbnailSize, THUMBNAIL_SCHEME } from "../shared/thumbnails.ts";
+import { serveLocalFiles } from "./local-files.ts";
 
 const CONCURRENCY = 6;
 const MAX_POINTS = 1024;
@@ -53,11 +53,7 @@ const render = async (absolute: string, pixels: number) => {
 
 export const serveThumbnails = (key: Buffer) => {
   const enqueue = createLifoQueue(CONCURRENCY);
-  protocol.handle(THUMBNAIL_SCHEME, (request) => {
-    const url = new URL(request.url);
-    const absolute = verifyFileToken(key, url.pathname.slice(1));
-    if (!absolute) return new Response(null, { status: 403 });
-    const size = fitThumbnailSize(Number(url.searchParams.get("size")));
-    return enqueue(() => render(absolute, size)).catch(() => new Response(null, { status: 404 }));
-  });
+  serveLocalFiles(THUMBNAIL_SCHEME, key, (path, request) =>
+    enqueue(() => render(path, fitThumbnailSize(Number(new URL(request.url).searchParams.get("size"))))),
+  );
 };

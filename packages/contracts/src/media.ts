@@ -1,5 +1,8 @@
 import { Schema } from "effect";
-import { FileToken, RelativePath } from "./ids.ts";
+import { EntryRef } from "./ids.ts";
+
+export const FileToken = Schema.String.pipe(Schema.brand("FileToken"));
+export type FileToken = typeof FileToken.Type;
 
 export const Dimensions = Schema.Struct({
   width: Schema.Number,
@@ -9,7 +12,7 @@ export type Dimensions = typeof Dimensions.Type;
 
 export const Media = Schema.Struct({
   ...Dimensions.fields,
-  path: RelativePath,
+  ref: EntryRef,
   token: FileToken,
 });
 export type Media = typeof Media.Type;

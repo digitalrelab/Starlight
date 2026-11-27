@@ -1,5 +1,5 @@
 import { Schema } from "effect";
-import { WorkspaceId } from "./ids.ts";
+import { EntryRef, SourceId, WorkspaceId } from "./ids.ts";
 
 export class WorkspaceNotFound extends Schema.TaggedError<WorkspaceNotFound>()("WorkspaceNotFound", {
   workspaceId: WorkspaceId,
@@ -9,46 +9,70 @@ export class WorkspaceNotFound extends Schema.TaggedError<WorkspaceNotFound>()("
   }
 }
 
-export class PathOutsideWorkspace extends Schema.TaggedError<PathOutsideWorkspace>()("PathOutsideWorkspace", {
-  path: Schema.String,
+export class SourceUnavailable extends Schema.TaggedError<SourceUnavailable>()("SourceUnavailable", {
+  source: SourceId,
 }) {
   override get message() {
-    return `Path is outside the workspace: ${this.path}`;
+    return `Source unavailable: ${this.source}`;
+  }
+}
+
+export class OutsideWorkspace extends Schema.TaggedError<OutsideWorkspace>()("OutsideWorkspace", {
+  entry: EntryRef,
+}) {
+  override get message() {
+    return `Outside the workspace: ${this.entry.id}`;
   }
 }
 
 export class NotADirectory extends Schema.TaggedError<NotADirectory>()("NotADirectory", {
-  path: Schema.String,
+  entry: EntryRef,
 }) {
   override get message() {
-    return `Not a directory: ${this.path}`;
+    return `Not a directory: ${this.entry.id}`;
   }
 }
 
 export class NotAFile extends Schema.TaggedError<NotAFile>()("NotAFile", {
-  path: Schema.String,
+  entry: EntryRef,
 }) {
   override get message() {
-    return `Not a file: ${this.path}`;
+    return `Not a file: ${this.entry.id}`;
   }
 }
 
-export class FileSystemError extends Schema.TaggedError<FileSystemError>()("FileSystemError", {
-  path: Schema.String,
+export class DirectoryMissing extends Schema.TaggedError<DirectoryMissing>()("DirectoryMissing", {
+  entry: EntryRef,
+  nearest: Schema.NullOr(EntryRef),
+}) {
+  override get message() {
+    return `Directory not found: ${this.entry.id}`;
+  }
+}
+
+export class SourceError extends Schema.TaggedError<SourceError>()("SourceError", {
+  entry: EntryRef,
   reason: Schema.Literals(["NotFound", "PermissionDenied", "Unknown"]),
   message: Schema.String,
 }) {}
 
+export const MountError = Schema.Union([SourceUnavailable, NotADirectory, SourceError]);
+export type MountError = typeof MountError.Type;
+
 export const DirectoryError = Schema.Union([
   WorkspaceNotFound,
-  PathOutsideWorkspace,
-  NotADirectory,
-  FileSystemError,
+  SourceUnavailable,
+  OutsideWorkspace,
+  DirectoryMissing,
+  SourceError,
 ]);
 export type DirectoryError = typeof DirectoryError.Type;
 
-export const FileError = Schema.Union([WorkspaceNotFound, PathOutsideWorkspace, NotAFile, FileSystemError]);
+export const FileError = Schema.Union([
+  WorkspaceNotFound,
+  SourceUnavailable,
+  OutsideWorkspace,
+  NotAFile,
+  SourceError,
+]);
 export type FileError = typeof FileError.Type;
-
-export const isMissingDirectory = (error: unknown) =>
-  error instanceof NotADirectory || (error instanceof FileSystemError && error.reason === "NotFound");

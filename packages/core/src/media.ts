@@ -1,13 +1,13 @@
-import {
-  type DirectoryError,
-  type FileError,
-  type FileSource,
-  joinRelative,
-  type Media,
-  type WorkspaceId,
+import type {
+  DirectoryError,
+  EntryRef,
+  FileError,
+  FileSource,
+  Media,
+  WorkspaceId,
 } from "@starlight/contracts";
-import { Array as Arr, Context, Effect, Layer, Option, Path } from "effect";
-import { FileSystemPort, FileTokens, MediaProbe } from "./ports.ts";
+import { Array as Arr, Context, Effect, Layer, Option } from "effect";
+import { FileTokens } from "./ports.ts";
 import { Workspaces } from "./workspaces.ts";
 
 const PROBE_CONCURRENCY = 32;
@@ -17,50 +17,43 @@ export class MediaLibrary extends Context.Service<
   {
     readonly list: (
       workspaceId: WorkspaceId,
-      path: string,
+      directory: EntryRef | null,
     ) => Effect.Effect<ReadonlyArray<Media>, DirectoryError>;
-    readonly source: (workspaceId: WorkspaceId, path: string) => Effect.Effect<FileSource, FileError>;
+    readonly source: (workspaceId: WorkspaceId, file: EntryRef) => Effect.Effect<FileSource, FileError>;
   }
 >()("@starlight/core/MediaLibrary") {
   static readonly layer = Layer.effect(MediaLibrary)(
     Effect.gen(function* () {
-      const fs = yield* FileSystemPort;
       const workspaces = yield* Workspaces;
-      const probe = yield* MediaProbe;
       const tokens = yield* FileTokens;
-      const path = yield* Path.Path;
 
       return MediaLibrary.of({
-        list: Effect.fn("MediaLibrary.list")(function* (workspaceId, directory) {
-          const { absolute, relative } = yield* workspaces.resolveDirectory(workspaceId, directory);
-          const files = (yield* fs.readDirectory(absolute)).filter((entry) => entry.kind === "file");
+        list: Effect.fn("MediaLibrary.list")(function* (workspaceId, requested) {
+          if (!requested) return [];
+          const { driver, directory } = yield* workspaces.locateDirectory(workspaceId, requested);
+          const files = (yield* driver.list(directory.id)).filter((entry) => entry.kind === "file");
           const media = yield* Effect.forEach(
             files,
             (entry) => {
-              const file = path.join(absolute, entry.name);
-              return probe
-                .dimensions({ absolute: file, size: entry.size, modifiedAt: entry.modifiedAt })
-                .pipe(
-                  Effect.map(
-                    Option.map((dimensions): Media => ({
-                      ...dimensions,
-                      path: joinRelative(relative, entry.name),
-                      token: tokens.issue(file, entry.modifiedAt),
-                    })),
-                  ),
-                );
+              const ref = { source: directory.source, id: entry.id };
+              return driver.dimensions(entry).pipe(
+                Effect.map(
+                  Option.map((dimensions): Media => ({
+                    ref,
+                    ...dimensions,
+                    token: tokens.issue(ref, entry.modifiedAt),
+                  })),
+                ),
+              );
             },
             { concurrency: PROBE_CONCURRENCY },
           );
           return Arr.getSomes(media);
         }),
-        source: Effect.fn("MediaLibrary.source")(function* (workspaceId, file) {
-          const { absolute, stat } = yield* workspaces.resolveFile(workspaceId, file);
-          const dimensions = yield* probe.dimensions({ absolute, ...stat });
-          return {
-            token: tokens.issue(absolute, stat.modifiedAt),
-            dimensions: Option.getOrNull(dimensions),
-          };
+        source: Effect.fn("MediaLibrary.source")(function* (workspaceId, requested) {
+          const { driver, file, entry } = yield* workspaces.locateFile(workspaceId, requested);
+          const dimensions = yield* driver.dimensions(entry);
+          return { token: tokens.issue(file, entry.modifiedAt), dimensions: Option.getOrNull(dimensions) };
         }),
       });
     }),

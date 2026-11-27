@@ -1,10 +1,10 @@
 import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import { Readable } from "node:stream";
-import { verifyFileToken } from "@starlight/host/file-token";
-import { type CustomScheme, protocol } from "electron";
+import type { CustomScheme } from "electron";
 import { FILE_SCHEME } from "../shared/files.ts";
 import { mediaTypeOf } from "../shared/media-types.ts";
+import { serveLocalFiles } from "./local-files.ts";
 
 const RANGE = /^bytes=(\d*)-(\d*)$/;
 
@@ -41,8 +41,4 @@ const respond = async (absolute: string, range: string | null) => {
 };
 
 export const serveFiles = (key: Buffer) =>
-  protocol.handle(FILE_SCHEME, (request) => {
-    const absolute = verifyFileToken(key, new URL(request.url).pathname.slice(1));
-    if (!absolute) return new Response(null, { status: 403 });
-    return respond(absolute, request.headers.get("range")).catch(() => new Response(null, { status: 404 }));
-  });
+  serveLocalFiles(FILE_SCHEME, key, (path, request) => respond(path, request.headers.get("range")));

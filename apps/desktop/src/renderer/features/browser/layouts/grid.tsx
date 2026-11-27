@@ -1,5 +1,5 @@
 import { Image01Icon } from "@hugeicons-pro/core-stroke-rounded";
-import type { Entry, Media } from "@starlight/client";
+import { type Entry, entryKey, type Media } from "@starlight/client";
 import { cn, Icon } from "@starlight/ui";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
@@ -28,7 +28,7 @@ const MIN_ASPECT = 0.5;
 const MAX_ASPECT = 3;
 const ICON_TILE_ASPECT = 1;
 
-const indexByPath = (media: ReadonlyArray<Media>) => new Map(media.map((item) => [item.path, item]));
+const indexByKey = (media: ReadonlyArray<Media>) => new Map(media.map((item) => [entryKey(item.ref), item]));
 
 const aspectOf = (media: Media | undefined) =>
   media ? Math.min(MAX_ASPECT, Math.max(MIN_ASPECT, media.width / media.height)) : ICON_TILE_ASPECT;
@@ -37,15 +37,15 @@ const reveal = (event: SyntheticEvent<HTMLImageElement>) => {
   event.currentTarget.dataset["loaded"] = "";
 };
 
-export const GridLayout = ({ workspaceId, path, entries, selected, onSelect, onOpen }: LayoutProps) => {
+export const GridLayout = ({ workspaceId, directory, entries, selected, onSelect, onOpen }: LayoutProps) => {
   const { queries } = useStarlight();
-  const { data } = useSuspenseQuery(queries.media(workspaceId, path));
-  const media = useMemo(() => indexByPath(data), [data]);
+  const { data } = useSuspenseQuery(queries.media(workspaceId, directory));
+  const media = useMemo(() => indexByKey(data), [data]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const width = useElementWidth(scrollRef);
 
   const aspects = useMemo(
-    () => Float64Array.from(entries, (entry) => aspectOf(media.get(entry.path))),
+    () => Float64Array.from(entries, (entry) => aspectOf(media.get(entryKey(entry.ref)))),
     [entries, media],
   );
   const layout = useMemo(
@@ -77,10 +77,11 @@ export const GridLayout = ({ workspaceId, path, entries, selected, onSelect, onO
     const row = layout.rowOf[selected];
     if (row !== undefined) virtualizer.scrollToIndex(row);
   });
-  const selectedPath = entries[selected]?.path;
+  const selectedEntry = entries[selected];
+  const selectedKey = selectedEntry && entryKey(selectedEntry.ref);
   useEffect(() => {
     if (ready) revealSelected();
-  }, [ready, selectedPath]);
+  }, [ready, selectedKey]);
 
   const moveVertically = (direction: 1 | -1) => {
     if (selected < 0) return onSelect(0);
@@ -117,12 +118,13 @@ export const GridLayout = ({ workspaceId, path, entries, selected, onSelect, onO
             >
               {entries.slice(row.start, row.end).map((entry, offset) => {
                 const index = row.start + offset;
+                const key = entryKey(entry.ref);
                 return (
                   <Tile
-                    key={entry.path}
+                    key={key}
                     index={index}
                     entry={entry}
-                    media={media.get(entry.path)}
+                    media={media.get(key)}
                     left={PADDING + (layout.left[index] ?? 0)}
                     width={layout.width[index] ?? 0}
                     height={row.height}

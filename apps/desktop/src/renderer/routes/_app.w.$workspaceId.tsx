@@ -1,38 +1,42 @@
-import { type Entry, isMissingDirectory, parentOf } from "@starlight/client";
+import { DirectoryMissing, type Entry, type EntryRef, entryKey } from "@starlight/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, type ErrorComponentProps, Link, Navigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { Breadcrumbs } from "../features/browser/breadcrumbs.tsx";
+import {
+  parseDirectorySearch,
+  toDirectory,
+  toDirectorySearch,
+  toFile,
+  toFileSearch,
+} from "../features/browser/directory-search.ts";
 import { DirectoryView } from "../features/browser/directory-view.tsx";
-import { readLayout, useLayoutPreference } from "../features/browser/layout-preference.ts";
+import { layoutPreference } from "../features/browser/layout-preference.ts";
 import { LayoutSwitcher } from "../features/browser/layout-switcher.tsx";
 import { layouts } from "../features/browser/layouts/registry.ts";
 import { PageHeader } from "../features/shell/page-header.tsx";
 import { FileViewer } from "../features/viewer/file-viewer.tsx";
+import { AddMountButton } from "../features/workspaces/add-mount-button.tsx";
 import { useStarlight } from "../lib/context.ts";
 
-interface Search {
-  readonly path: string;
-  readonly file?: string;
-}
-
 interface Selection {
-  readonly folder: string;
-  readonly path: string | undefined;
+  readonly directory: string;
+  readonly key: string | undefined;
 }
 
 export const Route = createFileRoute("/_app/w/$workspaceId")({
-  validateSearch: (search: Record<string, unknown>): Search => ({
-    path: typeof search["path"] === "string" ? search["path"] : "",
-    ...(typeof search["file"] === "string" && { file: search["file"] }),
-  }),
-  loaderDeps: ({ search }) => ({ path: search.path }),
+  validateSearch: parseDirectorySearch,
+  loaderDeps: ({ search }) => ({ directory: toDirectory(search) }),
   loader: ({ context, params, deps }) => {
     const { queryClient, queries } = context;
     return Promise.all([
       queryClient.ensureQueryData(queries.workspace(params.workspaceId)),
-      queryClient.ensureQueryData(queries.entries(params.workspaceId, deps.path)),
-      layouts[readLayout(params.workspaceId)].preload?.(context, params.workspaceId, deps.path),
+      queryClient.ensureQueryData(queries.entries(params.workspaceId, deps.directory)),
+      layouts[layoutPreference(params.workspaceId).get()].preload?.(
+        context,
+        params.workspaceId,
+        deps.directory,
+      ),
     ]);
   },
   component: Browser,
@@ -41,72 +45,86 @@ export const Route = createFileRoute("/_app/w/$workspaceId")({
 
 function Browser() {
   const { workspaceId } = Route.useParams();
-  const { path, file } = Route.useSearch();
+  const { directory } = Route.useLoaderDeps();
+  const file = toFile(Route.useSearch());
+  const fileKey = file ? entryKey(file) : undefined;
   const navigate = Route.useNavigate();
   const { queries, subscriptions } = useStarlight();
-  const [selection, setSelection] = useState<Selection>({ folder: path, path: undefined });
-  useEffect(() => subscriptions.entries(workspaceId), [subscriptions, workspaceId]);
   const { data: workspace } = useSuspenseQuery(queries.workspace(workspaceId));
-  const { data: entries, error, isFetching } = useSuspenseQuery(queries.entries(workspaceId, path));
-  const [layout, setLayout] = useLayoutPreference(workspaceId);
+  const { data: listing, error, isFetching } = useSuspenseQuery(queries.entries(workspaceId, directory));
+  const preference = layoutPreference(workspaceId);
+  const layout = preference.useValue();
+  useEffect(() => subscriptions.entries(workspaceId), [subscriptions, workspaceId, workspace.mounts]);
 
-  const selectedPath = file ?? (selection.folder === path ? selection.path : undefined);
+  const directoryKey = directory ? entryKey(directory) : "";
+  const [selection, setSelection] = useState<Selection>({ directory: directoryKey, key: undefined });
+  const selectedKey = fileKey ?? (selection.directory === directoryKey ? selection.key : undefined);
   const select = useCallback(
-    (selected: string | undefined) => setSelection({ folder: path, path: selected }),
-    [path],
+    (key: string | undefined) => setSelection({ directory: directoryKey, key }),
+    [directoryKey],
   );
 
   const onOpen = useCallback(
     (entry: Entry) => {
-      if (entry.kind === "directory") void navigate({ search: { path: entry.path } });
-      else if (entry.kind === "file") void navigate({ search: { path, file: entry.path } });
+      if (entry.kind === "directory") void navigate({ search: toDirectorySearch(entry.ref) });
+      else if (entry.kind === "file" && directory)
+        void navigate({ search: toFileSearch(directory, entry.ref) });
     },
-    [navigate, path],
+    [navigate, directory],
   );
   const showFile = useCallback(
-    (shown: string) => void navigate({ search: { path, file: shown }, replace: true }),
-    [navigate, path],
+    (shown: EntryRef) => {
+      if (directory) void navigate({ search: toFileSearch(directory, shown), replace: true });
+    },
+    [navigate, directory],
   );
   const closeViewer = useCallback(() => {
-    select(file);
-    void navigate({ search: { path }, replace: true });
-  }, [select, navigate, path, file]);
+    select(fileKey);
+    void navigate({ search: toDirectorySearch(directory), replace: true });
+  }, [select, navigate, directory, fileKey]);
 
   if (error && !isFetching) throw error;
 
   return (
     <>
-      <PageHeader actions={<LayoutSwitcher value={layout} onChange={setLayout} />}>
-        <Breadcrumbs workspace={workspace} path={path} />
+      <PageHeader
+        actions={
+          <>
+            <AddMountButton workspaceId={workspaceId} />
+            <LayoutSwitcher value={layout} onChange={preference.set} />
+          </>
+        }
+      >
+        <Breadcrumbs workspace={workspace} trail={listing.trail} />
       </PageHeader>
       <DirectoryView
-        key={path}
+        key={directoryKey}
         workspaceId={workspaceId}
-        path={path}
-        entries={entries}
+        directory={directory}
+        entries={listing.entries}
         layout={layout}
-        selectedPath={selectedPath}
-        onSelectPath={select}
+        selectedKey={selectedKey}
+        onSelectKey={select}
         onOpen={onOpen}
       />
-      {file === undefined ? null : (
+      {directory && file ? (
         <FileViewer
           workspaceId={workspaceId}
-          folderName={path.slice(path.lastIndexOf("/") + 1) || workspace.name}
-          entries={entries}
+          directory={directory}
+          directoryName={listing.trail.at(-1)?.name ?? workspace.name}
+          entries={listing.entries}
           file={file}
           onShow={showFile}
           onClose={closeViewer}
         />
-      )}
+      ) : null}
     </>
   );
 }
 
 function BrowserError({ error }: ErrorComponentProps) {
-  const { path } = Route.useSearch();
-  if (path !== "" && isMissingDirectory(error)) {
-    return <Navigate from={Route.fullPath} search={{ path: parentOf(path) }} replace />;
+  if (error instanceof DirectoryMissing) {
+    return <Navigate from={Route.fullPath} search={toDirectorySearch(error.nearest)} replace />;
   }
   return (
     <>
