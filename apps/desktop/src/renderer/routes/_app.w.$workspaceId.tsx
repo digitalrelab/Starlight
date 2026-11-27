@@ -4,7 +4,7 @@ import { createFileRoute, type ErrorComponentProps, Link, Navigate } from "@tans
 import { useCallback, useEffect } from "react";
 import { Breadcrumbs } from "../features/browser/breadcrumbs.tsx";
 import { DirectoryView } from "../features/browser/directory-view.tsx";
-import { readLayout, useLayoutPreference } from "../features/browser/layout-preference.ts";
+import { layoutPreference } from "../features/browser/layout-preference.ts";
 import { LayoutSwitcher } from "../features/browser/layout-switcher.tsx";
 import { layouts } from "../features/browser/layouts/registry.ts";
 import { PageHeader } from "../features/shell/page-header.tsx";
@@ -24,7 +24,7 @@ export const Route = createFileRoute("/_app/w/$workspaceId")({
     return Promise.all([
       queryClient.ensureQueryData(queries.workspace(params.workspaceId)),
       queryClient.ensureQueryData(queries.entries(params.workspaceId, deps.path)),
-      layouts[readLayout(params.workspaceId)].preload?.(context, params.workspaceId, deps.path),
+      layouts[layoutPreference(params.workspaceId).get()].preload?.(context, params.workspaceId, deps.path),
     ]);
   },
   component: Browser,
@@ -39,7 +39,8 @@ function Browser() {
   useEffect(() => subscriptions.entries(workspaceId), [subscriptions, workspaceId]);
   const { data: workspace } = useSuspenseQuery(queries.workspace(workspaceId));
   const { data: entries, error, isFetching } = useSuspenseQuery(queries.entries(workspaceId, path));
-  const [layout, setLayout] = useLayoutPreference(workspaceId);
+  const preference = layoutPreference(workspaceId);
+  const layout = preference.useValue();
 
   const onOpen = useCallback(
     (entry: Entry) => {
@@ -52,7 +53,7 @@ function Browser() {
 
   return (
     <>
-      <PageHeader actions={<LayoutSwitcher value={layout} onChange={setLayout} />}>
+      <PageHeader actions={<LayoutSwitcher value={layout} onChange={preference.set} />}>
         <Breadcrumbs workspace={workspace} path={path} />
       </PageHeader>
       <DirectoryView
