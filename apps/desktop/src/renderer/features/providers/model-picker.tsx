@@ -2,7 +2,7 @@ import { StarIcon as StarFilledIcon } from "@hugeicons-pro/core-solid-rounded";
 import { ArrowDown01Icon, Search01Icon, StarIcon, Tick02Icon } from "@hugeicons-pro/core-stroke-rounded";
 import type { AgentModel, AgentProvider, ModelChoice } from "@starlight/client";
 import { cn, Icon, Kbd, Popover, PopoverContent, PopoverTrigger, ScrollArea } from "@starlight/ui";
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useEffect, useEffectEvent, useState } from "react";
 import { useFavoriteModels } from "./favorite-models.ts";
 import { providerAppearance } from "./provider-appearance.ts";
 
@@ -95,18 +95,18 @@ export const ModelPicker = ({ providers, choice, onChoose }: Props) => {
       effort: model.efforts.some(({ id }) => id === choice.effort) ? choice.effort : null,
     });
 
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      const slot = Number(event.key);
-      if (!event.metaKey || !Number.isInteger(slot) || slot < 1 || slot > SHORTCUT_SLOTS) return;
-      const entry = starred[slot - 1];
-      if (!entry) return;
-      event.preventDefault();
-      pick(entry);
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+  const onShortcut = useEffectEvent((event: KeyboardEvent) => {
+    const slot = Number(event.key);
+    const entry = event.metaKey && slot >= 1 && slot <= SHORTCUT_SLOTS ? starred[slot - 1] : undefined;
+    if (!entry) return;
+    event.preventDefault();
+    pick(entry);
   });
+
+  useEffect(() => {
+    window.addEventListener("keydown", onShortcut);
+    return () => window.removeEventListener("keydown", onShortcut);
+  }, []);
 
   const provider = providers.find(({ id }) => id === choice.provider);
   const model = provider?.models.find(({ id }) => id === choice.model);
