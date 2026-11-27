@@ -85,7 +85,24 @@ export const migrations = Migrator.fromRecord({
     `;
     yield* sql`CREATE INDEX conversation_messages_by_conversation ON conversation_messages (conversation_id, created_at)`;
   }),
-  "0006_conversation_models": Effect.gen(function* () {
+  "0006_facts": Effect.gen(function* () {
+    const sql = yield* SqlClient.SqlClient;
+    yield* sql`
+      CREATE TABLE facts (
+        source TEXT NOT NULL,
+        entry TEXT NOT NULL,
+        fact TEXT NOT NULL,
+        parent TEXT NOT NULL,
+        size INTEGER NOT NULL,
+        modified_at REAL NOT NULL,
+        version INTEGER NOT NULL,
+        value TEXT,
+        PRIMARY KEY (source, entry, fact)
+      ) WITHOUT ROWID
+    `;
+    yield* sql`CREATE INDEX facts_by_parent ON facts (source, fact, parent)`;
+  }),
+  "0007_conversation_models": Effect.gen(function* () {
     const sql = yield* SqlClient.SqlClient;
     yield* sql`ALTER TABLE conversations ADD COLUMN model TEXT`;
     yield* sql`ALTER TABLE conversations ADD COLUMN effort TEXT`;
