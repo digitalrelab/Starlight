@@ -15,7 +15,7 @@ export interface ButtonProps extends Omit<ComponentProps<typeof BaseButton>, "cl
 export const Button = ({ intent = "ghost", className, ...props }: ButtonProps) => (
   <BaseButton
     className={cn(
-      "inline-flex h-control items-center gap-1.5 rounded-md px-2.5 text-base font-medium select-none",
+      "inline-flex h-control items-center gap-1.5 rounded-md px-2.5 text-base select-none",
       "transition-colors focus-ring data-[disabled]:opacity-50",
       intents[intent],
       className,
