@@ -1,9 +1,9 @@
-import { ShellRpcs, type WorkspaceId, WorkspaceRpcs } from "@starlight/contracts";
+import { HostRpcs, type SettingsPatch, ShellRpcs, type WorkspaceId } from "@starlight/contracts";
 import { Context, type Effect, Layer, ManagedRuntime } from "effect";
 import { RpcClient, type RpcClientError } from "effect/rpc";
 import { layerProtocolPort } from "./transport.ts";
 
-type HostClient = RpcClient.FromGroup<typeof WorkspaceRpcs, RpcClientError.RpcClientError>;
+type HostClient = RpcClient.FromGroup<typeof HostRpcs, RpcClientError.RpcClientError>;
 type ShellClient = RpcClient.FromGroup<typeof ShellRpcs, RpcClientError.RpcClientError>;
 
 class Host extends Context.Service<Host, HostClient>()("@starlight/client/Host") {}
@@ -17,7 +17,7 @@ export interface PortSources {
 export const createClient = (ports: PortSources) => {
   const runtime = ManagedRuntime.make(
     Layer.mergeAll(
-      Layer.effect(Host)(RpcClient.make(WorkspaceRpcs)).pipe(Layer.provide(layerProtocolPort(ports.host))),
+      Layer.effect(Host)(RpcClient.make(HostRpcs)).pipe(Layer.provide(layerProtocolPort(ports.host))),
       Layer.effect(Shell)(RpcClient.make(ShellRpcs)).pipe(Layer.provide(layerProtocolPort(ports.shell))),
     ),
   );
@@ -34,6 +34,10 @@ export const createClient = (ports: PortSources) => {
     entries: {
       list: (workspaceId: string, path: string) =>
         host((c) => c.ListEntries({ workspaceId: id(workspaceId), path })),
+    },
+    settings: {
+      get: () => host((c) => c.GetSettings()),
+      update: (patch: SettingsPatch) => host((c) => c.UpdateSettings(patch)),
     },
     shell: {
       pickDirectory: () => shell((c) => c.PickDirectory()),
