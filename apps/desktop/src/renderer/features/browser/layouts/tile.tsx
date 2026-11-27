@@ -77,6 +77,7 @@ export const Tile = memo(({ index, entry, media, left, width, height, visible, .
             <Preview
               url={tilePreviewUrl(media, width, height)}
               placeholder={media.placeholder}
+              transparent={media.transparent}
               visible={visible}
             />
             {media.duration === null ? null : (
@@ -110,13 +111,14 @@ export const Tile = memo(({ index, entry, media, left, width, height, visible, .
 interface PreviewProps {
   readonly url: string;
   readonly placeholder: string | null;
+  readonly transparent: boolean;
   readonly visible: boolean;
 }
 
 const fade = "transition-opacity duration-150";
 const underImage = cn(fade, "group-has-data-loaded/preview:opacity-0");
 
-const Preview = ({ url, placeholder, visible }: PreviewProps) => {
+const Preview = ({ url, placeholder, transparent, visible }: PreviewProps) => {
   const { src, instant } = usePreview(url, visible);
   return (
     <>
@@ -140,7 +142,11 @@ const Preview = ({ url, placeholder, visible }: PreviewProps) => {
           draggable={false}
           data-loaded={instant ? "" : undefined}
           onLoad={reveal}
-          className={cn(fade, "relative size-full object-cover opacity-0 data-loaded:opacity-100")}
+          className={cn(
+            fade,
+            "relative size-full opacity-0 data-loaded:opacity-100",
+            transparent ? "object-contain p-3" : "object-cover",
+          )}
         />
       )}
     </>
