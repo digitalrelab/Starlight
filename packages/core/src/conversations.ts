@@ -91,6 +91,11 @@ export class Conversations extends Context.Service<
         prompt: string,
       ) => {
         const id = stored.conversation.id;
+        const settle = (event: ConversationEvent) =>
+          Effect.suspend(() => {
+            drafts.delete(id);
+            return publish(id, event);
+          });
         return Effect.gen(function* () {
           let draft = initial;
           let session = stored.session;
@@ -108,16 +113,14 @@ export class Conversations extends Context.Service<
           if (Option.isSome(session)) yield* store.saveSession(id, session.value);
           const reply = yield* message(draft.id, "assistant", draft.text);
           yield* store.append(id, reply);
-          drafts.delete(id);
-          yield* publish(id, { _tag: "MessageAdded", message: reply });
+          yield* settle({ _tag: "MessageAdded", message: reply });
         }).pipe(
           Effect.catchCause((cause) => {
             if (Cause.hasInterruptsOnly(cause)) return Effect.failCause(cause);
             const message = failureOf(cause);
             failures.set(id, message);
-            return publish(id, { _tag: "TurnFailed", message });
+            return settle({ _tag: "TurnFailed", message });
           }),
-          Effect.ensuring(Effect.sync(() => drafts.delete(id))),
         );
       };
 
