@@ -1,5 +1,5 @@
 import { ArrowLeft01Icon, PaintBoardIcon, Plug01Icon } from "@hugeicons-pro/core-stroke-rounded";
-import { NavItem, NavSection } from "@starlight/ui";
+import { IconButton, NavItem, NavSection } from "@starlight/ui";
 import { Link } from "@tanstack/react-router";
 
 export const SettingsSidebar = () => (
@@ -18,4 +18,8 @@ export const SettingsSidebar = () => (
       </NavItem>
     </NavSection>
   </>
+);
+
+export const SettingsSidebarFooter = () => (
+  <IconButton icon={ArrowLeft01Icon} label="Back to app" render={<Link to="/" />} />
 );

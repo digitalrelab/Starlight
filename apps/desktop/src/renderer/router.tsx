@@ -9,14 +9,14 @@ export const queryClient = new QueryClient({
 });
 
 const client = createClient(portSources);
+const context = { ...createQueryOptions(client, queryClient), queryClient };
+
+void queryClient.prefetchQuery(context.queries.agentProviders());
 
 export const router = createRouter({
   routeTree,
   history: createHashHistory(),
-  context: {
-    ...createQueryOptions(client, queryClient),
-    queryClient,
-  },
+  context,
   defaultPreload: "intent",
   defaultPreloadStaleTime: 0,
 });

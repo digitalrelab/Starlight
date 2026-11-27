@@ -42,8 +42,9 @@ const createQueries = (client: StarlightClient) => ({
     queryOptions({
       queryKey: ["agentProviders"],
       queryFn: () => client.agents.providers(),
-      staleTime: 0,
-      refetchOnWindowFocus: true,
+      gcTime: Infinity,
+      refetchOnMount: "always",
+      refetchOnWindowFocus: "always",
     }),
 
   update: () =>

@@ -1,0 +1,193 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+<defs>
+  <path id="tile" d="M285.4,100.0 H738.6 A185.4,185.4 0 0 1 924.0,285.4 V738.6 A185.4,185.4 0 0 1 738.6,924.0 H285.4 A185.4,185.4 0 0 1 100.0,738.6 V285.4 A185.4,185.4 0 0 1 285.4,100.0 Z"/>
+  <clipPath id="tileClip"><use href="#tile"/></clipPath>
+  <g id="bloom"><use href="#p0" fill="#f6c246"/><use href="#p1" fill="#f59659"/><use href="#p2" fill="#f37063"/><use href="#p3" fill="#f35698"/><use href="#p4" fill="#cd50f0"/><use href="#p5" fill="#8c79ef"/><use href="#p6" fill="#5d98f0"/><use href="#p7" fill="#44c2e5"/></g>
+  <radialGradient id="bg" cx="0.5" cy="0.46" r="0.72">
+    <stop offset="0" stop-color="#262a62"/>
+    <stop offset="0.55" stop-color="#121434"/>
+    <stop offset="1" stop-color="#07071a"/>
+  </radialGradient>
+  <radialGradient id="nebulaA" cx="0.22" cy="0.86" r="0.55">
+    <stop offset="0" stop-color="#6931e8" stop-opacity="0.55"/>
+    <stop offset="1" stop-color="#6931e8" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="nebulaB" cx="0.86" cy="0.12" r="0.5">
+    <stop offset="0" stop-color="#d93380" stop-opacity="0.26"/>
+    <stop offset="1" stop-color="#d93380" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="nebulaC" cx="0.1" cy="0.15" r="0.45">
+    <stop offset="0" stop-color="#379ebb" stop-opacity="0.22"/>
+    <stop offset="1" stop-color="#379ebb" stop-opacity="0"/>
+  </radialGradient>
+  <linearGradient id="sheen" x1="0" y1="0" x2="0.35" y2="1">
+    <stop offset="0" stop-color="#fff" stop-opacity="0.6"/>
+    <stop offset="0.36" stop-color="#fff" stop-opacity="0.2"/>
+    <stop offset="0.37" stop-color="#fff" stop-opacity="0"/>
+  </linearGradient>
+  <linearGradient id="caustic" x1="1" y1="1" x2="0.45" y2="0.45">
+    <stop offset="0" stop-color="#fff" stop-opacity="0.4"/>
+    <stop offset="0.45" stop-color="#fff" stop-opacity="0"/>
+  </linearGradient>
+  <linearGradient id="rim" x1="0" y1="0" x2="0.4" y2="1">
+    <stop offset="0" stop-color="#fff" stop-opacity="0.95"/>
+    <stop offset="0.5" stop-color="#fff" stop-opacity="0.25"/>
+    <stop offset="1" stop-color="#fff" stop-opacity="0.55"/>
+  </linearGradient>
+  <linearGradient id="tileRim" x1="0.1" y1="0" x2="0.9" y2="1">
+    <stop offset="0" stop-color="#fff" stop-opacity="0.7"/>
+    <stop offset="0.3" stop-color="#fff" stop-opacity="0.1"/>
+    <stop offset="0.7" stop-color="#fff" stop-opacity="0.04"/>
+    <stop offset="1" stop-color="#c9b8ff" stop-opacity="0.45"/>
+  </linearGradient>
+  <linearGradient id="tileSheen" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#fff" stop-opacity="0.10"/>
+    <stop offset="0.45" stop-color="#fff" stop-opacity="0"/>
+  </linearGradient>
+  <filter id="blurL" x="-1" y="-1" width="3" height="3"><feGaussianBlur stdDeviation="14"/></filter>
+  <filter id="blurM" x="-1" y="-1" width="3" height="3"><feGaussianBlur stdDeviation="5"/></filter>
+  <filter id="blurS" x="-1" y="-1" width="3" height="3"><feGaussianBlur stdDeviation="1.4"/></filter>
+  <filter id="shadow" x="-0.2" y="-0.2" width="1.4" height="1.4">
+    <feGaussianBlur in="SourceAlpha" stdDeviation="14"/>
+    <feOffset dy="12"/>
+    <feComponentTransfer><feFuncA type="linear" slope="0.45"/></feComponentTransfer>
+    <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  
+  <linearGradient id="g0" gradientUnits="userSpaceOnUse" x1="65.05" y1="63.6" x2="64.15" y2="10.3">
+    <stop offset="0.08" stop-color="#f8cf6f"/>
+    <stop offset="0.45" stop-color="#f6c246"/>
+    <stop offset="1" stop-color="#cea245"/>
+  </linearGradient>
+  <path id="p0" d="m65.35 53.87 9.04-21.42a.67.67 0 0 0 0-.52l-9.62-21.76a.66.66 0 0 0-1.22.03l-8.68 22.2c-.06.16-.06.35.01.51l9.26 20.98c.23.52.98.51 1.21-.02"/>
+  <clipPath id="c0"><use href="#p0"/></clipPath>
+  <linearGradient id="g1" gradientUnits="userSpaceOnUse" x1="65.05" y1="63.6" x2="99.9" y2="27.6">
+    <stop offset="0.08" stop-color="#f7ad7e"/>
+    <stop offset="0.45" stop-color="#f59659"/>
+    <stop offset="1" stop-color="#ce7e54"/>
+  </linearGradient>
+  <path id="p1" d="m70.09 59.3 23.77-9.95c.18-.08.32-.23.38-.41l6.42-20.75a.658.658 0 0 0-.84-.82l-20.08 6.75c-.18.06-.33.2-.4.37L69.22 58.43c-.23.55.32 1.1.87.87"/>
+  <clipPath id="c1"><use href="#p1"/></clipPath>
+  <linearGradient id="g2" gradientUnits="userSpaceOnUse" x1="65.05" y1="63.6" x2="117.9" y2="63.0">
+    <stop offset="0.08" stop-color="#f68f85"/>
+    <stop offset="0.45" stop-color="#f37063"/>
+    <stop offset="1" stop-color="#cc5f5d"/>
+  </linearGradient>
+  <path id="p2" d="m97.15 72.51 20.29-8.9c.54-.24.52-1-.02-1.22l-20.39-8.04a.7.7 0 0 0-.49 0l-21.41 8.56c-.56.22-.55 1.01.01 1.23l21.5 8.38c.17.07.35.06.51-.01"/>
+  <clipPath id="c2"><use href="#p2"/></clipPath>
+  <linearGradient id="g3" gradientUnits="userSpaceOnUse" x1="65.05" y1="63.6" x2="101.2" y2="99.0">
+    <stop offset="0.08" stop-color="#f67baf"/>
+    <stop offset="0.45" stop-color="#f35698"/>
+    <stop offset="1" stop-color="#cc4988"/>
+  </linearGradient>
+  <path id="p3" d="m94.29 77.44-23.93-9.69a.666.666 0 0 0-.86.88l10.33 23.81c.08.18.22.31.41.37l20.57 6.52c.52.16 1-.33.83-.84l-6.97-20.64a.67.67 0 0 0-.38-.41"/>
+  <clipPath id="c3"><use href="#p3"/></clipPath>
+  <linearGradient id="g4" gradientUnits="userSpaceOnUse" x1="65.05" y1="63.6" x2="66.6" y2="117.2">
+    <stop offset="0.08" stop-color="#d876f3"/>
+    <stop offset="0.45" stop-color="#cd50f0"/>
+    <stop offset="1" stop-color="#ad44d0"/>
+  </linearGradient>
+  <path id="p4" d="m75.06 94.85-9.45-21.67c-.23-.53-.99-.53-1.22.01l-9.18 21.56a.7.7 0 0 0 .01.55l10.5 21.76c.25.52 1.01.49 1.22-.06l8.12-21.65c.08-.17.07-.35 0-.5"/>
+  <clipPath id="c4"><use href="#p4"/></clipPath>
+  <linearGradient id="g5" gradientUnits="userSpaceOnUse" x1="65.05" y1="63.6" x2="29.1" y2="99.0">
+    <stop offset="0.08" stop-color="#a596f3"/>
+    <stop offset="0.45" stop-color="#8c79ef"/>
+    <stop offset="1" stop-color="#7766d0"/>
+  </linearGradient>
+  <path id="p5" d="m29.98 99.88 20.08-6.75c.18-.06.33-.2.4-.37l10.11-23.95a.664.664 0 0 0-.87-.87l-23.77 9.95c-.18.08-.32.23-.38.41l-6.42 20.75c-.16.52.34 1 .85.83"/>
+  <clipPath id="c5"><use href="#p5"/></clipPath>
+  <linearGradient id="g6" gradientUnits="userSpaceOnUse" x1="65.05" y1="63.6" x2="12.3" y2="63.8">
+    <stop offset="0.08" stop-color="#81aff3"/>
+    <stop offset="0.45" stop-color="#5d98f0"/>
+    <stop offset="1" stop-color="#5180d0"/>
+  </linearGradient>
+  <path id="p6" d="m33.33 72.61 21.11-8.25c.57-.22.56-1.02-.01-1.24l-20.77-7.74a.64.64 0 0 0-.47 0L12.7 63.16c-.56.21-.57 1-.01 1.23l20.15 8.21c.15.07.33.07.49.01"/>
+  <clipPath id="c6"><use href="#p6"/></clipPath>
+  <linearGradient id="g7" gradientUnits="userSpaceOnUse" x1="65.05" y1="63.6" x2="28.4" y2="28.5">
+    <stop offset="0.08" stop-color="#6dcfeb"/>
+    <stop offset="0.45" stop-color="#44c2e5"/>
+    <stop offset="1" stop-color="#3ca2c7"/>
+  </linearGradient>
+  <path id="p7" d="m49.6 34.71-20.39-6.16a.66.66 0 0 0-.82.84l6.9 20.42c.06.19.21.33.39.41l23.93 9.22c.55.21 1.08-.35.84-.89L50.01 35.08a.68.68 0 0 0-.41-.37"/>
+  <clipPath id="c7"><use href="#p7"/></clipPath>
+</defs>
+<g filter="url(#shadow)">
+  <g clip-path="url(#tileClip)">
+    <rect width="1024" height="1024" fill="url(#bg)"/>
+    <rect width="1024" height="1024" fill="url(#nebulaA)"/>
+    <rect width="1024" height="1024" fill="url(#nebulaB)"/>
+    <rect width="1024" height="1024" fill="url(#nebulaC)"/>
+    <g fill="#fff">
+      <circle cx="212" cy="248" r="2.2" opacity="0.7"/>
+      <circle cx="808" cy="742" r="2.6" opacity="0.6"/>
+      <circle cx="770" cy="236" r="1.6" opacity="0.5"/>
+      <circle cx="262" cy="806" r="1.8" opacity="0.45"/>
+      <circle cx="856" cy="452" r="1.4" opacity="0.4"/>
+      <circle cx="170" cy="560" r="1.3" opacity="0.35"/>
+    </g>
+    <g transform="translate(512.0 512.0) scale(6.3) translate(-65.05 -63.6)">
+      <use href="#bloom" filter="url(#blurL)" opacity="0.75"/>
+      <use href="#bloom" filter="url(#blurM)" opacity="0.55"/>
+      
+    <g clip-path="url(#c0)">
+      <use href="#p0" fill="url(#g0)" fill-opacity="0.9"/>
+      <use href="#p0" fill="none" stroke="#fff" stroke-opacity="0.45" stroke-width="3" filter="url(#blurS)"/>
+      <use href="#p0" fill="url(#caustic)"/>
+      <use href="#p0" fill="url(#sheen)"/>
+      <use href="#p0" fill="none" stroke="url(#rim)" stroke-width="0.9"/>
+    </g>
+    <g clip-path="url(#c1)">
+      <use href="#p1" fill="url(#g1)" fill-opacity="0.9"/>
+      <use href="#p1" fill="none" stroke="#fff" stroke-opacity="0.45" stroke-width="3" filter="url(#blurS)"/>
+      <use href="#p1" fill="url(#caustic)"/>
+      <use href="#p1" fill="url(#sheen)"/>
+      <use href="#p1" fill="none" stroke="url(#rim)" stroke-width="0.9"/>
+    </g>
+    <g clip-path="url(#c2)">
+      <use href="#p2" fill="url(#g2)" fill-opacity="0.9"/>
+      <use href="#p2" fill="none" stroke="#fff" stroke-opacity="0.45" stroke-width="3" filter="url(#blurS)"/>
+      <use href="#p2" fill="url(#caustic)"/>
+      <use href="#p2" fill="url(#sheen)"/>
+      <use href="#p2" fill="none" stroke="url(#rim)" stroke-width="0.9"/>
+    </g>
+    <g clip-path="url(#c3)">
+      <use href="#p3" fill="url(#g3)" fill-opacity="0.9"/>
+      <use href="#p3" fill="none" stroke="#fff" stroke-opacity="0.45" stroke-width="3" filter="url(#blurS)"/>
+      <use href="#p3" fill="url(#caustic)"/>
+      <use href="#p3" fill="url(#sheen)"/>
+      <use href="#p3" fill="none" stroke="url(#rim)" stroke-width="0.9"/>
+    </g>
+    <g clip-path="url(#c4)">
+      <use href="#p4" fill="url(#g4)" fill-opacity="0.9"/>
+      <use href="#p4" fill="none" stroke="#fff" stroke-opacity="0.45" stroke-width="3" filter="url(#blurS)"/>
+      <use href="#p4" fill="url(#caustic)"/>
+      <use href="#p4" fill="url(#sheen)"/>
+      <use href="#p4" fill="none" stroke="url(#rim)" stroke-width="0.9"/>
+    </g>
+    <g clip-path="url(#c5)">
+      <use href="#p5" fill="url(#g5)" fill-opacity="0.9"/>
+      <use href="#p5" fill="none" stroke="#fff" stroke-opacity="0.45" stroke-width="3" filter="url(#blurS)"/>
+      <use href="#p5" fill="url(#caustic)"/>
+      <use href="#p5" fill="url(#sheen)"/>
+      <use href="#p5" fill="none" stroke="url(#rim)" stroke-width="0.9"/>
+    </g>
+    <g clip-path="url(#c6)">
+      <use href="#p6" fill="url(#g6)" fill-opacity="0.9"/>
+      <use href="#p6" fill="none" stroke="#fff" stroke-opacity="0.45" stroke-width="3" filter="url(#blurS)"/>
+      <use href="#p6" fill="url(#caustic)"/>
+      <use href="#p6" fill="url(#sheen)"/>
+      <use href="#p6" fill="none" stroke="url(#rim)" stroke-width="0.9"/>
+    </g>
+    <g clip-path="url(#c7)">
+      <use href="#p7" fill="url(#g7)" fill-opacity="0.9"/>
+      <use href="#p7" fill="none" stroke="#fff" stroke-opacity="0.45" stroke-width="3" filter="url(#blurS)"/>
+      <use href="#p7" fill="url(#caustic)"/>
+      <use href="#p7" fill="url(#sheen)"/>
+      <use href="#p7" fill="none" stroke="url(#rim)" stroke-width="0.9"/>
+    </g>
+    </g>
+    <use href="#tile" fill="url(#tileSheen)"/>
+  </g>
+  <use href="#tile" fill="none" stroke="url(#tileRim)" stroke-width="6" clip-path="url(#tileClip)"/>
+</g>
+</svg>
