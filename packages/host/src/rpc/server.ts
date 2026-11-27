@@ -26,6 +26,7 @@ const HandlersLive = HostRpcs.toLayer(
       GetFileSource: ({ projectId, file }) => files.source(projectId, file),
       WriteFile: ({ projectId, file, content, base }) => files.write(projectId, file, content, base),
       ListAgentProviders: () => agentProviders.list,
+      PrepareAgentProviders: () => agentProviders.prepare,
       ListChats: () => chats.list,
       GetChat: ({ chatId }) => chats.get(chatId),
       SendMessage: ({ chatId, text, model }) => chats.send(chatId, text, model),

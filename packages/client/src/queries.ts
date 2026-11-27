@@ -114,6 +114,8 @@ const createMutations = (client: StarlightClient, queryClient: QueryClient, quer
       onSettled: () => queryClient.invalidateQueries(queries.diskUsage()),
     }),
 
+  prepareAgentProviders: () => mutationOptions({ mutationFn: () => client.agents.prepare() }),
+
   renameChat: () =>
     mutationOptions({
       mutationFn: ({ chatId, title }: { readonly chatId: string; readonly title: string }) =>

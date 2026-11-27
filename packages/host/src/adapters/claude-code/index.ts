@@ -1,10 +1,12 @@
+import { deleteSession } from "@anthropic-ai/claude-agent-sdk";
 import type { AgentProviderStatus } from "@starlight/contracts";
 import type { AgentProviderDriver } from "@starlight/core";
 import { Effect, Option, Schema } from "effect";
 import { findExecutable, output } from "./executable.ts";
 import { makeModels } from "./models.ts";
+import { makePool } from "./pool.ts";
 import { respond } from "./respond.ts";
-import { forget } from "./sessions.ts";
+import { openSession } from "./session.ts";
 
 const AuthStatus = Schema.fromJsonString(
   Schema.Struct({
@@ -41,10 +43,22 @@ const status: Effect.Effect<AgentProviderStatus> = Effect.gen(function* () {
   } satisfies AgentProviderStatus;
 }).pipe(Effect.catch((error) => Effect.succeed(notReady(error.message))));
 
-export const makeClaudeCodeDriver = (workingDirectory: string): AgentProviderDriver => ({
-  name: "Claude Code",
-  status,
-  models: makeModels(workingDirectory),
-  forget: forget(workingDirectory),
-  respond: respond(workingDirectory),
-});
+export const makeClaudeCodeDriver = (workingDirectory: string): AgentProviderDriver => {
+  const pool = makePool(async (resume) => {
+    const executable = await Effect.runPromise(findExecutable);
+    if (Option.isNone(executable)) throw new Error("Claude Code isn't installed.");
+    return openSession(executable.value, workingDirectory, resume);
+  });
+  return {
+    name: "Claude Code",
+    status,
+    models: makeModels(pool),
+    prepare: Effect.sync(() => void pool.prepare().catch(() => {})),
+    forget: (session) =>
+      Effect.sync(() => pool.forget(session)).pipe(
+        Effect.andThen(Effect.tryPromise(() => deleteSession(session, { dir: workingDirectory }))),
+        Effect.catch((error) => Effect.logWarning("Claude Code session could not be deleted", error)),
+      ),
+    respond: respond(pool),
+  };
+};
