@@ -24,6 +24,7 @@ const HandlersLive = HostRpcs.toLayer(
       ListMedia: ({ projectId, directory }) => media.list(projectId, directory),
       ProcessMedia: ({ projectId, directory }) => media.process(projectId, directory),
       GetFileSource: ({ projectId, file }) => files.source(projectId, file),
+      LocateEntry: ({ ref }) => projects.locateEntry(ref),
       GetFileDetails: ({ projectId, file }) => files.details(projectId, file),
       WriteFile: ({ projectId, file, content, base }) => files.write(projectId, file, content, base),
       ListAgentProviders: () => agentProviders.list,

@@ -21,7 +21,7 @@ import { PageHeader } from "#renderer/features/shell/page-header.tsx";
 import { FileViewer } from "#renderer/features/viewer/file-viewer.tsx";
 import { AddMountButton } from "#renderer/features/projects/add-mount-button.tsx";
 import { useStarlight } from "#renderer/lib/context.ts";
-import { useStored } from "#renderer/lib/storage.ts";
+import { useStore } from "#renderer/lib/store.ts";
 
 interface Selection {
   readonly directory: string;
@@ -53,8 +53,8 @@ function Browser() {
   const { data: project } = useSuspenseQuery(queries.project(projectId));
   const { data: listing, error, isFetching } = useSuspenseQuery(queries.entries(projectId, directory));
   const preference = layoutPreference(projectId);
-  const layout = useStored(preference);
-  const showHidden = useStored(hiddenFiles) === "show";
+  const layout = useStore(preference);
+  const showHidden = useStore(hiddenFiles) === "show";
   const entries = showHidden ? listing.entries : listing.entries.filter((entry) => !entry.hidden);
   useEffect(() => subscriptions.entries(projectId), [subscriptions, projectId]);
 

@@ -2,7 +2,7 @@ import { Item, Switch } from "@starlight/ui";
 import { createFileRoute } from "@tanstack/react-router";
 import { hiddenFiles } from "#renderer/features/settings/files.ts";
 import { SettingsPage } from "#renderer/features/settings/settings-page.tsx";
-import { useStored } from "#renderer/lib/storage.ts";
+import { useStore } from "#renderer/lib/store.ts";
 
 export const Route = createFileRoute("/settings/files")({
   component: Files,
@@ -19,7 +19,7 @@ function Files() {
           </Item.Content>
           <Switch
             id="hidden-files"
-            checked={useStored(hiddenFiles) === "show"}
+            checked={useStore(hiddenFiles) === "show"}
             onCheckedChange={(checked) => hiddenFiles.set(checked ? "show" : "hide")}
           />
         </Item.Root>

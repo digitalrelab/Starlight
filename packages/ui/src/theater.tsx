@@ -16,6 +16,7 @@ const Root = ({ onClose, onKeyDown, children }: RootProps) => {
   return (
     <Dialog.Root
       open
+      disablePointerDismissal
       onOpenChange={(open) => {
         if (!open) onClose();
       }}
@@ -78,9 +79,7 @@ const Body = ({ aside, children }: { readonly aside?: ReactNode; readonly childr
 );
 
 const Stage = ({ children }: { readonly children: ReactNode }) => (
-  <Card surface="panel" className="relative mx-2 mb-2 min-h-0 flex-1 overflow-hidden">
-    {children}
-  </Card>
+  <Card className="relative mx-2 mb-2 min-h-0 flex-1 overflow-hidden">{children}</Card>
 );
 
 export const Theater = { Root, Header, Start, Title, End, Separator, Close, Body, Stage };

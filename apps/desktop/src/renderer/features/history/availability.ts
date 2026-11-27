@@ -1,20 +1,11 @@
-import { useSyncExternalStore } from "react";
 import { Channel } from "#shared/channels.ts";
 import type { HistoryAvailability } from "#shared/history.ts";
+import { onMainMessage } from "#renderer/lib/main-messages.ts";
+import { defineStore, useStore } from "#renderer/lib/store.ts";
 
-let current: HistoryAvailability = { back: false, forward: false };
-const listeners = new Set<() => void>();
+const availability = defineStore<HistoryAvailability>({ back: false, forward: false });
 
-window.addEventListener("message", (event) => {
-  if (event.source !== window || event.data?.type !== Channel.history) return;
-  current = event.data.availability;
-  for (const listener of listeners) listener();
-});
+onMainMessage(Channel.history, (event) => availability.set(event.data.availability));
 window.postMessage({ type: Channel.historyRequest }, "*");
 
-const subscribe = (listener: () => void) => {
-  listeners.add(listener);
-  return () => listeners.delete(listener);
-};
-
-export const useHistoryAvailability = () => useSyncExternalStore(subscribe, () => current);
+export const useHistoryAvailability = () => useStore(availability);

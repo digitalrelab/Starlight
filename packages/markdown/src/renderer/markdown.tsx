@@ -7,9 +7,12 @@ import { autolinkUrl, decodeEntity, referenceKey, safeUrl, unescape } from "./te
 
 type References = ReadonlyMap<string, string>;
 
+export type RenderLink = (link: { readonly url: string; readonly label: ReactNode }) => ReactNode | undefined;
+
 interface Source {
   readonly text: string;
   readonly references: References;
+  readonly renderLink: RenderLink | undefined;
 }
 
 const HIDDEN = new Set([
@@ -112,7 +115,13 @@ const targetOf = (node: SyntaxNode, source: Source): Target | undefined => {
 const link = (node: SyntaxNode, source: Source) => {
   const target = targetOf(node, source);
   if (!target) return textOf(source, node);
-  return anchor(node.from, target.url, inline(node, source, target.from, target.to));
+  const label = inline(node, source, target.from, target.to);
+  const rendered = source.renderLink?.({ url: target.url, label });
+  return rendered === undefined ? (
+    anchor(node.from, target.url, label)
+  ) : (
+    <Fragment key={node.from}>{rendered}</Fragment>
+  );
 };
 
 const image = (node: SyntaxNode, source: Source) => {
@@ -353,10 +362,10 @@ const hasSameEntries = (a: References, b: References) => {
   return true;
 };
 
-const useDocument = (value: string) => {
+const useDocument = (value: string, renderLink: RenderLink | undefined) => {
   const [parse] = useState(createIncrementalParser);
   const tree = parse(value);
-  return { tree, source: { text: value, references: referencesOf(tree, value) } };
+  return { tree, source: { text: value, references: referencesOf(tree, value), renderLink } };
 };
 
 interface BlockProps {
@@ -368,16 +377,19 @@ interface BlockProps {
 const Block = memo(
   ({ node, source }: BlockProps) => block(node, source),
   (previous, next) =>
-    previous.text === next.text && hasSameEntries(previous.source.references, next.source.references),
+    previous.text === next.text &&
+    previous.source.renderLink === next.source.renderLink &&
+    hasSameEntries(previous.source.references, next.source.references),
 );
 
 export interface MarkdownProps {
   readonly value: string;
   readonly className?: string;
+  readonly renderLink?: RenderLink;
 }
 
-export const Markdown = memo(({ value, className }: MarkdownProps) => {
-  const { tree, source } = useDocument(value);
+export const Markdown = memo(({ value, className, renderLink }: MarkdownProps) => {
+  const { tree, source } = useDocument(value, renderLink);
   return (
     <div className={cn("markdown", className)}>
       {visibleChildrenOf(tree.topNode).map((node) => (

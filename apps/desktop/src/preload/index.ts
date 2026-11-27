@@ -24,3 +24,7 @@ ipcRenderer.on(Channel.history, (_event, availability) => {
 ipcRenderer.on(Channel.zoomStep, (_event, step) => {
   window.postMessage({ type: Channel.zoomStep, step }, "*");
 });
+
+ipcRenderer.on(Channel.commandPalette, () => {
+  window.postMessage({ type: Channel.commandPalette }, "*");
+});

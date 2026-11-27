@@ -1,4 +1,5 @@
-import { anyString, defineStored, useStored } from "#renderer/lib/storage.ts";
+import { anyString, defineStored } from "#renderer/lib/storage.ts";
+import { useStore } from "#renderer/lib/store.ts";
 
 export interface Favorite {
   readonly provider: string;
@@ -29,7 +30,7 @@ type ModelKey = Pick<Favorite, "provider" | "model">;
 export const sameModel = (a: ModelKey, b: ModelKey) => a.provider === b.provider && a.model === b.model;
 
 export const useFavoriteModels = () => {
-  const favorites = parse(useStored(favoriteModels));
+  const favorites = parse(useStore(favoriteModels));
   const isFavorite = (key: ModelKey) => favorites.some((candidate) => sameModel(candidate, key));
   return {
     favorites,
