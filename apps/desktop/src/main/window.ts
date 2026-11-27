@@ -1,7 +1,9 @@
 import { join } from "node:path";
 import { BrowserWindow, nativeTheme, shell } from "electron";
+import { Channel } from "#shared/channels.ts";
 
 const EXTERNAL_URL = /^(?:https?|mailto):/i;
+const READY_TIMEOUT_MS = 5000;
 
 export const createWindow = () => {
   const window = new BrowserWindow({
@@ -21,7 +23,14 @@ export const createWindow = () => {
     },
   });
 
-  window.once("ready-to-show", () => window.show());
+  const show = () => {
+    clearTimeout(fallback);
+    window.webContents.ipc.removeAllListeners(Channel.ready);
+    window.show();
+  };
+  const fallback = setTimeout(show, READY_TIMEOUT_MS);
+  window.once("closed", () => clearTimeout(fallback));
+  window.webContents.ipc.once(Channel.ready, show);
   window.webContents.setWindowOpenHandler(({ url }) => {
     if (EXTERNAL_URL.test(url)) void shell.openExternal(url);
     return { action: "deny" };
