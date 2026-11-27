@@ -53,7 +53,7 @@ function Browser() {
   const { data: listing, error, isFetching } = useSuspenseQuery(queries.entries(projectId, directory));
   const preference = layoutPreference(projectId);
   const layout = useStored(preference);
-  useEffect(() => subscriptions.entries(projectId), [subscriptions, projectId, project.mounts]);
+  useEffect(() => subscriptions.entries(projectId), [subscriptions, projectId]);
 
   const directoryKey = directory ? entryKey(directory) : "";
   const [selection, setSelection] = useState<Selection>({ directory: directoryKey, key: undefined });

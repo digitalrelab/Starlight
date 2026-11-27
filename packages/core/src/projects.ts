@@ -14,7 +14,7 @@ import {
   type SourceId,
   SourceUnavailable,
 } from "@starlight/contracts";
-import { Context, Effect, Layer, Option } from "effect";
+import { Context, Effect, Layer, Option, PubSub, Stream } from "effect";
 import {
   AuditLog,
   CurrentActor,
@@ -52,6 +52,7 @@ export class Projects extends Context.Service<
       root: EntryRef,
     ) => Effect.Effect<Project, ProjectNotFound, CurrentActor>;
     readonly get: (id: ProjectId) => Effect.Effect<Project, ProjectNotFound>;
+    readonly watch: (id: ProjectId) => Stream.Stream<Project, ProjectNotFound>;
     readonly driverFor: (source: SourceId) => Effect.Effect<SourceDriver, SourceUnavailable>;
     readonly locateDirectory: (
       id: ProjectId,
@@ -65,6 +66,7 @@ export class Projects extends Context.Service<
       const drivers = yield* SourceDrivers;
       const store = yield* ProjectStore;
       const audit = yield* AuditLog;
+      const changes = yield* PubSub.unbounded<ProjectId>();
 
       const get = (id: ProjectId) =>
         store.findById(id).pipe(
@@ -89,8 +91,13 @@ export class Projects extends Context.Service<
         return { root: { source: root.source, id }, name: entry.name } satisfies Mount;
       });
 
-      const record = Effect.fn("Projects.record")(function* (action: string, target: unknown) {
+      const recordChange = Effect.fn("Projects.recordChange")(function* (
+        projectId: ProjectId,
+        action: string,
+        target: unknown,
+      ) {
         yield* audit.record({ actor: yield* CurrentActor, action, target: JSON.stringify(target) });
+        yield* PubSub.publish(changes, projectId);
       });
 
       const mountOf = (project: Project, driver: SourceDriver, directory: EntryRef) =>
@@ -132,35 +139,49 @@ export class Projects extends Context.Service<
         create: Effect.fn("Projects.create")(function* (root) {
           const mount = yield* prepareMount(root);
           const project = yield* store.create({ name: mount.name, mounts: [mount] });
-          yield* record("CreateProject", { projectId: project.id, root: mount.root });
+          yield* recordChange(project.id, "CreateProject", { projectId: project.id, root: mount.root });
           return project;
         }),
         list: store.list,
         rename: Effect.fn("Projects.rename")(function* (id, name) {
           const project = yield* get(id);
           yield* store.rename(id, name);
-          yield* record("RenameProject", { projectId: id });
+          yield* recordChange(id, "RenameProject", { projectId: id });
           return { ...project, name };
         }),
         remove: Effect.fn("Projects.remove")(function* (id) {
           yield* get(id);
           yield* store.remove(id);
-          yield* record("DeleteProject", { projectId: id });
+          yield* recordChange(id, "DeleteProject", { projectId: id });
         }),
         addMount: Effect.fn("Projects.addMount")(function* (id, root) {
           yield* get(id);
           const mount = yield* prepareMount(root);
           yield* store.addMount(id, mount);
-          yield* record("AddMount", { projectId: id, root: mount.root });
+          yield* recordChange(id, "AddMount", { projectId: id, root: mount.root });
           return yield* get(id);
         }),
         removeMount: Effect.fn("Projects.removeMount")(function* (id, root) {
           yield* get(id);
           yield* store.removeMount(id, root);
-          yield* record("RemoveMount", { projectId: id, root });
+          yield* recordChange(id, "RemoveMount", { projectId: id, root });
           return yield* get(id);
         }),
         get,
+        watch: (id) =>
+          Stream.unwrap(
+            Effect.gen(function* () {
+              const subscription = yield* PubSub.subscribe(changes);
+              const project = yield* get(id);
+              return Stream.concat(
+                Stream.make(project),
+                Stream.fromSubscription(subscription).pipe(
+                  Stream.filter((changed) => changed === id),
+                  Stream.mapEffect(() => get(id)),
+                ),
+              );
+            }),
+          ),
         driverFor,
         locateDirectory: Effect.fn("Projects.locateDirectory")(function* (id, requested) {
           const project = yield* get(id);
