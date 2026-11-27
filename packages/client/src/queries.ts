@@ -6,10 +6,9 @@ import {
 } from "@tanstack/react-query";
 import type { SettingsPatch, Update } from "@starlight/contracts";
 import type { StarlightClient } from "./client.ts";
+import { parentOf } from "./paths.ts";
 
 const directoryKey = (workspaceId: string) => ["directory", workspaceId] as const;
-
-const parentOf = (path: string) => path.slice(0, Math.max(0, path.lastIndexOf("/")));
 
 const listingsAffectedBy = (paths: ReadonlyArray<string>) => {
   const changed = new Set(paths);
