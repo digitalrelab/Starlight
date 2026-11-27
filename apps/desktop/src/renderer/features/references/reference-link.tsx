@@ -1,29 +1,45 @@
 import { BubbleChatIcon } from "@hugeicons-pro/core-stroke-rounded";
-import { type Chat, type EntryLocation, type EntryRef, fileKindOf, referenceOf } from "@starlight/client";
+import { type EntryLocation, type EntryRef, referenceOf } from "@starlight/client";
 import type { RenderLink } from "@starlight/markdown";
 import { cn, Icon } from "@starlight/ui";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+import { Link, type LinkOptions } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { chatLink } from "#renderer/features/agent/chat-links.ts";
 import { toDirectorySearch, toFileSearch } from "#renderer/features/browser/directory-search.ts";
-import { KindIcon } from "#renderer/features/files/kind-icon.tsx";
+import { itemKindOf, KindIcon } from "#renderer/features/files/kind-icon.tsx";
 import { useStarlight } from "#renderer/lib/context.ts";
 
-const chip =
-  "inline-flex items-baseline gap-1 rounded-md bg-neutral px-1.5 align-baseline text-default no-underline focus-ring";
+interface ChipProps {
+  readonly icon: ReactNode;
+  readonly label: ReactNode;
+  readonly link?: LinkOptions | undefined;
+  readonly unresolved?: string | undefined;
+}
 
-const Unresolved = ({ title, children }: { readonly title: string; readonly children: ReactNode }) => (
-  <span title={title} className={cn(chip, "bg-neutral-subtle text-subtlest")}>
-    {children}
-  </span>
-);
+const Chip = ({ icon, label, link, unresolved }: ChipProps) => {
+  const className = cn(
+    "inline-flex items-baseline gap-1 rounded-md px-1.5 align-baseline no-underline focus-ring [&>svg]:self-center",
+    unresolved ? "bg-neutral-subtle text-subtlest" : "bg-neutral text-default highlighted:bg-neutral-hovered",
+  );
+  return link && !unresolved ? (
+    <Link {...link} className={className}>
+      {icon}
+      {label}
+    </Link>
+  ) : (
+    <span title={unresolved} className={className}>
+      {icon}
+      {label}
+    </span>
+  );
+};
 
-const entryOpening = (ref: EntryRef, { kind, project, directory }: EntryLocation) =>
+const openingOf = (ref: EntryRef, { kind, project, directory }: EntryLocation): LinkOptions | undefined =>
   project === null
     ? undefined
     : {
-        to: "/p/$projectId" as const,
+        to: "/p/$projectId",
         params: { projectId: project },
         search: kind === "directory" ? toDirectorySearch(ref) : toFileSearch(directory, ref),
       };
@@ -31,52 +47,13 @@ const entryOpening = (ref: EntryRef, { kind, project, directory }: EntryLocation
 const EntryChip = ({ entry, label }: { readonly entry: EntryRef; readonly label: ReactNode }) => {
   const { queries } = useStarlight();
   const { data: location, isError } = useQuery(queries.entryLocation(entry));
-  const icon = (
-    <KindIcon
-      kind={location?.kind === "directory" ? "folder" : fileKindOf(location?.name ?? "")}
-      size={14}
-      className="self-center"
+  return (
+    <Chip
+      icon={<KindIcon kind={location ? itemKindOf(location) : "other"} size={14} />}
+      label={label}
+      link={location && openingOf(entry, location)}
+      unresolved={isError ? "No longer exists" : location?.project === null ? "Not in a project" : undefined}
     />
-  );
-  if (isError)
-    return (
-      <Unresolved title="No longer exists">
-        {icon}
-        {label}
-      </Unresolved>
-    );
-  const opening = location && entryOpening(entry, location);
-  if (!opening)
-    return (
-      <Unresolved title={location ? "Not in a project" : "Loading"}>
-        {icon}
-        {label}
-      </Unresolved>
-    );
-  return (
-    <Link {...opening} className={cn(chip, "highlighted:bg-neutral-hovered")}>
-      {icon}
-      {label}
-    </Link>
-  );
-};
-
-const ChatChip = ({ chat, label }: { readonly chat: Chat["id"]; readonly label: ReactNode }) => {
-  const { queries } = useStarlight();
-  const { isError } = useQuery(queries.chat(chat));
-  const icon = <Icon icon={BubbleChatIcon} size={14} className="self-center text-subtle" />;
-  if (isError)
-    return (
-      <Unresolved title="No longer exists">
-        {icon}
-        {label}
-      </Unresolved>
-    );
-  return (
-    <Link {...chatLink({ id: chat })} className={cn(chip, "highlighted:bg-neutral-hovered")}>
-      {icon}
-      {label}
-    </Link>
   );
 };
 
@@ -86,6 +63,10 @@ export const renderReference: RenderLink = ({ url, label }) => {
   return reference._tag === "Entry" ? (
     <EntryChip entry={reference.ref} label={label} />
   ) : (
-    <ChatChip chat={reference.id} label={label} />
+    <Chip
+      icon={<Icon icon={BubbleChatIcon} size={14} className="text-subtle" />}
+      label={label}
+      link={chatLink(reference)}
+    />
   );
 };
