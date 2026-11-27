@@ -4,7 +4,7 @@ import { cn } from "cn";
 import { Icon } from "./icon.tsx";
 
 export interface NavItemProps extends useRender.ComponentProps<"button"> {
-  readonly icon: IconSvgElement;
+  readonly icon?: IconSvgElement | undefined;
 }
 
 export const NavItem = ({ icon, render, className, children, ...props }: NavItemProps) =>
@@ -21,9 +21,11 @@ export const NavItem = ({ icon, render, className, children, ...props }: NavItem
         ),
         children: (
           <>
-            <span className="flex text-subtle group-highlighted:text-inherit group-aria-[current=page]:text-inherit">
-              <Icon icon={icon} />
-            </span>
+            {icon ? (
+              <span className="flex text-subtle group-highlighted:text-inherit group-aria-[current=page]:text-inherit">
+                <Icon icon={icon} />
+              </span>
+            ) : null}
             <span className="min-w-0 truncate text-left">{children}</span>
           </>
         ),

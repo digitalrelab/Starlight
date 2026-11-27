@@ -1,4 +1,4 @@
-import { ArrowLeft01Icon, PencilEdit02Icon } from "@hugeicons-pro/core-stroke-rounded";
+import { ArrowLeft01Icon, MessageAdd01Icon } from "@hugeicons-pro/core-stroke-rounded";
 import type { Conversation } from "@starlight/client";
 import { IconButton, NavItem, NavSection } from "@starlight/ui";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -20,7 +20,7 @@ export const AgentSidebar = () => {
         <NavItem icon={ArrowLeft01Icon} render={<Link to="/" />}>
           Back to app
         </NavItem>
-        <NavItem icon={PencilEdit02Icon} render={<Link to="/agent" activeOptions={{ exact: true }} />}>
+        <NavItem icon={MessageAdd01Icon} render={<Link to="/agent" activeOptions={{ exact: true }} />}>
           New conversation
         </NavItem>
       </div>
