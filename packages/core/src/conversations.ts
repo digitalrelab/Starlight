@@ -76,22 +76,23 @@ export class Conversations extends Context.Service<
       const driverFor = (provider: AgentProviderId) =>
         Effect.fromNullishOr(drivers.get(provider)).pipe(Effect.mapError(() => new NoAgentProvider()));
 
-      const message = (role: ChatMessage["role"], text: string, id: Effect.Effect<string> = ids.next) =>
-        Effect.all({
-          id,
-          role: Effect.succeed(role),
-          text: Effect.succeed(text),
-          createdAt: Clock.currentTimeMillis,
-        });
+      const message = (id: string, role: ChatMessage["role"], text: string) =>
+        Effect.map(Clock.currentTimeMillis, (createdAt): ChatMessage => ({ id, role, text, createdAt }));
 
       const failureOf = (cause: Cause.Cause<unknown>) => {
         const error = Cause.squash(cause);
         return error instanceof Error ? error.message : String(error);
       };
 
-      const respond = (stored: StoredConversation, driver: AgentProviderDriver, prompt: string) => {
+      const respond = (
+        stored: StoredConversation,
+        driver: AgentProviderDriver,
+        initial: Draft,
+        prompt: string,
+      ) => {
         const id = stored.conversation.id;
         return Effect.gen(function* () {
+          let draft = initial;
           let session = stored.session;
           yield* driver.respond({ prompt, history: stored.messages, session }).pipe(
             Stream.runForEach((event) => {
@@ -99,20 +100,16 @@ export class Conversations extends Context.Service<
                 session = event.session;
                 return Effect.void;
               }
-              const current = drafts.get(id);
-              if (!current) return Effect.void;
-              const draft = { id: current.id, text: current.text + event.text };
+              draft = { id: draft.id, text: draft.text + event.text };
               drafts.set(id, draft);
               return publish(id, { _tag: "Draft", draft });
             }),
           );
           if (Option.isSome(session)) yield* store.saveSession(id, session.value);
-          const draft = drafts.get(id);
-          if (!draft) return;
-          const reply = yield* message("assistant", draft.text, Effect.succeed(draft.id));
+          const reply = yield* message(draft.id, "assistant", draft.text);
           yield* store.append(id, reply);
+          drafts.delete(id);
           yield* publish(id, { _tag: "MessageAdded", message: reply });
-          yield* publish(id, { _tag: "TurnFinished" });
         }).pipe(
           Effect.catchCause((cause) => {
             if (Cause.hasInterruptsOnly(cause)) return Effect.failCause(cause);
@@ -159,7 +156,7 @@ export class Conversations extends Context.Service<
           drafts.set(conversationId, draft);
           failures.delete(conversationId);
           yield* Effect.gen(function* () {
-            const prompt = yield* message("user", text);
+            const prompt = yield* message(yield* ids.next, "user", text);
             yield* store.append(conversationId, prompt);
             yield* audit.record({
               actor: yield* CurrentActor,
@@ -169,7 +166,7 @@ export class Conversations extends Context.Service<
             yield* publish(conversationId, { _tag: "MessageAdded", message: prompt });
             yield* publish(conversationId, { _tag: "Draft", draft });
           }).pipe(Effect.onError(() => release(conversationId)));
-          yield* FiberSet.run(turns)(respond(stored, driver, text));
+          yield* FiberSet.run(turns)(respond(stored, driver, draft, text));
           return stored.conversation;
         }),
         watch: (id) =>

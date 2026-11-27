@@ -8,11 +8,15 @@ interface Props {
   readonly failure: string | null;
 }
 
-const Message = ({ role, text }: Pick<ChatMessage, "role" | "text">) => {
+const Message = ({
+  role,
+  text,
+  pending,
+}: Pick<ChatMessage, "role" | "text"> & { readonly pending: boolean }) => {
   if (role === "user") {
     return <p className="max-w-[80%] self-end rounded-lg bg-neutral px-3 py-2 whitespace-pre-wrap">{text}</p>;
   }
-  return text === "" ? <Shimmer>Thinking…</Shimmer> : <Markdown source={text} />;
+  return pending && text === "" ? <Shimmer>Thinking…</Shimmer> : <Markdown source={text} />;
 };
 
 export const Transcript = ({ messages, draft, failure }: Props) => {
@@ -28,7 +32,12 @@ export const Transcript = ({ messages, draft, failure }: Props) => {
   return (
     <div className="flex flex-col gap-6">
       {items.map((message) => (
-        <Message key={message.id} role={message.role} text={message.text} />
+        <Message
+          key={message.id}
+          role={message.role}
+          text={message.text}
+          pending={message.id === draft?.id}
+        />
       ))}
       {failure ? <p className="text-sm text-danger">{failure}</p> : null}
       <div ref={end} />

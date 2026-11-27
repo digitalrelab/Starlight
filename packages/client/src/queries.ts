@@ -125,8 +125,6 @@ const createSubscriptions = (client: StarlightClient, queryClient: QueryClient, 
               : [...detail.messages, event.message],
             draft: detail.draft?.id === event.message.id ? null : detail.draft,
           }));
-        case "TurnFinished":
-          return update((detail) => ({ ...detail, draft: null }));
         case "TurnFailed":
           return update((detail) => ({ ...detail, draft: null, failure: event.message }));
       }

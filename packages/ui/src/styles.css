@@ -29,21 +29,20 @@
 }
 
 @utility shimmer {
-  background-image:
-    linear-gradient(
-      90deg,
-      transparent calc(50% - var(--shimmer-spread)),
-      var(--text-color-default),
-      transparent calc(50% + var(--shimmer-spread))
-    ),
-    linear-gradient(var(--text-color-subtlest), var(--text-color-subtlest));
-  background-size:
-    250% 100%,
-    auto;
-  background-repeat: no-repeat, padding-box;
+  --shimmer-spread: calc(var(--shimmer-length) * 2px);
+  display: inline-block;
+  background-color: var(--text-color-subtlest);
+  background-image: linear-gradient(
+    90deg,
+    transparent calc(50% - var(--shimmer-spread)),
+    var(--text-color-default),
+    transparent calc(50% + var(--shimmer-spread))
+  );
+  background-size: 250% 100%;
+  background-repeat: no-repeat;
   background-clip: text;
   color: transparent;
-  animation: shimmer var(--shimmer-duration) linear infinite;
+  animation: shimmer 2s linear infinite;
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
@@ -52,13 +51,9 @@
 
 @keyframes shimmer {
   from {
-    background-position:
-      100% center,
-      0 0;
+    background-position: 100% center;
   }
   to {
-    background-position:
-      0% center,
-      0 0;
+    background-position: 0% center;
   }
 }

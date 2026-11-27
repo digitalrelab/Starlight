@@ -35,7 +35,6 @@ export type ConversationDetail = typeof ConversationDetail.Type;
 export const ConversationEvent = Schema.Union([
   Schema.TaggedStruct("Draft", { draft: Draft }),
   Schema.TaggedStruct("MessageAdded", { message: ChatMessage }),
-  Schema.TaggedStruct("TurnFinished", {}),
   Schema.TaggedStruct("TurnFailed", { message: Schema.String }),
 ]);
 export type ConversationEvent = typeof ConversationEvent.Type;
