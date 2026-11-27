@@ -6,6 +6,9 @@
 @theme {
   --spacing-titlebar: calc(2.75rem / var(--interface-zoom, 1));
   --spacing-traffic-lights: calc(5rem / var(--interface-zoom, 1));
+  --font-chat: var(--chat-font, var(--font-sans));
+  --text-chat: var(--chat-text-size, 0.9375rem);
+  --text-chat--line-height: 1.6;
 }
 
 @layer base {

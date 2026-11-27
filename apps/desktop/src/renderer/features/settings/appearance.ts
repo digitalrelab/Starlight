@@ -8,10 +8,10 @@ export const colorScheme = defineStored("color-scheme", oneOf(COLOR_SCHEMES), "s
 
 export const cursor = defineStored("cursor", oneOf(["default", "pointer"]), "default");
 
-export const INTERFACE_SIZES = ["smaller", "small", "default", "large", "larger"] as const;
-export type InterfaceSize = (typeof INTERFACE_SIZES)[number];
+export const SIZES = ["smaller", "small", "default", "large", "larger"] as const;
+export type Size = (typeof SIZES)[number];
 
-const ZOOM_FACTORS: Record<InterfaceSize, number> = {
+const ZOOM_FACTORS: Record<Size, number> = {
   smaller: 0.8,
   small: 0.9,
   default: 1,
@@ -19,11 +19,26 @@ const ZOOM_FACTORS: Record<InterfaceSize, number> = {
   larger: 1.2,
 };
 
-export const interfaceSize = defineStored("interface-size", oneOf(INTERFACE_SIZES), "default");
+export const interfaceSize = defineStored("interface-size", oneOf(SIZES), "default");
 
-const stepped = (size: InterfaceSize, step: ZoomStep) => {
+export const CHAT_FONTS = ["sans", "serif", "mono"] as const;
+export type ChatFont = (typeof CHAT_FONTS)[number];
+
+export const chatFont = defineStored("chat-font", oneOf(CHAT_FONTS), "sans");
+
+const CHAT_TEXT_SIZES: Record<Size, string> = {
+  smaller: "0.8125rem",
+  small: "0.875rem",
+  default: "0.9375rem",
+  large: "1rem",
+  larger: "1.0625rem",
+};
+
+export const chatTextSize = defineStored("chat-text-size", oneOf(SIZES), "default");
+
+const stepped = (size: Size, step: ZoomStep) => {
   if (step === "reset") return "default";
-  return INTERFACE_SIZES[INTERFACE_SIZES.indexOf(size) + (step === "in" ? 1 : -1)] ?? size;
+  return SIZES[SIZES.indexOf(size) + (step === "in" ? 1 : -1)] ?? size;
 };
 
 export const useInterfaceZoom = () => {
@@ -41,4 +56,14 @@ export const useInterfaceZoom = () => {
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
   }, []);
+};
+
+export const useChatAppearance = () => {
+  const font = useStored(chatFont);
+  const size = CHAT_TEXT_SIZES[useStored(chatTextSize)];
+  useLayoutEffect(() => {
+    const { style } = document.documentElement;
+    style.setProperty("--chat-font", `var(--font-${font})`);
+    style.setProperty("--chat-text-size", size);
+  }, [font, size]);
 };

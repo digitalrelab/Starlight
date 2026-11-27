@@ -42,7 +42,7 @@ export const Transcript = ({ messages, draft, failure, className }: Props) => {
       className="flex-1"
       ref={viewport}
       contentRef={content}
-      contentClassName={cn("flex flex-col gap-6", className)}
+      contentClassName={cn("flex flex-col gap-6 font-chat text-chat", className)}
     >
       {items.map((message) => (
         <Message
@@ -52,7 +52,7 @@ export const Transcript = ({ messages, draft, failure, className }: Props) => {
           pending={message.id === draft?.id}
         />
       ))}
-      {failure ? <p className="text-sm text-danger">{failure}</p> : null}
+      {failure ? <p className="font-sans text-sm text-danger">{failure}</p> : null}
     </ScrollArea>
   );
 };
