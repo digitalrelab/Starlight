@@ -62,8 +62,7 @@ export const useChatAppearance = () => {
   const font = useStored(chatFont);
   const size = CHAT_TEXT_SIZES[useStored(chatTextSize)];
   useLayoutEffect(() => {
-    const { style } = document.documentElement;
-    style.setProperty("--chat-font", `var(--font-${font})`);
-    style.setProperty("--chat-text-size", size);
+    document.documentElement.dataset["chatFont"] = font;
+    document.documentElement.style.setProperty("--text-chat", size);
   }, [font, size]);
 };
