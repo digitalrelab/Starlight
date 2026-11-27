@@ -152,6 +152,7 @@ export class EntryStore extends Context.Service<
   EntryStore,
   {
     readonly roots: Effect.Effect<ReadonlyArray<EntryRef>>;
+    readonly find: (source: SourceId, id: EntryId) => Effect.Effect<Option.Option<StoredEntry>>;
     readonly children: (source: SourceId, directory: EntryId) => Effect.Effect<ReadonlyArray<StoredEntry>>;
     readonly withKeys: (
       source: SourceId,

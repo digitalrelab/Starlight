@@ -2,6 +2,7 @@ import type { ActiveTrigger } from "@starlight/markdown/editor";
 import {
   highlightable,
   ItemHint,
+  ItemLeading,
   listBody,
   listGroupLabel,
   listItem,
@@ -70,7 +71,7 @@ export const TriggerMenu = <Choice extends TriggerOption>({
                     onMouseDown={(event) => event.preventDefault()}
                     onClick={() => active.choose(choice)}
                   >
-                    <span className="flex shrink-0 text-subtle">{choice.leading}</span>
+                    <ItemLeading>{choice.leading}</ItemLeading>
                     <span className="min-w-0 truncate">{choice.label}</span>
                     {choice.detail ? <ItemHint>{choice.detail}</ItemHint> : null}
                   </div>

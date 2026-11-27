@@ -8,9 +8,8 @@ import type {
   SourceError,
   SourceUnavailable,
 } from "@starlight/contracts";
-import { Array as Arr, Context, Effect, Layer } from "effect";
-import { EntryIndex } from "./entry-index.ts";
-import { ChatStore, FileTokens, type SourceDriver, type SourceEntry } from "./ports.ts";
+import { Array as Arr, Context, Effect, Layer, Option } from "effect";
+import { ChatStore, EntryStore, FileTokens, type SourceEntry } from "./ports.ts";
 import { ownerOf, Projects } from "./projects.ts";
 import { EntrySearch } from "./search.ts";
 
@@ -47,13 +46,14 @@ export class References extends Context.Service<
       const projects = yield* Projects;
       const entrySearch = yield* EntrySearch;
       const chats = yield* ChatStore;
-      const index = yield* EntryIndex;
+      const entries = yield* EntryStore;
       const tokens = yield* FileTokens;
 
-      const tokenOf = (driver: SourceDriver, ref: EntryRef, entry: SourceEntry) =>
-        Effect.map(
-          index.bind(driver, { source: ref.source, id: driver.parent(ref.id) }, [entry]),
-          ([identified]) => (identified ? tokens.issue(ref, identified) : null),
+      const tokenOf = (ref: EntryRef, entry: SourceEntry) =>
+        Effect.map(entries.find(ref.source, ref.id), (stored) =>
+          Option.isSome(stored) && stored.value.fileId !== null && stored.value.key === entry.key
+            ? tokens.issue(ref, { ...entry, fileId: stored.value.fileId })
+            : null,
         );
 
       const searchEntries = (query: string, preferred: ProjectId | null, includeHidden: boolean) =>
@@ -83,7 +83,7 @@ export class References extends Context.Service<
             kind: entry.kind,
             project: owner?.project.id ?? null,
             directory: entry.kind === "directory" ? ref : { source: ref.source, id: driver.parent(ref.id) },
-            token: owner && entry.kind === "file" ? yield* tokenOf(driver, ref, entry) : null,
+            token: owner && entry.kind === "file" ? yield* tokenOf(ref, entry) : null,
           };
         }),
       });
