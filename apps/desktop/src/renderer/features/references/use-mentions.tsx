@@ -1,5 +1,5 @@
 import { BubbleChatIcon } from "@hugeicons-pro/core-stroke-rounded";
-import { type ReferenceMatch, referenceOf, referenceUrl } from "@starlight/client";
+import { type EntryReference, type ReferenceMatch, referenceOf, referenceUrl } from "@starlight/client";
 import {
   type ActiveTrigger,
   insertLink,
@@ -30,8 +30,6 @@ interface MentionChoice extends TriggerOption {
   readonly group: (typeof GROUPS)[number];
   readonly url: string;
 }
-
-type EntryReference = Extract<ReferenceMatch, { readonly _tag: "Entry" }>;
 
 const entryChoice = (match: EntryReference, detail: string | undefined): MentionChoice => {
   const url = referenceUrl({ _tag: "Entry", ref: match.ref });

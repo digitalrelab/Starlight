@@ -1,4 +1,4 @@
-import type { EntryMatch } from "@starlight/client";
+import type { EntryMatch, EntryReference } from "@starlight/client";
 import type { CommandGroup, CommandItem } from "@starlight/ui";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
@@ -17,9 +17,10 @@ export const useEntryGroups = (text: string, projectId: string | null): Readonly
   const navigate = useNavigate();
   const searching = text.length >= MIN_QUERY;
   const { data = [] } = useQuery({
-    ...queries.entrySearch(text, projectId, useStore(hiddenFiles) === "show"),
+    ...queries.referenceSearch(text, projectId, useStore(hiddenFiles) === "show"),
     enabled: searching,
     placeholderData: keepPreviousData,
+    select: (matches) => matches.filter((match): match is EntryReference => match._tag === "Entry"),
   });
   if (!searching) return [];
   const detailOf = disambiguate(data);

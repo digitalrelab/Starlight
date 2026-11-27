@@ -4,7 +4,6 @@ import {
   Chats,
   CurrentActor,
   Entries,
-  EntrySearch,
   Files,
   MediaLibrary,
   Projects,
@@ -22,7 +21,6 @@ const HandlersLive = HostRpcs.toLayer(
     const agentProviders = yield* AgentProviders;
     const chats = yield* Chats;
     const references = yield* References;
-    const search = yield* EntrySearch;
     return HostRpcs.of({
       CreateProject: ({ root }) => projects.create(root),
       ListProjects: () => projects.list,
@@ -40,7 +38,6 @@ const HandlersLive = HostRpcs.toLayer(
       SearchReferences: ({ query, projectId, includeHidden }) =>
         references.search(query, projectId, includeHidden),
       LocateEntry: ({ ref }) => references.locate(ref),
-      SearchEntries: ({ query, projectId, includeHidden }) => search.search(query, projectId, includeHidden),
       GetFileDetails: ({ projectId, file }) => files.details(projectId, file),
       WriteFile: ({ projectId, file, content, base }) => files.write(projectId, file, content, base),
       ListAgentProviders: () => agentProviders.list,
