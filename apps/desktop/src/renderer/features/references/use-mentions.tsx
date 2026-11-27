@@ -19,11 +19,9 @@ import { itemKindOf } from "#renderer/features/files/kind-icon.tsx";
 import { hiddenFiles } from "#renderer/features/settings/files.ts";
 import { useStarlight } from "#renderer/lib/context.ts";
 import { useStore } from "#renderer/lib/store.ts";
-import { useDebouncedValue } from "#renderer/lib/use-debounced-value.ts";
 import { renderReference } from "./reference-link.tsx";
 import { type Resolution, TriggerMenu, type TriggerOption } from "./trigger-menu.tsx";
 
-const SEARCH_DELAY_MS = 150;
 const SEARCH_FRESH_MS = 10_000;
 
 const GROUPS = ["Folders", "Files", "Chats"] as const;
@@ -68,16 +66,15 @@ const choicesOf = (matches: ReadonlyArray<ReferenceMatch>) => {
 
 const useMentionChoices = (query: string): Resolution<MentionChoice> => {
   const { queries } = useStarlight();
-  const term = useDebouncedValue(query, SEARCH_DELAY_MS);
   const includeHidden = useStore(hiddenFiles) === "show";
   const matches = useQuery({
-    ...queries.referenceSearch(term, null, includeHidden),
+    ...queries.referenceSearch(query, null, includeHidden),
     staleTime: SEARCH_FRESH_MS,
     placeholderData: keepPreviousData,
   });
   return {
     choices: choicesOf(matches.data ?? []),
-    settled: term === query && !matches.isPending && !matches.isPlaceholderData,
+    settled: !matches.isPending && !matches.isPlaceholderData,
   };
 };
 
