@@ -7,7 +7,6 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import type { AgentToolkit, AgentToolResult } from "@starlight/core";
 import { Effect, Option } from "effect";
-import { NO_FILE_ACCESS } from "#adapters/agent.ts";
 
 const SERVER = "starlight";
 
@@ -22,39 +21,46 @@ const toCallToolResult = ({ content, failed }: AgentToolResult): CallToolResult 
   isError: failed,
 });
 
+const createServer = (initial: AgentToolkit) => {
+  let toolkit = initial;
+  const instance = new McpServer(
+    { name: SERVER, version: "1" },
+    { capabilities: { tools: {} }, instructions: initial.instructions },
+  );
+  instance.server.setRequestHandler(ListToolsRequestSchema, () => ({
+    tools: toolkit.tools.map(({ name, description, parameters }) => ({
+      name,
+      description,
+      inputSchema: { ...parameters, type: "object" as const },
+      _meta: { "anthropic/alwaysLoad": true },
+    })),
+  }));
+  instance.server.setRequestHandler(CallToolRequestSchema, ({ params }) =>
+    Effect.runPromise(toolkit.call(params.name, params.arguments ?? {})).then(toCallToolResult),
+  );
+  return {
+    config: { type: "sdk", name: SERVER, instance } satisfies McpSdkServerConfigWithInstance,
+    use: (next: AgentToolkit) => {
+      toolkit = next;
+    },
+  };
+};
+
 export const makeToolServer = () => {
-  let toolkit: AgentToolkit | undefined;
-  let server: McpSdkServerConfigWithInstance | undefined;
+  let server: ReturnType<typeof createServer> | undefined;
   let registered = false;
 
-  const create = (instructions: string): McpSdkServerConfigWithInstance => {
-    const instance = new McpServer(
-      { name: SERVER, version: "1" },
-      { capabilities: { tools: {} }, instructions },
-    );
-    instance.server.setRequestHandler(ListToolsRequestSchema, () => ({
-      tools: (toolkit?.tools ?? []).map(({ name, description, parameters }) => ({
-        name,
-        description,
-        inputSchema: { ...parameters, type: "object" as const },
-        _meta: { "anthropic/alwaysLoad": true },
-      })),
-    }));
-    instance.server.setRequestHandler(CallToolRequestSchema, ({ params }) =>
-      toolkit
-        ? Effect.runPromise(toolkit.call(params.name, params.arguments ?? {})).then(toCallToolResult)
-        : { content: [{ type: "text", text: NO_FILE_ACCESS }], isError: true },
-    );
-    return { type: "sdk", name: SERVER, instance };
-  };
-
   return {
-    use: async (query: Query, next: Option.Option<AgentToolkit>) => {
-      toolkit = Option.getOrUndefined(next);
-      const wanted = toolkit !== undefined;
-      if (wanted === registered) return;
-      await query.setMcpServers(toolkit ? { [SERVER]: (server ??= create(toolkit.instructions)) } : {});
-      registered = wanted;
+    use: async (query: Query, toolkit: Option.Option<AgentToolkit>) => {
+      if (Option.isNone(toolkit)) {
+        if (registered) await query.setMcpServers({});
+        registered = false;
+        return;
+      }
+      if (server) server.use(toolkit.value);
+      else server = createServer(toolkit.value);
+      if (!registered) await query.setMcpServers({ [SERVER]: server.config });
+      registered = true;
     },
   };
 };

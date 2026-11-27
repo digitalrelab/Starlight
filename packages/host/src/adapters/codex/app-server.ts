@@ -16,6 +16,15 @@ export interface Inbound {
 
 export type Answerer = (request: Inbound) => Promise<unknown> | undefined;
 
+const subscribe =
+  <A>(subscribers: Set<A>) =>
+  (subscriber: A) => {
+    subscribers.add(subscriber);
+    return () => {
+      subscribers.delete(subscriber);
+    };
+  };
+
 const parse = (line: string): Message | undefined => {
   try {
     return JSON.parse(line) as Message;
@@ -96,18 +105,8 @@ export const connectAppServer = async (executable: string) => {
 
   return {
     request,
-    listen: (listener: (notification: Inbound) => void) => {
-      listeners.add(listener);
-      return () => {
-        listeners.delete(listener);
-      };
-    },
-    answer: (answerer: Answerer) => {
-      answerers.add(answerer);
-      return () => {
-        answerers.delete(answerer);
-      };
-    },
+    listen: subscribe(listeners),
+    answer: subscribe(answerers),
     get alive() {
       return alive;
     },

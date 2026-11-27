@@ -1,6 +1,5 @@
 import type { AgentToolkit, AgentToolResult } from "@starlight/core";
 import { Effect, Option } from "effect";
-import { NO_FILE_ACCESS } from "#adapters/agent.ts";
 import type { Answerer } from "./app-server.ts";
 
 const toResponse = ({ content, failed }: AgentToolResult) => ({
@@ -13,7 +12,7 @@ const toResponse = ({ content, failed }: AgentToolResult) => ({
 });
 
 const UNAVAILABLE = toResponse({
-  content: [{ _tag: "Text", text: NO_FILE_ACCESS }],
+  content: [{ _tag: "Text", text: "This chat can't read files." }],
   failed: true,
 });
 
