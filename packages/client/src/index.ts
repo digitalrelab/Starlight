@@ -1,4 +1,5 @@
 export type {
+  AgentProvider,
   Crumb,
   Entry,
   EntryRef,
@@ -8,7 +9,7 @@ export type {
   Update,
   Workspace,
 } from "@starlight/contracts";
-export { DirectoryMissing } from "@starlight/contracts";
+export { ClaudeCodeProvider, DirectoryMissing } from "@starlight/contracts";
 export * from "./client.ts";
 export * from "./queries.ts";
 export * from "./refs.ts";
