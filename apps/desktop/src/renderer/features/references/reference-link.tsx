@@ -4,11 +4,11 @@ import type { RenderLink } from "@starlight/markdown";
 import { cn, Icon } from "@starlight/ui";
 import { useQuery } from "@tanstack/react-query";
 import { Link, type LinkOptions } from "@tanstack/react-router";
-import { type ReactNode, useState } from "react";
-import { previewUrl } from "#shared/previews.ts";
+import type { ReactNode } from "react";
 import { chatLink } from "#renderer/features/agent/chat-links.ts";
 import { toDirectorySearch, toFileSearch } from "#renderer/features/browser/directory-search.ts";
-import { itemKindOf, KindIcon } from "#renderer/features/files/kind-icon.tsx";
+import { EntryIcon } from "#renderer/features/files/entry-icon.tsx";
+import { itemKindOf } from "#renderer/features/files/kind-icon.tsx";
 import { useStarlight } from "#renderer/lib/context.ts";
 
 interface ChipProps {
@@ -47,40 +47,18 @@ const openingOf = (ref: EntryRef, { kind, project, directory }: EntryLocation): 
 
 const ICON_SIZE = 14;
 
-interface Settled {
-  readonly preview: string;
-  readonly loaded: boolean;
-}
-
-const EntryIcon = ({ location }: { readonly location: EntryLocation | undefined }) => {
-  const [settled, setSettled] = useState<Settled | null>(null);
-  const preview = location?.preview ?? null;
-  const loaded = settled?.preview === preview ? settled.loaded : undefined;
-  return (
-    <>
-      {loaded ? null : <KindIcon kind={location ? itemKindOf(location) : "other"} size={ICON_SIZE} />}
-      {preview === null || loaded === false ? null : (
-        <img
-          alt=""
-          src={previewUrl(preview, ICON_SIZE * window.devicePixelRatio)}
-          width={ICON_SIZE}
-          height={ICON_SIZE}
-          hidden={!loaded}
-          onLoad={() => setSettled({ preview, loaded: true })}
-          onError={() => setSettled({ preview, loaded: false })}
-          className="shrink-0 rounded-xs object-cover"
-        />
-      )}
-    </>
-  );
-};
-
 const EntryChip = ({ entry, label }: { readonly entry: EntryRef; readonly label: ReactNode }) => {
   const { queries } = useStarlight();
   const { data: location, isError } = useQuery(queries.entryLocation(entry));
   return (
     <Chip
-      icon={<EntryIcon location={location} />}
+      icon={
+        <EntryIcon
+          kind={location ? itemKindOf(location) : "other"}
+          preview={location?.preview ?? null}
+          size={ICON_SIZE}
+        />
+      }
       label={label}
       link={location && openingOf(entry, location)}
       unresolved={isError ? "No longer exists" : location?.project === null ? "Not in a project" : undefined}

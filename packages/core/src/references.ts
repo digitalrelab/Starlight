@@ -17,6 +17,7 @@ import {
   FileTokens,
   type SourceDriver,
   type SourceEntry,
+  type StoredEntry,
 } from "./ports.ts";
 import { mountOf, Projects } from "./projects.ts";
 
@@ -27,6 +28,8 @@ const PREVIEWED = new Set<FileKind>(["image", "video"]);
 const sameEntry = (a: ReferenceMatch, b: ReferenceMatch) =>
   a._tag === "Entry" && b._tag === "Entry" && a.ref.source === b.ref.source && a.ref.id === b.ref.id;
 
+const previewable = (entry: SourceEntry) => entry.kind === "file" && PREVIEWED.has(fileKindOf(entry.name));
+
 const rootsOf = ({ name, mounts }: Project) =>
   mounts.map((mount): ReferenceMatch => ({
     _tag: "Entry",
@@ -34,6 +37,7 @@ const rootsOf = ({ name, mounts }: Project) =>
     name: mount.name,
     kind: "directory",
     parentName: name,
+    preview: null,
   }));
 
 export class References extends Context.Service<
@@ -51,25 +55,30 @@ export class References extends Context.Service<
       const index = yield* EntryIndex;
       const tokens = yield* FileTokens;
 
-      const previewOf = Effect.fnUntraced(function* (
-        driver: SourceDriver,
-        ref: EntryRef,
-        entry: SourceEntry,
-      ) {
-        if (entry.kind !== "file" || !PREVIEWED.has(fileKindOf(entry.name))) return null;
-        const directory = { source: ref.source, id: driver.parent(ref.id) };
-        const [identified] = yield* index.bind(driver, directory, [entry]);
-        return identified ? tokens.issue(ref, identified) : null;
-      });
+      const previewOf = (ref: EntryRef, { fileId, ...entry }: StoredEntry) =>
+        fileId !== null && previewable(entry) ? tokens.issue(ref, { ...entry, fileId }) : null;
 
-      const owned = (all: ReadonlyArray<Project>, { ref, name, kind, parentName }: EntryMatch) =>
-        projects.driverFor(ref.source).pipe(
+      const indexedPreview = (driver: SourceDriver, ref: EntryRef, entry: SourceEntry) =>
+        previewable(entry)
+          ? Effect.map(
+              index.bind(driver, { source: ref.source, id: driver.parent(ref.id) }, [entry]),
+              ([identified]) => (identified ? previewOf(ref, identified) : null),
+            )
+          : Effect.succeed(null);
+
+      const owned = (all: ReadonlyArray<Project>, { source, entry, parentName }: EntryMatch) => {
+        const ref = { source, id: entry.id };
+        return projects.driverFor(source).pipe(
           Effect.map((driver): ReadonlyArray<ReferenceMatch> => {
             const mount = all.flatMap((project) => mountOf(project, driver, ref) ?? []).at(0);
-            return mount ? [{ _tag: "Entry", ref, name, kind, parentName: parentName ?? mount.name }] : [];
+            if (!mount) return [];
+            const { name, kind } = entry;
+            const preview = previewOf(ref, entry);
+            return [{ _tag: "Entry", ref, name, kind, parentName: parentName ?? mount.name, preview }];
           }),
           Effect.orElseSucceed((): ReadonlyArray<ReferenceMatch> => []),
         );
+      };
 
       const searchEntries = Effect.fn("References.searchEntries")(function* (query: string) {
         const all = yield* projects.list;
@@ -91,7 +100,7 @@ export class References extends Context.Service<
             kind: entry.kind,
             project: project?.id ?? null,
             directory: entry.kind === "directory" ? ref : { source: ref.source, id: driver.parent(ref.id) },
-            preview: project ? yield* previewOf(driver, ref, entry) : null,
+            preview: project ? yield* indexedPreview(driver, ref, entry) : null,
           };
         }),
         search: Effect.fn("References.search")(function* (query) {

@@ -18,6 +18,9 @@ const Row = Schema.Struct({
 });
 
 const COLUMNS = "id, key, name, kind, size, created_at, modified_at, hidden, file_id";
+const ENTRY_COLUMNS = COLUMNS.split(", ")
+  .map((column) => `entries.${column}`)
+  .join(", ");
 
 const toEntry = (row: typeof Row.Type): StoredEntry => ({
   id: row.id,
@@ -49,13 +52,7 @@ export const SqliteEntryStoreLive = Layer.effect(EntryStore)(
 
     const search = SqlSchema.findAll({
       Request: Schema.Struct({ query: Schema.String, limit: Schema.Number }),
-      Result: Schema.Struct({
-        source: SourceId,
-        id: EntryId,
-        name: Schema.String,
-        kind: EntryKind,
-        parent_name: Schema.NullOr(Schema.String),
-      }),
+      Result: Schema.Struct({ ...Row.fields, source: SourceId, parent_name: Schema.NullOr(Schema.String) }),
       execute: ({ query, limit }) => sql`
         WITH RECURSIVE concealed (source, id) AS (
           SELECT source, id FROM entries WHERE hidden = 1
@@ -63,7 +60,7 @@ export const SqliteEntryStoreLive = Layer.effect(EntryStore)(
           SELECT entries.source, entries.id FROM entries
           JOIN concealed ON entries.source = concealed.source AND entries.parent = concealed.id
         )
-        SELECT entries.source, entries.id, entries.name, entries.kind, parents.name AS parent_name
+        SELECT entries.source, ${sql.literal(ENTRY_COLUMNS)}, parents.name AS parent_name
         FROM entries
         LEFT JOIN entries AS parents ON parents.source = entries.source AND parents.id = entries.parent
         WHERE entries.name LIKE ${containing(query)} ESCAPE ${LIKE_ESCAPE}
@@ -113,12 +110,7 @@ export const SqliteEntryStoreLive = Layer.effect(EntryStore)(
       search: (query, limit) =>
         search({ query, limit }).pipe(
           Effect.map((rows) =>
-            rows.map(({ source, id, name, kind, parent_name }) => ({
-              ref: { source, id },
-              name,
-              kind,
-              parentName: parent_name,
-            })),
+            rows.map((row) => ({ source: row.source, entry: toEntry(row), parentName: row.parent_name })),
           ),
           Effect.orDie,
         ),

@@ -131,9 +131,8 @@ export interface StoredEntry extends SourceEntry {
 }
 
 export interface EntryMatch {
-  readonly ref: EntryRef;
-  readonly name: string;
-  readonly kind: EntryKind;
+  readonly source: SourceId;
+  readonly entry: StoredEntry;
   readonly parentName: string | null;
 }
 

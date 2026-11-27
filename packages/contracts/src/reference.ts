@@ -45,6 +45,7 @@ export const ReferenceMatch = Schema.Union([
     name: Schema.String,
     kind: EntryKind,
     parentName: Schema.String,
+    preview: Schema.NullOr(FileToken),
   }),
   Schema.TaggedStruct("Chat", { id: ChatId, title: Schema.String }),
 ]);

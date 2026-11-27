@@ -8,7 +8,7 @@ import { placeholderUrl } from "#renderer/lib/placeholder.ts";
 import { reveal } from "#renderer/lib/reveal.ts";
 import { KindIcon, itemKindOf } from "#renderer/features/files/kind-icon.tsx";
 import { type ItemHandlers, useItem } from "./events.ts";
-import { usePreview } from "./use-preview.ts";
+import { usePreview } from "#renderer/features/files/use-preview.ts";
 
 export const TILE_INSET = 4;
 const CAPTION_HEIGHT = 28;

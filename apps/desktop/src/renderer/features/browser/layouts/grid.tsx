@@ -10,7 +10,7 @@ import { listProps, type Step } from "./events.ts";
 import { justify, nearestInRow, shelve, stack } from "./rows.ts";
 import { FolderChip, TILE_CHROME, TILE_INSET, Tile, tilePreviewUrl } from "./tile.tsx";
 import type { LayoutProps } from "./types.ts";
-import { usePreviewsAhead } from "./use-preview.ts";
+import { usePreviewsAhead } from "#renderer/features/files/use-preview.ts";
 
 const TARGET_ROW_HEIGHT = 200;
 const MAX_ROW_HEIGHT = 320;

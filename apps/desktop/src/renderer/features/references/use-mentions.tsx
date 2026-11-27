@@ -13,7 +13,8 @@ import { Icon } from "@starlight/ui";
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
-import { itemKindOf, KindIcon } from "#renderer/features/files/kind-icon.tsx";
+import { EntryIcon } from "#renderer/features/files/entry-icon.tsx";
+import { itemKindOf } from "#renderer/features/files/kind-icon.tsx";
 import { useStarlight } from "#renderer/lib/context.ts";
 import { useDebouncedValue } from "#renderer/lib/use-debounced-value.ts";
 import { renderReference } from "./reference-link.tsx";
@@ -40,7 +41,7 @@ const choiceOf = (match: ReferenceMatch): MentionChoice => {
     key: url,
     url,
     group: match.kind === "directory" ? "Folders" : "Files",
-    leading: <KindIcon kind={itemKindOf(match)} />,
+    leading: <EntryIcon kind={itemKindOf(match)} preview={match.preview} />,
     label: match.name,
     parentName: match.parentName,
   };
