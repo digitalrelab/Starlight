@@ -1,17 +1,17 @@
 import { ArrowRight01Icon } from "@hugeicons-pro/core-stroke-rounded";
-import { type Crumb, entryKey, type Workspace } from "@starlight/client";
+import { type Crumb, entryKey, type Project } from "@starlight/client";
 import { cn, Icon } from "@starlight/ui";
 import { Link } from "@tanstack/react-router";
 import { toDirectorySearch } from "./directory-search.ts";
 
 interface Props {
-  readonly workspace: Workspace;
+  readonly project: Project;
   readonly trail: ReadonlyArray<Crumb>;
 }
 
-export const Breadcrumbs = ({ workspace, trail }: Props) => {
+export const Breadcrumbs = ({ project, trail }: Props) => {
   const crumbs = [
-    { key: "", label: workspace.name, search: toDirectorySearch(null) },
+    { key: "", label: project.name, search: toDirectorySearch(null) },
     ...trail.map((crumb) => ({
       key: entryKey(crumb.ref),
       label: crumb.name,
@@ -25,8 +25,8 @@ export const Breadcrumbs = ({ workspace, trail }: Props) => {
         <span key={crumb.key} className="flex min-w-0 items-center gap-0.5">
           {i > 0 ? <Icon icon={ArrowRight01Icon} size={12} className="text-subtle" /> : null}
           <Link
-            to="/w/$workspaceId"
-            params={{ workspaceId: workspace.id }}
+            to="/p/$projectId"
+            params={{ projectId: project.id }}
             search={crumb.search}
             className={cn(
               "truncate rounded-sm px-1.5 py-0.5 hover:bg-neutral-subtle-hovered",

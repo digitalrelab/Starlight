@@ -82,13 +82,13 @@ const Video = ({ source }: { readonly source: FileSource }) => {
 };
 
 interface MarkdownFileProps {
-  readonly workspaceId: string;
+  readonly projectId: string;
   readonly entry: Entry;
   readonly source: FileSource;
 }
 
-const MarkdownFile = ({ workspaceId, entry, source }: MarkdownFileProps) => {
-  const { session, document, status, unsaved } = useFileSession(workspaceId, entry.ref, source, textCodec);
+const MarkdownFile = ({ projectId, entry, source }: MarkdownFileProps) => {
+  const { session, document, status, unsaved } = useFileSession(projectId, entry.ref, source, textCodec);
   const statusSlot = useContext(StatusSlot);
   if (!document) return status === "failed" ? <Notice kind="markdown">Can’t open this file</Notice> : null;
   return (
@@ -112,16 +112,16 @@ const MarkdownFile = ({ workspaceId, entry, source }: MarkdownFileProps) => {
 };
 
 interface Props {
-  readonly workspaceId: string;
+  readonly projectId: string;
   readonly directory: EntryRef;
   readonly entry: Entry;
 }
 
-export const FileStage = ({ workspaceId, directory, entry }: Props) => {
+export const FileStage = ({ projectId, directory, entry }: Props) => {
   const { queries } = useStarlight();
   const presentation = presentationOf(entry);
   const source = useQuery({
-    ...queries.fileSource(workspaceId, directory, entry.ref),
+    ...queries.fileSource(projectId, directory, entry.ref),
     enabled: presentation !== "none",
   });
   if (presentation === "none") return <Notice kind={itemKindOf(entry)}>No preview available</Notice>;
@@ -129,6 +129,6 @@ export const FileStage = ({ workspaceId, directory, entry }: Props) => {
   if (!source.data) return null;
   if (presentation === "video") return <Video source={source.data} />;
   if (presentation === "markdown")
-    return <MarkdownFile workspaceId={workspaceId} entry={entry} source={source.data} />;
+    return <MarkdownFile projectId={projectId} entry={entry} source={source.data} />;
   return <Picture name={entry.name} source={source.data} presentation={presentation} />;
 };

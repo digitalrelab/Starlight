@@ -1,12 +1,12 @@
-import { FolderOpenIcon, Navigation03Icon, Settings01Icon } from "@hugeicons-pro/core-stroke-rounded";
+import { FolderAddIcon, Navigation03Icon, Settings01Icon } from "@hugeicons-pro/core-stroke-rounded";
 import { IconButton, NavItem } from "@starlight/ui";
 import { Link } from "@tanstack/react-router";
 import { UpdateButton } from "#renderer/features/updates/update-button.tsx";
-import { RecentWorkspaces } from "#renderer/features/workspaces/recent-workspaces.tsx";
-import { useOpenWorkspace } from "#renderer/features/workspaces/use-open-workspace.ts";
+import { useCreateProject } from "#renderer/features/projects/use-create-project.ts";
+import { ProjectList } from "#renderer/features/projects/project-list.tsx";
 
 export const MainSidebar = () => {
-  const openWorkspace = useOpenWorkspace();
+  const createProject = useCreateProject();
 
   return (
     <>
@@ -14,14 +14,14 @@ export const MainSidebar = () => {
         <NavItem icon={Navigation03Icon} render={<Link to="/agent" />}>
           Agent
         </NavItem>
-        <NavItem icon={FolderOpenIcon} onClick={openWorkspace.run} disabled={openWorkspace.pending}>
-          Open Folder…
+        <NavItem icon={FolderAddIcon} onClick={createProject.run} disabled={createProject.pending}>
+          New Project…
         </NavItem>
-        {openWorkspace.error ? (
-          <p className="px-2 text-sm text-danger">{openWorkspace.error.message}</p>
+        {createProject.error ? (
+          <p className="px-2 text-sm text-danger">{createProject.error.message}</p>
         ) : null}
       </div>
-      <RecentWorkspaces />
+      <ProjectList />
     </>
   );
 };

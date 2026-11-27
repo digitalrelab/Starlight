@@ -142,4 +142,10 @@ export const migrations = Migrator.fromRecord({
       ) WITHOUT ROWID
     `;
   }),
+  "0010_projects": Effect.gen(function* () {
+    const sql = yield* SqlClient.SqlClient;
+    yield* sql`ALTER TABLE workspaces RENAME TO projects`;
+    yield* sql`ALTER TABLE projects RENAME COLUMN opened_at TO created_at`;
+    yield* sql`ALTER TABLE mounts RENAME COLUMN workspace_id TO project_id`;
+  }),
 });

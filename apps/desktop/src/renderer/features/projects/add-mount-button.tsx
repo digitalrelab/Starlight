@@ -3,9 +3,9 @@ import { IconButton } from "@starlight/ui";
 import { useStarlight } from "#renderer/lib/context.ts";
 import { useFolderAction } from "./use-folder-action.ts";
 
-export const AddMountButton = ({ workspaceId }: { readonly workspaceId: string }) => {
+export const AddMountButton = ({ projectId }: { readonly projectId: string }) => {
   const { mutations } = useStarlight();
-  const addMount = useFolderAction(mutations.addMount(workspaceId));
+  const addMount = useFolderAction(mutations.addMount(projectId));
   return (
     <IconButton icon={FolderAddIcon} label="Add Folder…" onClick={addMount.run} disabled={addMount.pending} />
   );

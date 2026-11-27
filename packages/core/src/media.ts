@@ -1,32 +1,32 @@
-import type { DirectoryError, EntryRef, Media, MediaUpdate, WorkspaceId } from "@starlight/contracts";
+import type { DirectoryError, EntryRef, Media, MediaUpdate, ProjectId } from "@starlight/contracts";
 import { Context, Effect, Layer, Stream } from "effect";
 import { FileIdentities } from "./file-identities.ts";
 import { Catalog } from "./catalog.ts";
 import { FileTokens } from "./ports.ts";
-import { Workspaces } from "./workspaces.ts";
+import { Projects } from "./projects.ts";
 
 export class MediaLibrary extends Context.Service<
   MediaLibrary,
   {
     readonly list: (
-      workspaceId: WorkspaceId,
+      projectId: ProjectId,
       directory: EntryRef | null,
     ) => Effect.Effect<ReadonlyArray<Media>, DirectoryError>;
     readonly process: (
-      workspaceId: WorkspaceId,
+      projectId: ProjectId,
       directory: EntryRef | null,
     ) => Stream.Stream<ReadonlyArray<MediaUpdate>, DirectoryError>;
   }
 >()("@starlight/core/MediaLibrary") {
   static readonly layer = Layer.effect(MediaLibrary)(
     Effect.gen(function* () {
-      const workspaces = yield* Workspaces;
+      const projects = yield* Projects;
       const tokens = yield* FileTokens;
       const catalog = yield* Catalog;
       const identities = yield* FileIdentities;
 
-      const locate = Effect.fnUntraced(function* (workspaceId: WorkspaceId, requested: EntryRef) {
-        const { driver, directory } = yield* workspaces.locateDirectory(workspaceId, requested);
+      const locate = Effect.fnUntraced(function* (projectId: ProjectId, requested: EntryRef) {
+        const { driver, directory } = yield* projects.locateDirectory(projectId, requested);
         const files = yield* identities.bind(
           driver,
           directory,
@@ -37,9 +37,9 @@ export class MediaLibrary extends Context.Service<
       });
 
       return MediaLibrary.of({
-        list: Effect.fn("MediaLibrary.list")(function* (workspaceId, requested) {
+        list: Effect.fn("MediaLibrary.list")(function* (projectId, requested) {
           if (!requested) return [];
-          const { directory, dimensions, media } = yield* locate(workspaceId, requested);
+          const { directory, dimensions, media } = yield* locate(projectId, requested);
           const placeholders = yield* catalog.processed("placeholder", directory, media);
           return media.flatMap((entry): ReadonlyArray<Media> => {
             const found = dimensions.get(entry.id);
@@ -56,11 +56,11 @@ export class MediaLibrary extends Context.Service<
             ];
           });
         }),
-        process: (workspaceId, requested) =>
+        process: (projectId, requested) =>
           requested === null
             ? Stream.empty
             : Stream.unwrap(
-                Effect.map(locate(workspaceId, requested), ({ driver, directory, media }) =>
+                Effect.map(locate(projectId, requested), ({ driver, directory, media }) =>
                   catalog.process(driver, directory, media).pipe(
                     Stream.map((batch) =>
                       batch.flatMap(({ entry, facts }): ReadonlyArray<MediaUpdate> =>

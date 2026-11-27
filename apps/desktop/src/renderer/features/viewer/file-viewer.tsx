@@ -11,7 +11,7 @@ import { pictureUrl, presentationOf } from "./presentation.ts";
 import { StatusSlot } from "./status-slot.ts";
 
 interface Props {
-  readonly workspaceId: string;
+  readonly projectId: string;
   readonly directory: EntryRef;
   readonly directoryName: string;
   readonly entries: ReadonlyArray<Entry>;
@@ -33,7 +33,7 @@ const isKeyConsumed = (event: KeyboardEvent) =>
   (event.target instanceof HTMLElement && event.target.isContentEditable);
 
 const usePrefetch = (
-  workspaceId: string,
+  projectId: string,
   directory: EntryRef,
   previous: Entry | undefined,
   next: Entry | undefined,
@@ -44,7 +44,7 @@ const usePrefetch = (
       if (!entry) continue;
       const presentation = presentationOf(entry);
       if (presentation === "none") continue;
-      void queryClient.query(queries.fileSource(workspaceId, directory, entry.ref)).then(
+      void queryClient.query(queries.fileSource(projectId, directory, entry.ref)).then(
         (source) => {
           if (presentation === "markdown") {
             void loadEditor();
@@ -55,11 +55,11 @@ const usePrefetch = (
         () => undefined,
       );
     }
-  }, [queryClient, queries, workspaceId, directory, previous, next]);
+  }, [queryClient, queries, projectId, directory, previous, next]);
 };
 
 export const FileViewer = ({
-  workspaceId,
+  projectId,
   directory,
   directoryName,
   entries,
@@ -74,7 +74,7 @@ export const FileViewer = ({
   const current = files[index];
   const previous = index > 0 ? files[index - 1] : undefined;
   const next = index >= 0 ? files[index + 1] : undefined;
-  usePrefetch(workspaceId, directory, previous, next);
+  usePrefetch(projectId, directory, previous, next);
 
   const shownAt = useRef(index);
   const recover = useEffectEvent(() => {
@@ -144,7 +144,7 @@ export const FileViewer = ({
       <Theater.Stage>
         {current ? (
           <StatusSlot value={statusSlot}>
-            <FileStage key={file.id} workspaceId={workspaceId} directory={directory} entry={current} />
+            <FileStage key={file.id} projectId={projectId} directory={directory} entry={current} />
           </StatusSlot>
         ) : null}
       </Theater.Stage>

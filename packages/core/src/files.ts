@@ -3,24 +3,24 @@ import {
   type FileError,
   type FileSource,
   FileVersion,
+  type ProjectId,
   VersionConflict,
-  type WorkspaceId,
   type WriteError,
 } from "@starlight/contracts";
 import { Context, Effect, Layer, Option } from "effect";
 import { FileIdentities } from "./file-identities.ts";
 import { Catalog } from "./catalog.ts";
 import { AuditLog, CurrentActor, FileTokens, type SourceEntry } from "./ports.ts";
-import { Workspaces } from "./workspaces.ts";
+import { Projects } from "./projects.ts";
 
 const versionOf = ({ modifiedAt, size }: SourceEntry) => FileVersion.make(`${modifiedAt}:${size}`);
 
 export class Files extends Context.Service<
   Files,
   {
-    readonly source: (workspaceId: WorkspaceId, file: EntryRef) => Effect.Effect<FileSource, FileError>;
+    readonly source: (projectId: ProjectId, file: EntryRef) => Effect.Effect<FileSource, FileError>;
     readonly write: (
-      workspaceId: WorkspaceId,
+      projectId: ProjectId,
       file: EntryRef,
       content: Uint8Array,
       base: FileVersion,
@@ -29,15 +29,15 @@ export class Files extends Context.Service<
 >()("@starlight/core/Files") {
   static readonly layer = Layer.effect(Files)(
     Effect.gen(function* () {
-      const workspaces = yield* Workspaces;
+      const projects = yield* Projects;
       const tokens = yield* FileTokens;
       const catalog = yield* Catalog;
       const identities = yield* FileIdentities;
       const audit = yield* AuditLog;
 
       return Files.of({
-        source: Effect.fn("Files.source")(function* (workspaceId, requested) {
-          const { driver, file, entry } = yield* workspaces.locateFile(workspaceId, requested);
+        source: Effect.fn("Files.source")(function* (projectId, requested) {
+          const { driver, file, entry } = yield* projects.locateFile(projectId, requested);
           const [bound] = yield* identities.bind(
             driver,
             { source: file.source, id: driver.parent(file.id) },
@@ -50,8 +50,8 @@ export class Files extends Context.Service<
             dimensions: Option.getOrNull(dimensions),
           };
         }),
-        write: Effect.fn("Files.write")(function* (workspaceId, requested, content, base) {
-          const { driver, file, entry } = yield* workspaces.locateFile(workspaceId, requested);
+        write: Effect.fn("Files.write")(function* (projectId, requested, content, base) {
+          const { driver, file, entry } = yield* projects.locateFile(projectId, requested);
           if (versionOf(entry) !== base) return yield* new VersionConflict({ entry: requested });
           const written = yield* driver.write(file.id, content);
           yield* audit.record({

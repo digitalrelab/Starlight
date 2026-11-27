@@ -19,7 +19,7 @@ const PARTS: ReadonlyArray<Part> = [
     description: "Made from your files, safe to clear",
     fill: "bg-series-1",
   },
-  { key: "library", label: "Library", description: "Your workspaces and settings", fill: "bg-series-2" },
+  { key: "library", label: "Library", description: "Your projects and settings", fill: "bg-series-2" },
   { key: "other", label: "Other", description: "Caches and app data", fill: "bg-series-other" },
 ];
 

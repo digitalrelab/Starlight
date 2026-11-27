@@ -18,7 +18,7 @@ import { useFoldersAhead } from "#renderer/features/browser/use-folders-ahead.ts
 import { PageError } from "#renderer/features/shell/page-error.tsx";
 import { PageHeader } from "#renderer/features/shell/page-header.tsx";
 import { FileViewer } from "#renderer/features/viewer/file-viewer.tsx";
-import { AddMountButton } from "#renderer/features/workspaces/add-mount-button.tsx";
+import { AddMountButton } from "#renderer/features/projects/add-mount-button.tsx";
 import { useStarlight } from "#renderer/lib/context.ts";
 import { useStored } from "#renderer/lib/storage.ts";
 
@@ -27,19 +27,14 @@ interface Selection {
   readonly key: string | undefined;
 }
 
-export const Route = createFileRoute("/_app/w/$workspaceId")({
+export const Route = createFileRoute("/_app/p/$projectId/")({
   validateSearch: parseDirectorySearch,
   loaderDeps: ({ search }) => ({ directory: toDirectory(search) }),
   loader: ({ context, params, deps }) => {
     const { queryClient, queries } = context;
     return Promise.all([
-      queryClient.ensureQueryData(queries.workspace(params.workspaceId)),
-      queryClient.ensureQueryData(queries.entries(params.workspaceId, deps.directory)),
-      layouts[layoutPreference(params.workspaceId).get()].preload?.(
-        context,
-        params.workspaceId,
-        deps.directory,
-      ),
+      queryClient.ensureQueryData(queries.entries(params.projectId, deps.directory)),
+      layouts[layoutPreference(params.projectId).get()].preload?.(context, params.projectId, deps.directory),
     ]);
   },
   component: Browser,
@@ -47,18 +42,18 @@ export const Route = createFileRoute("/_app/w/$workspaceId")({
 });
 
 function Browser() {
-  const { workspaceId } = Route.useParams();
+  const { projectId } = Route.useParams();
   const { directory } = Route.useLoaderDeps();
   const file = toFile(Route.useSearch());
   const fileKey = file ? entryKey(file) : undefined;
   const navigate = Route.useNavigate();
   const router = useRouter();
   const { queries, subscriptions } = useStarlight();
-  const { data: workspace } = useSuspenseQuery(queries.workspace(workspaceId));
-  const { data: listing, error, isFetching } = useSuspenseQuery(queries.entries(workspaceId, directory));
-  const preference = layoutPreference(workspaceId);
+  const { data: project } = useSuspenseQuery(queries.project(projectId));
+  const { data: listing, error, isFetching } = useSuspenseQuery(queries.entries(projectId, directory));
+  const preference = layoutPreference(projectId);
   const layout = useStored(preference);
-  useEffect(() => subscriptions.entries(workspaceId), [subscriptions, workspaceId, workspace.mounts]);
+  useEffect(() => subscriptions.entries(projectId), [subscriptions, projectId, project.mounts]);
 
   const directoryKey = directory ? entryKey(directory) : "";
   const [selection, setSelection] = useState<Selection>({ directory: directoryKey, key: undefined });
@@ -73,11 +68,15 @@ function Browser() {
     else if (entry.kind === "file") showFile(entry.ref);
   };
   const preloadFolder = (folder: EntryRef) =>
-    router.preloadRoute({ to: Route.fullPath, params: { workspaceId }, search: toDirectorySearch(folder) });
+    router.preloadRoute({
+      to: "/p/$projectId",
+      params: { projectId },
+      search: toDirectorySearch(folder),
+    });
   const prefetch = (entry: Entry) => {
     if (entry.kind === "directory") void preloadFolder(entry.ref);
   };
-  useFoldersAhead(workspaceId, listing.entries, preloadFolder);
+  useFoldersAhead(projectId, listing.entries, preloadFolder);
   const closeViewer = () => {
     select(fileKey);
     void navigate({ search: toDirectorySearch(directory), replace: true });
@@ -90,16 +89,16 @@ function Browser() {
       <PageHeader
         actions={
           <>
-            <AddMountButton workspaceId={workspaceId} />
+            <AddMountButton projectId={projectId} />
             <LayoutSwitcher value={layout} onChange={preference.set} />
           </>
         }
       >
-        <Breadcrumbs workspace={workspace} trail={listing.trail} />
+        <Breadcrumbs project={project} trail={listing.trail} />
       </PageHeader>
       <DirectoryView
         key={directoryKey}
-        workspaceId={workspaceId}
+        projectId={projectId}
         directory={directory}
         entries={listing.entries}
         layout={layout}
@@ -110,9 +109,9 @@ function Browser() {
       />
       {directory && file ? (
         <FileViewer
-          workspaceId={workspaceId}
+          projectId={projectId}
           directory={directory}
-          directoryName={listing.trail.at(-1)?.name ?? workspace.name}
+          directoryName={listing.trail.at(-1)?.name ?? project.name}
           entries={listing.entries}
           file={file}
           onShow={showFile}
