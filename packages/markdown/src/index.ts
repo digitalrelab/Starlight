@@ -1,1 +1,1 @@
-export * from "./markdown.tsx";
+export * from "./renderer/markdown.tsx";

@@ -378,7 +378,7 @@ export interface MarkdownProps {
   readonly className?: string;
 }
 
-export const Markdown = ({ value, className }: MarkdownProps) => {
+export const Markdown = memo(({ value, className }: MarkdownProps) => {
   const { tree, source } = useDocument(value);
   return (
     <div className={cn("markdown", className)}>
@@ -387,4 +387,4 @@ export const Markdown = ({ value, className }: MarkdownProps) => {
       ))}
     </div>
   );
-};
+});
