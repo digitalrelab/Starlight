@@ -3,6 +3,7 @@ import { Rpc, RpcGroup } from "effect/rpc";
 import { AgentProvider, ModelChoice } from "./agent.ts";
 import { Chat, ChatBusy, ChatDetail, ChatEvent, ChatId, ChatNotFound, ModelUnavailable } from "./chat.ts";
 import { DiskUsage } from "./disk.ts";
+import { EntryLocation } from "./reference.ts";
 import { EntryChange, Listing } from "./entry.ts";
 import {
   DirectoryError,
@@ -73,6 +74,11 @@ export class HostRpcs extends RpcGroup.make(
     payload: { projectId: ProjectId, file: EntryRef },
     success: FileSource,
     error: FileError,
+  }),
+  Rpc.make("LocateEntry", {
+    payload: { ref: EntryRef },
+    success: EntryLocation,
+    error: Schema.Union([SourceUnavailable, SourceError]),
   }),
   Rpc.make("GetFileDetails", {
     payload: { projectId: ProjectId, file: EntryRef },

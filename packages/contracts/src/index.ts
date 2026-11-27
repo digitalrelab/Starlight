@@ -1,7 +1,7 @@
 export * from "./actor.ts";
 export * from "./agent.ts";
-export * from "./connection.ts";
 export * from "./chat.ts";
+export * from "./connection.ts";
 export * from "./disk.ts";
 export * from "./entry.ts";
 export * from "./errors.ts";
@@ -11,5 +11,6 @@ export * from "./imaging.ts";
 export * from "./media.ts";
 export * from "./project.ts";
 export * from "./property.ts";
+export * from "./reference.ts";
 export * from "./rpc.ts";
 export * from "./update.ts";
