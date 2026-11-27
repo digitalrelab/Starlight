@@ -30,6 +30,7 @@ export type MediaAppearance = typeof MediaAppearance.Type;
 
 export const Media = Schema.Struct({
   ...Dimensions.fields,
+  duration: Schema.NullOr(Schema.Number),
   ...MediaAppearance.fields,
   ref: EntryRef,
   fileId: FileId,
@@ -58,6 +59,7 @@ export const FileDetails = Schema.Struct({
   modifiedAt: Schema.Number,
   mediaType: Schema.NullOr(Schema.String),
   dimensions: Schema.NullOr(Dimensions),
+  duration: Schema.NullOr(Schema.Number),
   palette: Palette,
   properties: Schema.Array(Property),
 });

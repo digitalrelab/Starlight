@@ -1,12 +1,10 @@
 import { type FileHandle, open } from "node:fs/promises";
-import { extname } from "node:path";
 import type { Dimensions } from "@starlight/contracts";
-import type { Extractor } from "@starlight/core";
-import { Effect, Option } from "effect";
 import { imageSize } from "image-size";
+import { readRange } from "#adapters/local-source/read-range.ts";
 import { locateHeifExif, readExifItemOrientation } from "./heif-exif.ts";
 
-const EXTENSIONS = new Set([
+export const IMAGE_EXTENSIONS = new Set([
   ".jpg",
   ".jpeg",
   ".png",
@@ -33,12 +31,6 @@ const measure = (bytes: Uint8Array) => {
   }
 };
 
-const readRange = async (handle: FileHandle, offset: number, length: number) => {
-  const buffer = new Uint8Array(length);
-  const { bytesRead } = await handle.read(buffer, 0, length, offset);
-  return buffer.subarray(0, bytesRead);
-};
-
 const heifOrientation = async (handle: FileHandle, header: Uint8Array) => {
   const exif = locateHeifExif(header);
   if (!exif) return undefined;
@@ -47,7 +39,7 @@ const heifOrientation = async (handle: FileHandle, header: Uint8Array) => {
   );
 };
 
-const read = async (path: string, size: number): Promise<Dimensions | null> => {
+export const readImageDimensions = async (path: string, size: number): Promise<Dimensions | null> => {
   const handle = await open(path, "r");
   try {
     for (const step of READ_STEPS) {
@@ -68,15 +60,4 @@ const read = async (path: string, size: number): Promise<Dimensions | null> => {
   } finally {
     await handle.close();
   }
-};
-
-export const dimensionsExtractor: Extractor<Dimensions> = {
-  version: 1,
-  accepts: (entry) =>
-    entry.kind === "file" && entry.size > 0 && EXTENSIONS.has(extname(entry.id).toLowerCase()),
-  extract: (entry) =>
-    Effect.tryPromise(() => read(entry.id, entry.size)).pipe(
-      Effect.orElseSucceed(() => null),
-      Effect.map(Option.fromNullishOr),
-    ),
 };

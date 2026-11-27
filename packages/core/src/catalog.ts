@@ -11,7 +11,6 @@ import {
   type IdentifiedEntry,
   type Extractor,
   type FactName,
-  type Facts,
   FactStore,
   type ProbedFacts,
   type ProcessedFacts,
@@ -29,6 +28,7 @@ type ProcessedName = keyof ProcessedFacts;
 
 const probedCodecs: { readonly [F in keyof ProbedFacts]: Schema.Codec<ProbedFacts[F], string> } = {
   dimensions: Schema.fromJsonString(Dimensions),
+  duration: Schema.fromJsonString(Schema.Number),
 };
 
 const processedCodecs: { readonly [F in ProcessedName]: Schema.Codec<ProcessedFacts[F], string> } = {
@@ -79,12 +79,12 @@ export class Catalog extends Context.Service<
       driver: SourceDriver,
       directory: EntryRef,
       entries: ReadonlyArray<IdentifiedEntry>,
-    ) => Effect.Effect<ReadonlyMap<EntryId, Facts[F]>>;
+    ) => Effect.Effect<ReadonlyMap<EntryId, ProbedFacts[F]>>;
     readonly entry: <F extends keyof ProbedFacts>(
       fact: F,
       driver: SourceDriver,
       entry: IdentifiedEntry,
-    ) => Effect.Effect<Option.Option<Facts[F]>>;
+    ) => Effect.Effect<Option.Option<ProbedFacts[F]>>;
     readonly processed: <F extends ProcessedName>(
       fact: F,
       directory: EntryRef,
