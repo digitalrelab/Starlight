@@ -1,4 +1,4 @@
-import { Switch as BaseSwitch } from "@base-ui/react/switch";
+import { Switch as BaseSwitch } from "@base-ui/react";
 import type { ComponentProps } from "react";
 import { cn } from "cn";
 

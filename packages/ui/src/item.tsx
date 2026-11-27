@@ -1,4 +1,4 @@
-import { useRender } from "@base-ui/react/use-render";
+import { useRender } from "@base-ui/react";
 import { cn } from "cn";
 import type { ComponentProps } from "react";
 

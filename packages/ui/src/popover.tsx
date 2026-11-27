@@ -1,4 +1,4 @@
-import { Popover as BasePopover } from "@base-ui/react/popover";
+import { Popover as BasePopover } from "@base-ui/react";
 import type { ComponentProps } from "react";
 import { cn } from "cn";
 

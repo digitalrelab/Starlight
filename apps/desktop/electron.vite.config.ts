@@ -31,6 +31,7 @@ export default defineConfig({
   },
   renderer: {
     root: renderer,
+    optimizeDeps: { include: ["@starlight/ui > @base-ui/react"] },
     build: { rolldownOptions: { input: resolve(renderer, "index.html") } },
     plugins: [
       tanstackRouter({

@@ -1,5 +1,5 @@
 import { ArrowDown01Icon, Tick02Icon } from "@hugeicons-pro/core-stroke-rounded";
-import { Select as BaseSelect } from "@base-ui/react/select";
+import { Select as BaseSelect } from "@base-ui/react";
 import type { ReactElement, ReactNode } from "react";
 import { Icon } from "./icon.tsx";
 
