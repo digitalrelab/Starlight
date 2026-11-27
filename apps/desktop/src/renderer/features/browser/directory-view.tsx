@@ -1,5 +1,5 @@
 import { type Entry, type EntryRef, entryKey } from "@starlight/client";
-import { type KeyboardEvent, Suspense, useCallback, useEffect, useMemo, useRef } from "react";
+import { type KeyboardEvent, Suspense, useEffect, useRef } from "react";
 import { type LayoutId, layouts } from "./layouts/registry.ts";
 
 interface Props {
@@ -18,13 +18,10 @@ const INTENT_DWELL_MS = 100;
 const useDwell = (onDwell: (entry: Entry) => void) => {
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => () => clearTimeout(timer.current), []);
-  return useCallback(
-    (entry: Entry | undefined) => {
-      clearTimeout(timer.current);
-      if (entry) timer.current = setTimeout(() => onDwell(entry), INTENT_DWELL_MS);
-    },
-    [onDwell],
-  );
+  return (entry: Entry | undefined) => {
+    clearTimeout(timer.current);
+    if (entry) timer.current = setTimeout(() => onDwell(entry), INTENT_DWELL_MS);
+  };
 };
 
 export const DirectoryView = ({
@@ -37,23 +34,14 @@ export const DirectoryView = ({
   onOpen,
   onIntent,
 }: Props) => {
-  const selected = useMemo(
-    () => entries.findIndex((entry) => entryKey(entry.ref) === selectedKey),
-    [entries, selectedKey],
-  );
+  const selected = entries.findIndex((entry) => entryKey(entry.ref) === selectedKey);
   const dwell = useDwell(onIntent);
-  const onSelect = useCallback(
-    (index: number) => {
-      const entry = entries[Math.max(0, Math.min(entries.length - 1, index))];
-      onSelectKey(entry && entryKey(entry.ref));
-      dwell(entry);
-    },
-    [entries, onSelectKey, dwell],
-  );
-  const onHover = useCallback(
-    (index: number | null) => dwell(index === null ? undefined : entries[index]),
-    [dwell, entries],
-  );
+  const onSelect = (index: number) => {
+    const entry = entries[Math.max(0, Math.min(entries.length - 1, index))];
+    onSelectKey(entry && entryKey(entry.ref));
+    dwell(entry);
+  };
+  const onHover = (index: number | null) => dwell(index === null ? undefined : entries[index]);
 
   if (entries.length === 0) {
     return <div className="flex flex-1 items-center justify-center text-subtle">Empty folder</div>;

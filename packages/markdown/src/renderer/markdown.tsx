@@ -1,6 +1,6 @@
 import type { SyntaxNode, Tree } from "@lezer/common";
 import { cn } from "cn";
-import { createElement, Fragment, memo, type ReactNode, useMemo, useState } from "react";
+import { createElement, Fragment, memo, type ReactNode, useState } from "react";
 import { CodeBlock } from "./code-block.tsx";
 import { createIncrementalParser } from "./parse.ts";
 import { autolinkUrl, decodeEntity, referenceKey, safeUrl, unescape } from "./text.ts";
@@ -355,10 +355,8 @@ const hasSameEntries = (a: References, b: References) => {
 
 const useDocument = (value: string) => {
   const [parse] = useState(createIncrementalParser);
-  return useMemo(() => {
-    const tree = parse(value);
-    return { tree, source: { text: value, references: referencesOf(tree, value) } };
-  }, [parse, value]);
+  const tree = parse(value);
+  return { tree, source: { text: value, references: referencesOf(tree, value) } };
 };
 
 interface BlockProps {

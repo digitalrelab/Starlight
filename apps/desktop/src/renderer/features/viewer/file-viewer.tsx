@@ -1,7 +1,7 @@
 import { ArrowLeft01Icon, ArrowRight01Icon } from "@hugeicons-pro/core-stroke-rounded";
 import type { Entry, EntryRef } from "@starlight/client";
 import { Button, Icon, IconButton, Theater } from "@starlight/ui";
-import { type KeyboardEvent, useEffect, useEffectEvent, useMemo, useRef } from "react";
+import { type KeyboardEvent, useEffect, useEffectEvent, useRef } from "react";
 import { KindIcon, itemKindOf } from "#renderer/features/files/kind-icon.tsx";
 import { useStarlight } from "#renderer/lib/context.ts";
 import { FileStage } from "./file-stage.tsx";
@@ -66,7 +66,7 @@ export const FileViewer = ({
   onShow,
   onClose,
 }: Props) => {
-  const files = useMemo(() => entries.filter((entry) => entry.kind === "file"), [entries]);
+  const files = entries.filter((entry) => entry.kind === "file");
   const sequenced = files.length > 1;
   const index = files.findIndex(({ ref }) => ref.id === file.id && ref.source === file.source);
   const current = files[index];
