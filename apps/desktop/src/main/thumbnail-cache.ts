@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
-import { mkdir, readdir, readFile, rename, rm, stat, utimes, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rename, rm, utimes, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
+import { listFiles } from "./list-files.ts";
 
 type Bytes = Uint8Array<ArrayBuffer>;
 
@@ -9,15 +10,6 @@ const store = async (path: string, bytes: Bytes) => {
   const temporary = `${path}.${randomUUID()}`;
   await writeFile(temporary, bytes);
   await rename(temporary, path);
-};
-
-const statFile = async (path: string) => {
-  try {
-    const { size, mtimeMs } = await stat(path);
-    return { path, size, mtimeMs };
-  } catch {
-    return null;
-  }
 };
 
 export const createThumbnailCache = (directory: string, limitBytes: number) => {
@@ -57,18 +49,14 @@ export const createThumbnailCache = (directory: string, limitBytes: number) => {
       return task;
     },
     prune: async () => {
-      const entries = await readdir(directory, { recursive: true, withFileTypes: true }).catch(() => []);
-      const files = await Promise.all(
-        entries
-          .filter((entry) => entry.isFile())
-          .map((entry) => statFile(join(entry.parentPath, entry.name))),
-      );
       let total = 0;
-      const evicted = files
-        .filter((file) => file !== null)
-        .sort((a, b) => b.mtimeMs - a.mtimeMs)
+      const evicted = (await listFiles(directory))
+        .sort((a, b) => b.modifiedAt - a.modifiedAt)
         .filter((file) => (total += file.size) > limitBytes);
       await Promise.allSettled(evicted.map((file) => rm(file.path, { force: true })));
     },
+    clear: () => rm(directory, { recursive: true, force: true }),
   };
 };
+
+export type ThumbnailCache = ReturnType<typeof createThumbnailCache>;

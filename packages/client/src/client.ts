@@ -59,6 +59,10 @@ export const createClient = (ports: PortSources) => {
     shell: {
       pickDirectory: () => shell((c) => c.PickDirectory()),
     },
+    disk: {
+      usage: () => shell((c) => c.GetDiskUsage()),
+      clearPreviews: () => shell((c) => c.ClearPreviews()),
+    },
     updates: {
       watch: () => shell((c) => Stream.toAsyncIterableEffect(c.WatchUpdates())),
       download: () => shell((c) => c.DownloadUpdate()),

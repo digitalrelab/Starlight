@@ -1,6 +1,7 @@
 export type {
   AgentProvider,
   Crumb,
+  DiskUsage,
   Entry,
   EntryRef,
   FileKind,
