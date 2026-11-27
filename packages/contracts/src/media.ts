@@ -4,6 +4,9 @@ import { EntryRef } from "./ids.ts";
 export const FileToken = Schema.String.pipe(Schema.brand("FileToken"));
 export type FileToken = typeof FileToken.Type;
 
+export const FileVersion = Schema.String.pipe(Schema.brand("FileVersion"));
+export type FileVersion = typeof FileVersion.Type;
+
 export const Dimensions = Schema.Struct({
   width: Schema.Number,
   height: Schema.Number,
@@ -19,6 +22,7 @@ export type Media = typeof Media.Type;
 
 export const FileSource = Schema.Struct({
   token: FileToken,
+  version: FileVersion,
   dimensions: Schema.NullOr(Dimensions),
 });
 export type FileSource = typeof FileSource.Type;

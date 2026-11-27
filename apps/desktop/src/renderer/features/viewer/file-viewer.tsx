@@ -5,7 +5,8 @@ import { type KeyboardEvent, useEffect, useEffectEvent, useMemo, useRef } from "
 import { KindIcon, itemKindOf } from "#renderer/features/files/kind-icon.tsx";
 import { useStarlight } from "#renderer/lib/context.ts";
 import { FileStage } from "./file-stage.tsx";
-import { loadEditor, markdownText } from "./markdown-file.ts";
+import { fileBytes } from "#renderer/features/files/file-bytes.ts";
+import { loadEditor } from "./markdown-file.ts";
 import { pictureUrl, presentationOf } from "./presentation.ts";
 
 interface Props {
@@ -27,7 +28,8 @@ const isKeyConsumed = (event: KeyboardEvent) =>
   event.ctrlKey ||
   event.metaKey ||
   event.shiftKey ||
-  event.target instanceof HTMLMediaElement;
+  event.target instanceof HTMLMediaElement ||
+  (event.target instanceof HTMLElement && event.target.isContentEditable);
 
 const usePrefetch = (
   workspaceId: string,
@@ -45,7 +47,7 @@ const usePrefetch = (
         (source) => {
           if (presentation === "markdown") {
             void loadEditor();
-            return queryClient.prefetchQuery(markdownText(source));
+            return queryClient.prefetchQuery(fileBytes(source));
           }
           if (presentation !== "video") new Image().src = pictureUrl(source, presentation);
         },
