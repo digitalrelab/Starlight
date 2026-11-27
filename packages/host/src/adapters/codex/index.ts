@@ -22,6 +22,10 @@ interface CodexAccount {
   } | null;
 }
 
+interface Opened {
+  readonly thread: { readonly id: string };
+}
+
 interface TurnCompleted {
   readonly turn: { readonly status: string; readonly error: { readonly message: string } | null };
 }
@@ -67,22 +71,16 @@ export const makeCodexDriver = (workingDirectory: string): AgentProviderDriver =
 
   const openThread = async (connection: Connection, session: Option.Option<string>, model: ModelChoice) => {
     if (Option.isSome(session) && connection.threads.has(session.value)) return session.value;
-    const id = Option.isSome(session)
-      ? (
-          await connection.server.request<{ thread: { id: string } }>("thread/resume", {
-            threadId: session.value,
-            excludeTurns: true,
-            ...thread(connection, model),
-          })
-        ).thread.id
-      : (
-          await connection.server.request<{ thread: { id: string } }>(
-            "thread/start",
-            thread(connection, model),
-          )
-        ).thread.id;
-    connection.threads.add(id);
-    return id;
+    const params = thread(connection, model);
+    const { thread: opened } = await (Option.isSome(session)
+      ? connection.server.request<Opened>("thread/resume", {
+          ...params,
+          threadId: session.value,
+          excludeTurns: true,
+        })
+      : connection.server.request<Opened>("thread/start", params));
+    connection.threads.add(opened.id);
+    return opened.id;
   };
 
   const effortOf = async (connection: Connection, model: ModelChoice) =>
