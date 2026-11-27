@@ -3,13 +3,15 @@ import type { Chat } from "@starlight/client";
 import { IconButton, NavItem, NavSection } from "@starlight/ui";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
+import type { ReactNode } from "react";
+import { AppShell } from "#renderer/features/shell/app-shell.tsx";
 import { useStarlight } from "#renderer/lib/context.ts";
 import { formatRecency } from "#renderer/lib/format.ts";
 import { ChatItem } from "./chat-item.tsx";
 
 const byRecency = (chats: ReadonlyArray<Chat>) => Map.groupBy(chats, (chat) => formatRecency(chat.updatedAt));
 
-export const AgentSidebar = () => {
+const AgentSidebar = () => {
   const { queries } = useStarlight();
   const { data: chats } = useSuspenseQuery(queries.chats(null));
 
@@ -34,6 +36,12 @@ export const AgentSidebar = () => {
   );
 };
 
-export const AgentSidebarFooter = () => (
+const AgentSidebarFooter = () => (
   <IconButton icon={ArrowLeft01Icon} label="Back to app" render={<Link to="/" />} />
+);
+
+export const AgentShell = ({ children }: { readonly children: ReactNode }) => (
+  <AppShell sidebar={<AgentSidebar />} footer={<AgentSidebarFooter />}>
+    {children}
+  </AppShell>
 );

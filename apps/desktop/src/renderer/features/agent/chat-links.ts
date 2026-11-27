@@ -6,7 +6,5 @@ export const newChatLink = (projectId: string | null) =>
     ? linkOptions({ to: "/agent" })
     : linkOptions({ to: "/p/$projectId/chats", params: { projectId } });
 
-export const chatLink = ({ id, projectId }: Pick<Chat, "id" | "projectId">) =>
-  projectId === null
-    ? linkOptions({ to: "/agent/$chatId", params: { chatId: id } })
-    : linkOptions({ to: "/p/$projectId/chats/$chatId", params: { projectId, chatId: id } });
+export const chatLink = ({ id }: Pick<Chat, "id">) =>
+  linkOptions({ to: "/chats/$chatId", params: { chatId: id } });
