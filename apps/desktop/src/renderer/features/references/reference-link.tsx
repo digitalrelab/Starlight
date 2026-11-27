@@ -4,7 +4,8 @@ import type { RenderLink } from "@starlight/markdown";
 import { cn, Icon } from "@starlight/ui";
 import { useQuery } from "@tanstack/react-query";
 import { Link, type LinkOptions } from "@tanstack/react-router";
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
+import { previewUrl } from "#shared/previews.ts";
 import { chatLink } from "#renderer/features/agent/chat-links.ts";
 import { toDirectorySearch, toFileSearch } from "#renderer/features/browser/directory-search.ts";
 import { itemKindOf, KindIcon } from "#renderer/features/files/kind-icon.tsx";
@@ -44,12 +45,40 @@ const openingOf = (ref: EntryRef, { kind, project, directory }: EntryLocation): 
         search: kind === "directory" ? toDirectorySearch(ref) : toFileSearch(directory, ref),
       };
 
+const ICON_SIZE = 14;
+
+interface Settled {
+  readonly preview: string;
+  readonly loaded: boolean;
+}
+
+const EntryIcon = ({ location }: { readonly location: EntryLocation | undefined }) => {
+  const [settled, setSettled] = useState<Settled | null>(null);
+  const preview = location?.preview ?? null;
+  const loaded = settled?.preview === preview ? settled.loaded : undefined;
+  return (
+    <>
+      {loaded ? null : <KindIcon kind={location ? itemKindOf(location) : "other"} size={ICON_SIZE} />}
+      {preview === null || loaded === false ? null : (
+        <img
+          alt=""
+          src={previewUrl(preview, ICON_SIZE * window.devicePixelRatio)}
+          hidden={!loaded}
+          onLoad={() => setSettled({ preview, loaded: true })}
+          onError={() => setSettled({ preview, loaded: false })}
+          className="size-3.5 shrink-0 self-center rounded-xs object-cover"
+        />
+      )}
+    </>
+  );
+};
+
 const EntryChip = ({ entry, label }: { readonly entry: EntryRef; readonly label: ReactNode }) => {
   const { queries } = useStarlight();
   const { data: location, isError } = useQuery(queries.entryLocation(entry));
   return (
     <Chip
-      icon={<KindIcon kind={location ? itemKindOf(location) : "other"} size={14} />}
+      icon={<EntryIcon location={location} />}
       label={label}
       link={location && openingOf(entry, location)}
       unresolved={isError ? "No longer exists" : location?.project === null ? "Not in a project" : undefined}
@@ -64,7 +93,7 @@ export const renderReference: RenderLink = ({ url, label }) => {
     <EntryChip entry={reference.ref} label={label} />
   ) : (
     <Chip
-      icon={<Icon icon={BubbleChatIcon} size={14} className="text-subtle" />}
+      icon={<Icon icon={BubbleChatIcon} size={ICON_SIZE} className="text-subtle" />}
       label={label}
       link={chatLink(reference)}
     />

@@ -2,6 +2,7 @@ import { Option, Schema } from "effect";
 import { ChatId } from "./chat.ts";
 import { EntryKind } from "./entry.ts";
 import { EntryRef, ProjectId } from "./ids.ts";
+import { FileToken } from "./media.ts";
 
 export const Reference = Schema.Union([
   Schema.TaggedStruct("Entry", { ref: EntryRef }),
@@ -55,5 +56,6 @@ export const EntryLocation = Schema.Struct({
   kind: EntryKind,
   project: Schema.NullOr(ProjectId),
   directory: EntryRef,
+  preview: Schema.NullOr(FileToken),
 });
 export type EntryLocation = typeof EntryLocation.Type;
