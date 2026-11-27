@@ -1,0 +1,19 @@
+{
+  "name": "@starlight/host",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./main": "./src/main.ts",
+    "./transport": "./src/rpc/transport.ts"
+  },
+  "dependencies": {
+    "@effect/platform-node": "catalog:",
+    "@effect/sql-sqlite-node": "catalog:",
+    "@starlight/contracts": "workspace:*",
+    "@starlight/core": "workspace:*",
+    "effect": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:"
+  }
+}

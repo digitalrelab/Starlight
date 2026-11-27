@@ -1,0 +1,7 @@
+{
+  "extends": "../../tooling/tsconfig/dom.json",
+  "include": ["src/renderer"],
+  "compilerOptions": {
+    "types": ["vite/client"]
+  }
+}

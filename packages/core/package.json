@@ -1,0 +1,12 @@
+{
+  "name": "@starlight/core",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@starlight/contracts": "workspace:*",
+    "effect": "catalog:"
+  }
+}
