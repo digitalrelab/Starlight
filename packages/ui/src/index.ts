@@ -14,6 +14,7 @@ export * from "./nav-item.tsx";
 export * from "./nav-section.tsx";
 export * from "./popover.tsx";
 export * from "./progress-ring.tsx";
+export * from "./rename-input.tsx";
 export * from "./scroll-area.tsx";
 export * from "./segmented-control.tsx";
 export * from "./select.tsx";

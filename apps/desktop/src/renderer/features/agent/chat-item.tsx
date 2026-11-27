@@ -1,6 +1,6 @@
 import { Delete02Icon, MoreHorizontalIcon, PencilEdit02Icon } from "@hugeicons-pro/core-stroke-rounded";
 import type { Chat } from "@starlight/client";
-import { ConfirmDialog, ContextMenu, IconButton, Menu, NavItem } from "@starlight/ui";
+import { ConfirmDialog, ContextMenu, IconButton, Menu, NavItem, RenameInput } from "@starlight/ui";
 import { useMutation } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useState } from "react";
@@ -15,25 +15,14 @@ export const ChatItem = ({ chat: { id, title } }: { readonly chat: Chat }) => {
   const navigate = useNavigate();
   const { chatId } = useParams({ strict: false });
 
-  const commit = (next: string) => {
-    setRenaming(false);
-    const trimmed = next.trim();
-    if (trimmed !== "" && trimmed !== title) rename.mutate({ chatId: id, title: trimmed });
-  };
-
   if (renaming) {
     return (
-      <input
+      <RenameInput
         autoFocus
-        defaultValue={title}
+        value={title}
         aria-label="Chat title"
-        onFocus={(event) => event.currentTarget.select()}
-        onBlur={(event) => commit(event.currentTarget.value)}
-        onKeyDown={(event) => {
-          if (event.key === "Enter") event.currentTarget.blur();
-          if (event.key === "Escape") setRenaming(false);
-        }}
-        className="h-8 w-full rounded-md bg-neutral px-2 text-base outline-none focus-ring"
+        onRename={(next) => rename.mutate({ chatId: id, title: next })}
+        onClose={() => setRenaming(false)}
       />
     );
   }
