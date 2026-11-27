@@ -5,7 +5,7 @@ import type { ComponentProps, ReactNode } from "react";
 const List = ({ className, ...props }: ComponentProps<"div">) => (
   <div
     className={cn(
-      "flex flex-col divide-y divide-default overflow-hidden rounded-lg border border-default bg-surface-raised px-4 shadow-xs",
+      "flex flex-col overflow-hidden rounded-lg border border-default bg-surface-raised px-4 shadow-xs *:border-default *:not-first:border-t",
       className,
     )}
     {...props}

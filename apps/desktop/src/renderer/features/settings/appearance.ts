@@ -24,7 +24,7 @@ export const interfaceSize = defineStored("interface-size", oneOf(SIZES), "defau
 export const CHAT_FONTS = ["sans", "serif", "mono"] as const;
 export type ChatFont = (typeof CHAT_FONTS)[number];
 
-export const chatFont = defineStored("chat-font", oneOf(CHAT_FONTS), "sans");
+export const chatFont = defineStored("chat-font", oneOf(CHAT_FONTS), "mono");
 
 export const chatTextSize = defineStored("chat-text-size", oneOf(SIZES), "default");
 
