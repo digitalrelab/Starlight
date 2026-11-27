@@ -6,11 +6,11 @@ interface Props {
   readonly placeholder: string;
   readonly disabled?: boolean;
   readonly autoFocus?: boolean;
-  readonly tools?: ReactNode;
+  readonly actions?: ReactNode;
   readonly onSubmit: (text: string) => Promise<unknown>;
 }
 
-export const Composer = ({ placeholder, disabled = false, autoFocus = false, tools, onSubmit }: Props) => {
+export const Composer = ({ placeholder, disabled = false, autoFocus = false, actions, onSubmit }: Props) => {
   const [text, setText] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,7 +52,7 @@ export const Composer = ({ placeholder, disabled = false, autoFocus = false, too
           className="max-h-64 min-h-12 resize-none bg-transparent px-1 text-base outline-none field-sizing-content placeholder:text-subtlest"
         />
         <div className="flex items-center justify-end gap-1">
-          {tools}
+          {actions}
           <IconButton
             type="submit"
             icon={ArrowUp02Icon}

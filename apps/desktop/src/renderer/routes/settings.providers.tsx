@@ -1,7 +1,7 @@
 import { Item } from "@starlight/ui";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { ProviderRow } from "../features/agents/provider-row.tsx";
+import { ProviderRow } from "../features/providers/provider-row.tsx";
 import { SettingsPage } from "../features/settings/settings-page.tsx";
 import { useStarlight } from "../lib/context.ts";
 

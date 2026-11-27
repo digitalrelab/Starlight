@@ -14,7 +14,8 @@ const lastChoice = defineStored("agent.model", anyString, "");
 
 const parse = (raw: string): Wanted => {
   try {
-    return JSON.parse(raw) as Wanted;
+    const value: unknown = JSON.parse(raw);
+    return typeof value === "object" && value !== null ? value : {};
   } catch {
     return {};
   }

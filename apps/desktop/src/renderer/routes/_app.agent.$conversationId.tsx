@@ -4,9 +4,9 @@ import { createFileRoute, type ErrorComponentProps, Navigate } from "@tanstack/r
 import { useEffect } from "react";
 import { Composer } from "../features/agent/composer.tsx";
 import { Transcript } from "../features/agent/transcript.tsx";
-import { useModelChoice } from "../features/agents/model-choice.ts";
-import { ModelPicker } from "../features/agents/model-picker.tsx";
-import { NoProvider } from "../features/agents/no-provider.tsx";
+import { useModelChoice } from "../features/providers/model-choice.ts";
+import { ModelPicker } from "../features/providers/model-picker.tsx";
+import { NoProvider } from "../features/providers/no-provider.tsx";
 import { PageError } from "../features/shell/page-error.tsx";
 import { PageHeader } from "../features/shell/page-header.tsx";
 import { useStarlight } from "../lib/context.ts";
@@ -43,7 +43,7 @@ function ConversationPage() {
             placeholder="Reply…"
             autoFocus
             disabled={detail.draft !== null}
-            tools={<ModelPicker providers={providers} choice={choice} onChoose={choose} />}
+            actions={<ModelPicker providers={providers} choice={choice} onChoose={choose} />}
             onSubmit={(text) => send.mutateAsync({ conversationId, text, model: choice })}
           />
         ) : (
