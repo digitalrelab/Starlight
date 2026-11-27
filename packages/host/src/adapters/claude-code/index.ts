@@ -56,7 +56,7 @@ const planLabel = (plan: string) => plan.charAt(0).toUpperCase() + plan.slice(1)
 const status: Effect.Effect<AgentProviderStatus> = Effect.gen(function* () {
   const executable = yield* findExecutable;
   if (Option.isNone(executable)) {
-    return notReady("Install Claude Code, then sign in with `claude auth login`.");
+    return notReady("Install Claude Code, then run “claude auth login” in a terminal.");
   }
   const [version, auth] = yield* Effect.all(
     [
@@ -67,7 +67,7 @@ const status: Effect.Effect<AgentProviderStatus> = Effect.gen(function* () {
     ],
     { concurrency: "unbounded" },
   );
-  if (!auth.loggedIn) return notReady("Sign in with `claude auth login` in a terminal.");
+  if (!auth.loggedIn) return notReady("Signed out. Run “claude auth login” in a terminal.");
   return {
     _tag: "Ready",
     version: version.split(" ")[0] ?? version,
