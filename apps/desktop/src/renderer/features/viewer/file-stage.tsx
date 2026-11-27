@@ -140,8 +140,8 @@ const MarkdownFile = (props: FileProps) => (
 
 const TextFile = (props: FileProps) => {
   const isText = useQuery(fileIsText(props.source));
-  if (isText.data === false || isText.isError)
-    return <Notice kind={itemKindOf(props.entry)}>No preview available</Notice>;
+  if (isText.isError) return <Notice kind={itemKindOf(props.entry)}>Can’t open this file</Notice>;
+  if (isText.data === false) return <Notice kind={itemKindOf(props.entry)}>No preview available</Notice>;
   if (!isText.data) return null;
   return (
     <DocumentFile {...props}>
