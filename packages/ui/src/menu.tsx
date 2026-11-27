@@ -130,10 +130,10 @@ const ContextTrigger = ({ onContextMenu, ...props }: ComponentProps<typeof BaseC
   />
 );
 
-const ContextPopup = ({ children }: { readonly children: ReactNode }) => (
+const ContextPopup = ({ finalFocus, children }: BodyProps) => (
   <BaseContextMenu.Portal>
     <BaseContextMenu.Positioner {...POSITIONING} className="z-overlay outline-none">
-      <Body>{children}</Body>
+      <Body finalFocus={finalFocus}>{children}</Body>
     </BaseContextMenu.Positioner>
   </BaseContextMenu.Portal>
 );
