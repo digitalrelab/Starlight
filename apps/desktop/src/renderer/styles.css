@@ -14,35 +14,35 @@
   line-height: 1.6;
 }
 
-[data-chat-font="sans"] {
+:root[data-chat-font="sans"] {
   --chat-font: var(--font-sans);
 }
 
-[data-chat-font="serif"] {
+:root[data-chat-font="serif"] {
   --chat-font: var(--font-serif);
 }
 
-[data-chat-font="mono"] {
+:root[data-chat-font="mono"] {
   --chat-font: var(--font-mono);
 }
 
-[data-chat-text-size="smaller"] {
+:root[data-chat-text-size="smaller"] {
   --chat-text-size: 0.8125rem;
 }
 
-[data-chat-text-size="small"] {
+:root[data-chat-text-size="small"] {
   --chat-text-size: 0.875rem;
 }
 
-[data-chat-text-size="default"] {
+:root[data-chat-text-size="default"] {
   --chat-text-size: 0.9375rem;
 }
 
-[data-chat-text-size="large"] {
+:root[data-chat-text-size="large"] {
   --chat-text-size: 1rem;
 }
 
-[data-chat-text-size="larger"] {
+:root[data-chat-text-size="larger"] {
   --chat-text-size: 1.0625rem;
 }
 
