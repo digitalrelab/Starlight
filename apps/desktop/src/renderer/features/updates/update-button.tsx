@@ -86,7 +86,9 @@ export const UpdateButton = ({ className }: { readonly className?: string }) => 
         className="max-h-[min(28rem,var(--available-height))] w-80 gap-3"
       >
         <ScrollArea className="-mx-3" contentClassName="px-3">
-          <Prose html={update.releaseNotes} />
+          <Prose.Root>
+            <Prose.Html html={update.releaseNotes} />
+          </Prose.Root>
         </ScrollArea>
         <div className="flex items-center justify-end gap-3">
           {update.failure ? <p className="mr-auto text-sm text-danger">{FAILURES[update.failure]}</p> : null}

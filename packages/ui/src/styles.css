@@ -42,7 +42,7 @@
   background-repeat: no-repeat;
   background-clip: text;
   color: transparent;
-  animation: shimmer 2s linear infinite;
+  animation: shimmer 4s ease-in-out infinite;
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
@@ -53,6 +53,7 @@
   from {
     background-position: 100% center;
   }
+  60%,
   to {
     background-position: 0% center;
   }

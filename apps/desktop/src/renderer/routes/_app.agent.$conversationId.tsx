@@ -24,11 +24,12 @@ function ConversationPage() {
       <PageHeader>
         <span className="truncate font-medium">{detail.conversation.title}</span>
       </PageHeader>
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto w-full max-w-2xl px-6 py-8">
-          <Transcript messages={detail.messages} draft={detail.draft} failure={detail.failure} />
-        </div>
-      </div>
+      <Transcript
+        messages={detail.messages}
+        draft={detail.draft}
+        failure={detail.failure}
+        className="mx-auto w-full max-w-2xl px-6 py-8"
+      />
       <div className="mx-auto w-full max-w-2xl px-6 pb-6">
         <Composer
           placeholder="Reply…"

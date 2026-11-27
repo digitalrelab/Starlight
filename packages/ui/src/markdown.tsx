@@ -1,6 +1,10 @@
 import { marked } from "marked";
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
 import { Prose } from "./prose.tsx";
+
+const OPTIONS = { async: false, gfm: true, breaks: true } as const;
+
+const Block = memo(({ raw }: { readonly raw: string }) => <Prose.Html html={marked.parse(raw, OPTIONS)} />);
 
 export interface MarkdownProps {
   readonly source: string;
@@ -8,6 +12,12 @@ export interface MarkdownProps {
 }
 
 export const Markdown = ({ source, className }: MarkdownProps) => {
-  const html = useMemo(() => marked.parse(source, { async: false, gfm: true, breaks: true }), [source]);
-  return <Prose html={html} className={className} />;
+  const blocks = useMemo(() => marked.lexer(source, OPTIONS).map((token) => token.raw), [source]);
+  return (
+    <Prose.Root className={className}>
+      {blocks.map((raw, index) => (
+        <Block key={index} raw={raw} />
+      ))}
+    </Prose.Root>
+  );
 };
