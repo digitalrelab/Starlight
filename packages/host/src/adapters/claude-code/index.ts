@@ -4,6 +4,7 @@ import { Effect, Option, Schema } from "effect";
 import { findExecutable, output } from "./executable.ts";
 import { makeModels } from "./models.ts";
 import { respond } from "./respond.ts";
+import { forget } from "./sessions.ts";
 
 const AuthStatus = Schema.fromJsonString(
   Schema.Struct({
@@ -44,5 +45,6 @@ export const makeClaudeCodeDriver = (workingDirectory: string): AgentProviderDri
   name: "Claude Code",
   status,
   models: makeModels(workingDirectory),
+  forget: forget(workingDirectory),
   respond: respond(workingDirectory),
 });

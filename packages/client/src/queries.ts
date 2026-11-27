@@ -4,7 +4,7 @@ import {
   queryOptions,
   type QueryClient,
 } from "@tanstack/react-query";
-import type { ConversationDetail, EntryRef, Listing, ModelChoice, UpdaterState } from "@starlight/contracts";
+import type { ChatDetail, EntryRef, Listing, ModelChoice, UpdaterState } from "@starlight/contracts";
 import type { StarlightClient } from "./client.ts";
 import { createFileSession, type FileSessionOptions } from "./file-session.ts";
 import { entryKey } from "./refs.ts";
@@ -48,13 +48,12 @@ const createQueries = (client: StarlightClient) => ({
       refetchOnWindowFocus: "always",
     }),
 
-  conversations: () =>
-    queryOptions({ queryKey: ["conversations"], queryFn: () => client.conversations.list() }),
+  chats: () => queryOptions({ queryKey: ["chats"], queryFn: () => client.chats.list() }),
 
-  conversation: (id: string) =>
+  chat: (id: string) =>
     queryOptions({
-      queryKey: ["conversation", id],
-      queryFn: () => client.conversations.get(id),
+      queryKey: ["chat", id],
+      queryFn: () => client.chats.get(id),
       staleTime: Infinity,
     }),
 
@@ -90,21 +89,40 @@ const createMutations = (client: StarlightClient, queryClient: QueryClient, quer
   sendMessage: () =>
     mutationOptions({
       mutationFn: ({
-        conversationId,
+        chatId,
         text,
         model,
       }: {
-        readonly conversationId: string | null;
+        readonly chatId: string | null;
         readonly text: string;
         readonly model: ModelChoice;
-      }) => client.conversations.send(conversationId, text, model),
-      onSuccess: () => queryClient.invalidateQueries(queries.conversations()),
+      }) => client.chats.send(chatId, text, model),
+      onSuccess: () => queryClient.invalidateQueries(queries.chats()),
     }),
 
   clearPreviews: () =>
     mutationOptions({
       mutationFn: () => client.disk.clearPreviews(),
       onSettled: () => queryClient.invalidateQueries(queries.diskUsage()),
+    }),
+
+  renameChat: () =>
+    mutationOptions({
+      mutationFn: ({ chatId, title }: { readonly chatId: string; readonly title: string }) =>
+        client.chats.rename(chatId, title),
+      onSuccess: (chat) => {
+        queryClient.setQueryData(queries.chat(chat.id).queryKey, (detail) => detail && { ...detail, chat });
+        return queryClient.invalidateQueries(queries.chats());
+      },
+    }),
+
+  deleteChat: () =>
+    mutationOptions({
+      mutationFn: (chatId: string) => client.chats.remove(chatId),
+      onSuccess: (_, chatId) => {
+        queryClient.removeQueries(queries.chat(chatId));
+        return queryClient.invalidateQueries(queries.chats());
+      },
     }),
 
   openWorkspace: () =>
@@ -130,14 +148,14 @@ const createMutations = (client: StarlightClient, queryClient: QueryClient, quer
 });
 
 const createSubscriptions = (client: StarlightClient, queryClient: QueryClient, queries: Queries) => ({
-  conversation: (id: string) => {
-    const { queryKey } = queries.conversation(id);
-    const update = (change: (detail: ConversationDetail) => ConversationDetail) =>
+  chat: (id: string) => {
+    const { queryKey } = queries.chat(id);
+    const update = (change: (detail: ChatDetail) => ChatDetail) =>
       queryClient.setQueryData(queryKey, (detail) => detail && change(detail));
-    const has = (detail: ConversationDetail, messageId: string) =>
+    const has = (detail: ChatDetail, messageId: string) =>
       detail.messages.some((message) => message.id === messageId);
 
-    return client.conversations.watch(id, (event) => {
+    return client.chats.watch(id, (event) => {
       switch (event._tag) {
         case "Snapshot":
           return queryClient.setQueryData(queryKey, event.detail);
@@ -146,7 +164,7 @@ const createSubscriptions = (client: StarlightClient, queryClient: QueryClient, 
             has(detail, event.draft.id) ? detail : { ...detail, draft: event.draft, failure: null },
           );
         case "MessageAdded":
-          void queryClient.invalidateQueries(queries.conversations());
+          void queryClient.invalidateQueries(queries.chats());
           return update((detail) => ({
             ...detail,
             messages: has(detail, event.message.id) ? detail.messages : [...detail.messages, event.message],

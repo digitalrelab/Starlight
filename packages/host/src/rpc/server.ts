@@ -1,7 +1,7 @@
 import { type Actor, HostRpcs } from "@starlight/contracts";
 import {
   AgentProviders,
-  Conversations,
+  Chats,
   CurrentActor,
   Entries,
   Files,
@@ -18,7 +18,7 @@ const HandlersLive = HostRpcs.toLayer(
     const files = yield* Files;
     const media = yield* MediaLibrary;
     const agentProviders = yield* AgentProviders;
-    const conversations = yield* Conversations;
+    const chats = yield* Chats;
     return HostRpcs.of({
       OpenWorkspace: ({ root }) => workspaces.open(root),
       AddMount: ({ workspaceId, root }) => workspaces.addMount(workspaceId, root),
@@ -30,10 +30,12 @@ const HandlersLive = HostRpcs.toLayer(
       GetFileSource: ({ workspaceId, file }) => files.source(workspaceId, file),
       WriteFile: ({ workspaceId, file, content, base }) => files.write(workspaceId, file, content, base),
       ListAgentProviders: () => agentProviders.list,
-      ListConversations: () => conversations.list,
-      GetConversation: ({ conversationId }) => conversations.get(conversationId),
-      SendMessage: ({ conversationId, text, model }) => conversations.send(conversationId, text, model),
-      WatchConversation: ({ conversationId }) => conversations.watch(conversationId),
+      ListChats: () => chats.list,
+      GetChat: ({ chatId }) => chats.get(chatId),
+      SendMessage: ({ chatId, text, model }) => chats.send(chatId, text, model),
+      RenameChat: ({ chatId, title }) => chats.rename(chatId, title),
+      DeleteChat: ({ chatId }) => chats.remove(chatId),
+      WatchChat: ({ chatId }) => chats.watch(chatId),
     });
   }),
 );

@@ -4,8 +4,8 @@ import type {
   AgentModel,
   AgentProviderStatus,
   ChatMessage,
-  Conversation,
-  ConversationId,
+  Chat,
+  ChatId,
   Dimensions,
   EntryId,
   EntryKind,
@@ -145,6 +145,7 @@ export interface AgentProviderDriver {
   readonly name: string;
   readonly status: Effect.Effect<AgentProviderStatus>;
   readonly models: Effect.Effect<ReadonlyArray<AgentModel>>;
+  readonly forget: (session: string) => Effect.Effect<void>;
   readonly respond: (input: AgentTurnInput) => Stream.Stream<AgentTurnEvent, AgentTurnFailed>;
 }
 
@@ -153,26 +154,25 @@ export class AgentProviderDrivers extends Context.Service<
   ReadonlyMap<AgentProviderId, AgentProviderDriver>
 >()("@starlight/core/AgentProviderDrivers") {}
 
-export interface StoredConversation {
-  readonly conversation: Conversation;
+export interface StoredChat {
+  readonly chat: Chat;
   readonly messages: ReadonlyArray<ChatMessage>;
   readonly session: Option.Option<string>;
 }
 
-export class ConversationStore extends Context.Service<
-  ConversationStore,
+export class ChatStore extends Context.Service<
+  ChatStore,
   {
-    readonly list: Effect.Effect<ReadonlyArray<Conversation>>;
-    readonly find: (id: ConversationId) => Effect.Effect<Option.Option<StoredConversation>>;
-    readonly create: (input: {
-      readonly model: ModelChoice;
-      readonly title: string;
-    }) => Effect.Effect<Conversation>;
-    readonly append: (id: ConversationId, message: ChatMessage) => Effect.Effect<void>;
-    readonly saveSession: (id: ConversationId, session: string) => Effect.Effect<void>;
-    readonly saveModel: (id: ConversationId, model: ModelChoice) => Effect.Effect<void>;
+    readonly list: Effect.Effect<ReadonlyArray<Chat>>;
+    readonly find: (id: ChatId) => Effect.Effect<Option.Option<StoredChat>>;
+    readonly create: (input: { readonly model: ModelChoice; readonly title: string }) => Effect.Effect<Chat>;
+    readonly append: (id: ChatId, message: ChatMessage) => Effect.Effect<void>;
+    readonly saveSession: (id: ChatId, session: string) => Effect.Effect<void>;
+    readonly saveModel: (id: ChatId, model: ModelChoice) => Effect.Effect<void>;
+    readonly rename: (id: ChatId, title: string) => Effect.Effect<void>;
+    readonly remove: (id: ChatId) => Effect.Effect<void>;
   }
->()("@starlight/core/ConversationStore") {}
+>()("@starlight/core/ChatStore") {}
 
 export class IdGenerator extends Context.Service<IdGenerator, { readonly next: Effect.Effect<string> }>()(
   "@starlight/core/IdGenerator",

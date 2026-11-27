@@ -14,19 +14,18 @@ export const formatSize = (bytes: number) => {
 
 export const formatDate = (epochMs: number) => dateFormat.format(epochMs);
 
-const ages = [
-  [365 * 24 * 60 * 60, "y"],
-  [30 * 24 * 60 * 60, "mo"],
-  [7 * 24 * 60 * 60, "w"],
-  [24 * 60 * 60, "d"],
-  [60 * 60, "h"],
-  [60, "m"],
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+const recencies = [
+  [0, "Today"],
+  [1, "Yesterday"],
+  [7, "Previous 7 days"],
+  [30, "Previous 30 days"],
 ] as const;
 
-export const formatAge = (epochMs: number, now = Date.now()) => {
-  const seconds = Math.max(0, (now - epochMs) / 1000);
-  for (const [size, unit] of ages) {
-    if (seconds >= size) return `${Math.floor(seconds / size)}${unit}`;
-  }
-  return "now";
+export const formatRecency = (epochMs: number) => {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const days = Math.ceil((today - epochMs) / DAY_MS);
+  return recencies.find(([within]) => days <= within)?.[1] ?? "Older";
 };

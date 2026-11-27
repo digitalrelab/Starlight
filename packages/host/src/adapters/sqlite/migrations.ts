@@ -107,4 +107,12 @@ export const migrations = Migrator.fromRecord({
     yield* sql`ALTER TABLE conversations ADD COLUMN model TEXT`;
     yield* sql`ALTER TABLE conversations ADD COLUMN effort TEXT`;
   }),
+  "0008_chats": Effect.gen(function* () {
+    const sql = yield* SqlClient.SqlClient;
+    yield* sql`ALTER TABLE conversations RENAME TO chats`;
+    yield* sql`ALTER TABLE conversation_messages RENAME TO chat_messages`;
+    yield* sql`ALTER TABLE chat_messages RENAME COLUMN conversation_id TO chat_id`;
+    yield* sql`DROP INDEX conversation_messages_by_conversation`;
+    yield* sql`CREATE INDEX chat_messages_by_chat ON chat_messages (chat_id, created_at)`;
+  }),
 });
