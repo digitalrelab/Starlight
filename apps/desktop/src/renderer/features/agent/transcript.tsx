@@ -26,34 +26,46 @@ const Reply = ({ text, pending }: { readonly text: string; readonly pending: boo
   );
 };
 
-const Message = ({
-  role,
-  text,
-  pending,
-}: Pick<ChatMessage, "role" | "text"> & { readonly pending: boolean }) =>
-  role === "user" ? (
-    <Markdown
-      value={text}
-      className="max-w-[80%] self-end rounded-lg bg-neutral px-3 py-2 whitespace-pre-line"
-    />
-  ) : (
-    <Reply text={text} pending={pending} />
-  );
+interface Row {
+  readonly id: string;
+  readonly role: ChatMessage["role"] | "failure";
+  readonly text: string;
+}
+
+const FAILURE_ROW = "failure";
+
+const RowContent = ({ role, text, pending }: Omit<Row, "id"> & { readonly pending: boolean }) => {
+  switch (role) {
+    case "user":
+      return (
+        <Markdown
+          value={text}
+          className="max-w-[80%] self-end rounded-lg bg-neutral px-3 py-2 whitespace-pre-line"
+        />
+      );
+    case "assistant":
+      return <Reply text={text} pending={pending} />;
+    case "failure":
+      return <p className="text-sm text-danger">{text}</p>;
+  }
+};
 
 export const Transcript = ({ messages, draft, failure, className }: Props) => {
   const viewport = useRef<HTMLDivElement>(null);
   const lastUserMessage = messages.findLast((message) => message.role === "user")?.id;
-  const items = draft
-    ? [...messages, { id: draft.id, role: "assistant" as const, text: draft.text }]
-    : messages;
+  const rows: ReadonlyArray<Row> = [
+    ...messages,
+    ...(draft ? [{ id: draft.id, role: "assistant" as const, text: draft.text }] : []),
+    ...(failure ? [{ id: FAILURE_ROW, role: "failure" as const, text: failure }] : []),
+  ];
   const virtualizer = useVirtualizer({
-    count: items.length,
+    count: rows.length,
     getScrollElement: () => viewport.current,
-    getItemKey: (index) => items[index]?.id ?? index,
+    getItemKey: (index) => rows[index]?.id ?? index,
     estimateSize: () => ESTIMATED_MESSAGE_HEIGHT,
     gap: MESSAGE_GAP,
     paddingStart: EDGE_SPACE,
-    paddingEnd: failure ? MESSAGE_GAP : EDGE_SPACE,
+    paddingEnd: EDGE_SPACE,
     overscan: 4,
     anchorTo: "end",
     followOnAppend: true,
@@ -65,8 +77,8 @@ export const Transcript = ({ messages, draft, failure, className }: Props) => {
     <ScrollArea className="flex-1" ref={viewport} contentClassName={className}>
       <div className="relative" style={{ height: virtualizer.getTotalSize() }}>
         {virtualizer.getVirtualItems().map((row) => {
-          const message = items[row.index];
-          if (!message) return null;
+          const content = rows[row.index];
+          if (!content) return null;
           return (
             <div
               key={row.key}
@@ -75,16 +87,11 @@ export const Transcript = ({ messages, draft, failure, className }: Props) => {
               className="absolute inset-x-0 top-0 flex flex-col"
               style={{ transform: `translateY(${row.start}px)` }}
             >
-              <Message role={message.role} text={message.text} pending={message.id === draft?.id} />
+              <RowContent role={content.role} text={content.text} pending={content.id === draft?.id} />
             </div>
           );
         })}
       </div>
-      {failure ? (
-        <p className="text-sm text-danger" style={{ paddingBottom: EDGE_SPACE }}>
-          {failure}
-        </p>
-      ) : null}
     </ScrollArea>
   );
 };
