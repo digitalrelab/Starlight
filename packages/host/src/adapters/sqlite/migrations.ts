@@ -115,4 +115,31 @@ export const migrations = Migrator.fromRecord({
     yield* sql`DROP INDEX conversation_messages_by_conversation`;
     yield* sql`CREATE INDEX chat_messages_by_chat ON chat_messages (chat_id, created_at)`;
   }),
+  "0009_assets": Effect.gen(function* () {
+    const sql = yield* SqlClient.SqlClient;
+    yield* sql`
+      CREATE TABLE assets (
+        id TEXT PRIMARY KEY,
+        source TEXT NOT NULL,
+        entry TEXT NOT NULL,
+        parent TEXT NOT NULL,
+        key TEXT NOT NULL,
+        UNIQUE (source, entry)
+      )
+    `;
+    yield* sql`CREATE INDEX assets_by_parent ON assets (source, parent)`;
+    yield* sql`CREATE INDEX assets_by_key ON assets (source, key)`;
+    yield* sql`DROP TABLE facts`;
+    yield* sql`
+      CREATE TABLE facts (
+        asset TEXT NOT NULL,
+        fact TEXT NOT NULL,
+        size INTEGER NOT NULL,
+        modified_at REAL NOT NULL,
+        version INTEGER NOT NULL,
+        value TEXT,
+        PRIMARY KEY (asset, fact)
+      ) WITHOUT ROWID
+    `;
+  }),
 });

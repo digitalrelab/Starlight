@@ -1,11 +1,12 @@
 import { Schema } from "effect";
-import { EntryRef } from "./ids.ts";
+import { EntryRef, FileId } from "./ids.ts";
 
 export const EntryKind = Schema.Literals(["file", "directory", "symlink", "other"]);
 export type EntryKind = typeof EntryKind.Type;
 
 export const Entry = Schema.Struct({
   ref: EntryRef,
+  fileId: Schema.NullOr(FileId),
   name: Schema.String,
   kind: EntryKind,
   size: Schema.Number,

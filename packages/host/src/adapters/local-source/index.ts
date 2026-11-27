@@ -18,6 +18,7 @@ const toEntry = (path: string, s: Stats): SourceEntry => {
   const name = basename(path) || path;
   return {
     id: EntryId.make(path),
+    key: `${s.dev}:${s.ino}`,
     name,
     kind: kindOf(s),
     size: s.size,

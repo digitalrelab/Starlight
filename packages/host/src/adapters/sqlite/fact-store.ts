@@ -1,12 +1,11 @@
-import { EntryId } from "@starlight/contracts";
-import { FactStore, type FactScope, type StoredFact } from "@starlight/core";
+import { FileId } from "@starlight/contracts";
+import { FactStore, type StoredFact } from "@starlight/core";
 import { Array as Arr, Effect, Layer, Option, Schema } from "effect";
 import { SqlClient, SqlSchema } from "effect/sql";
-
-const BATCH_SIZE = 500;
+import { batched } from "./batched.ts";
 
 const Row = Schema.Struct({
-  entry: EntryId,
+  asset: FileId,
   size: Schema.Number,
   modified_at: Schema.Number,
   version: Schema.Number,
@@ -14,7 +13,7 @@ const Row = Schema.Struct({
 });
 
 const toFact = (row: typeof Row.Type): StoredFact => ({
-  entry: row.entry,
+  asset: row.asset,
   size: row.size,
   modifiedAt: row.modified_at,
   version: row.version,
@@ -24,29 +23,24 @@ const toFact = (row: typeof Row.Type): StoredFact => ({
 export const SqliteFactStoreLive = Layer.effect(FactStore)(
   Effect.gen(function* () {
     const sql = yield* SqlClient.SqlClient;
-    const columns = sql`entry, size, modified_at, version, value`;
+    const inBatches = batched(sql);
 
     const inDirectory = SqlSchema.findAll({
       Request: Schema.Struct({ source: Schema.String, fact: Schema.String, directory: Schema.String }),
       Result: Row,
-      execute: ({ source, fact, directory }) =>
-        sql`SELECT ${columns} FROM facts WHERE source = ${source} AND fact = ${fact} AND parent = ${directory}`,
+      execute: ({ source, fact, directory }) => sql`
+        SELECT f.asset, f.size, f.modified_at, f.version, f.value
+        FROM facts f JOIN assets a ON a.id = f.asset
+        WHERE a.source = ${source} AND a.parent = ${directory} AND f.fact = ${fact}
+      `,
     });
 
     const find = SqlSchema.findOneOption({
-      Request: Schema.Struct({ source: Schema.String, fact: Schema.String, entry: Schema.String }),
+      Request: Schema.Struct({ fact: Schema.String, asset: Schema.String }),
       Result: Row,
-      execute: ({ source, fact, entry }) =>
-        sql`SELECT ${columns} FROM facts WHERE source = ${source} AND fact = ${fact} AND entry = ${entry}`,
+      execute: ({ fact, asset }) =>
+        sql`SELECT asset, size, modified_at, version, value FROM facts WHERE fact = ${fact} AND asset = ${asset}`,
     });
-
-    const batched = <A>(
-      items: ReadonlyArray<A>,
-      run: (batch: Arr.NonEmptyReadonlyArray<A>) => Effect.Effect<unknown, unknown>,
-    ) =>
-      sql
-        .withTransaction(Effect.forEach(Arr.chunksOf(items, BATCH_SIZE), run, { discard: true }))
-        .pipe(Effect.orDie);
 
     return FactStore.of({
       inDirectory: (scope, directory) =>
@@ -54,36 +48,27 @@ export const SqliteFactStoreLive = Layer.effect(FactStore)(
           Effect.map((rows) => rows.map(toFact)),
           Effect.orDie,
         ),
-      find: (scope, entry) => find({ ...scope, entry }).pipe(Effect.map(Option.map(toFact)), Effect.orDie),
-      save: ({ source, fact }: FactScope, directory, facts) =>
-        batched(
+      find: (fact, asset) => find({ fact, asset }).pipe(Effect.map(Option.map(toFact)), Effect.orDie),
+      save: (fact, facts) =>
+        inBatches(
           facts,
           (batch) => sql`
             INSERT INTO facts ${sql.insert(
               Arr.map(batch, (stored) => ({
-                source,
-                entry: stored.entry,
+                asset: stored.asset,
                 fact,
-                parent: directory,
                 size: stored.size,
                 modified_at: stored.modifiedAt,
                 version: stored.version,
                 value: stored.value,
               })),
             )}
-            ON CONFLICT (source, entry, fact) DO UPDATE SET
-              parent = excluded.parent,
+            ON CONFLICT (asset, fact) DO UPDATE SET
               size = excluded.size,
               modified_at = excluded.modified_at,
               version = excluded.version,
               value = excluded.value
           `,
-        ),
-      forget: ({ source, fact }, entries) =>
-        batched(
-          entries,
-          (batch) =>
-            sql`DELETE FROM facts WHERE source = ${source} AND fact = ${fact} AND entry IN ${sql.in(batch)}`,
         ),
     });
   }),

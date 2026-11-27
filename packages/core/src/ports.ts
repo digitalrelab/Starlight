@@ -15,6 +15,7 @@ import type {
   SourceError,
   SourceId,
   FileToken,
+  FileId,
   PixelSample,
   SampleFailed,
   Workspace,
@@ -24,11 +25,16 @@ import { Context, Data, type Effect, type Option, type Stream } from "effect";
 
 export interface SourceEntry {
   readonly id: EntryId;
+  readonly key: string;
   readonly name: string;
   readonly kind: EntryKind;
   readonly size: number;
   readonly modifiedAt: number;
   readonly hidden: boolean;
+}
+
+export interface AssetEntry extends SourceEntry {
+  readonly asset: FileId;
 }
 
 export interface SourceCrumb {
@@ -88,7 +94,7 @@ export class FileTokens extends Context.Service<
 >()("@starlight/core/FileTokens") {}
 
 export interface StoredFact {
-  readonly entry: EntryId;
+  readonly asset: FileId;
   readonly size: number;
   readonly modifiedAt: number;
   readonly version: number;
@@ -104,15 +110,32 @@ export class FactStore extends Context.Service<
   FactStore,
   {
     readonly inDirectory: (scope: FactScope, directory: EntryId) => Effect.Effect<ReadonlyArray<StoredFact>>;
-    readonly find: (scope: FactScope, entry: EntryId) => Effect.Effect<Option.Option<StoredFact>>;
-    readonly save: (
-      scope: FactScope,
-      directory: EntryId,
-      facts: ReadonlyArray<StoredFact>,
-    ) => Effect.Effect<void>;
-    readonly forget: (scope: FactScope, entries: ReadonlyArray<EntryId>) => Effect.Effect<void>;
+    readonly find: (fact: FactName, asset: FileId) => Effect.Effect<Option.Option<StoredFact>>;
+    readonly save: (fact: FactName, facts: ReadonlyArray<StoredFact>) => Effect.Effect<void>;
   }
 >()("@starlight/core/FactStore") {}
+
+export interface StoredAsset {
+  readonly id: FileId;
+  readonly entry: EntryId;
+  readonly key: string;
+}
+
+export class AssetStore extends Context.Service<
+  AssetStore,
+  {
+    readonly inDirectory: (source: SourceId, directory: EntryId) => Effect.Effect<ReadonlyArray<StoredAsset>>;
+    readonly withKeys: (
+      source: SourceId,
+      keys: ReadonlyArray<string>,
+    ) => Effect.Effect<ReadonlyArray<StoredAsset>>;
+    readonly save: (
+      source: SourceId,
+      directory: EntryId,
+      assets: ReadonlyArray<StoredAsset>,
+    ) => Effect.Effect<void>;
+  }
+>()("@starlight/core/AssetStore") {}
 
 export class WorkspaceStore extends Context.Service<
   WorkspaceStore,
