@@ -9,8 +9,8 @@ import { type Draft, endDraft } from "./draft.ts";
 
 const stopPropagation = (event: SyntheticEvent) => event.stopPropagation();
 
-const selectStem = (input: HTMLInputElement) => {
-  const dot = input.value.lastIndexOf(".");
+const selectName = (input: HTMLInputElement, kind: CreatableKind) => {
+  const dot = kind === "file" ? input.value.lastIndexOf(".") : -1;
   input.setSelectionRange(0, dot > 0 ? dot : input.value.length);
 };
 
@@ -64,7 +64,7 @@ export const DraftField = ({ projectId, directory, draft, onCreated }: Props) =>
           readOnly={create.isPending}
           spellCheck={false}
           autoComplete="off"
-          onFocus={(event) => selectStem(event.currentTarget)}
+          onFocus={(event) => selectName(event.currentTarget, draft.kind)}
           onChange={(event) => setName(event.currentTarget.value)}
           onKeyDown={(event) => {
             event.stopPropagation();

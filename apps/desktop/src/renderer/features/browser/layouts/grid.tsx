@@ -50,6 +50,7 @@ const useGridLayout = (
   entries: ReadonlyArray<Entry>,
   { byKey, aspects }: ReturnType<typeof useMedia>,
   width: number,
+  drafting: boolean,
 ) => {
   const folderCount = leadingFolders(entries);
   const inner = Math.max(0, width - GUTTER * 2);
@@ -66,7 +67,9 @@ const useGridLayout = (
     ...stack(shelf, GUTTER, tiles, GUTTER - TILE_INSET, SECTION_GAP - TILE_INSET),
     folderCount,
     chipWidth: shelve(1, chips).width[0] ?? 0,
-    paddingStart: shelf.rows.length > 0 ? GUTTER : GUTTER - TILE_INSET,
+    paddingStart:
+      (shelf.rows.length > 0 ? GUTTER : GUTTER - TILE_INSET) +
+      (drafting ? CHIP_HEIGHT + (shelf.rows.length > 0 ? CHIP_GAP : SECTION_GAP) : 0),
     paddingEnd: tiles.rows.length > 0 ? GUTTER - TILE_INSET : GUTTER,
   };
   usePreviewsAhead(
@@ -92,7 +95,7 @@ export const GridLayout = ({
   const scrollRef = useRef<HTMLDivElement>(null);
   const width = useElementWidth(scrollRef);
   const media = useMedia(projectId, directory, entries);
-  const layout = useGridLayout(entries, media, width);
+  const layout = useGridLayout(entries, media, width, draft !== null);
 
   const virtualizer = useVirtualizer({
     count: layout.rows.length,
@@ -101,8 +104,7 @@ export const GridLayout = ({
       const row = layout.rows[index];
       return row ? row.height + (index < layout.rows.length - 1 ? row.gap : 0) : 0;
     },
-    paddingStart:
-      layout.paddingStart + (draft ? CHIP_HEIGHT + (layout.folderCount > 0 ? CHIP_GAP : SECTION_GAP) : 0),
+    paddingStart: layout.paddingStart,
     paddingEnd: layout.paddingEnd,
     overscan: 3,
   });
