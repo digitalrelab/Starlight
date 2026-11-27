@@ -26,7 +26,7 @@ import type {
   ProjectId,
 } from "@starlight/contracts";
 import { FileVersion } from "@starlight/contracts";
-import { Context, Data, type Effect, type Option, type Stream } from "effect";
+import { Context, Data, type Effect, type JsonSchema, type Option, type Stream } from "effect";
 
 export interface SourceEntry {
   readonly id: EntryId;
@@ -89,6 +89,7 @@ export interface SourceDriver {
   readonly trail: (root: EntryId, id: EntryId) => ReadonlyArray<SourceCrumb>;
   readonly stat: (id: EntryId) => Effect.Effect<SourceEntry, SourceError>;
   readonly list: (id: EntryId) => Effect.Effect<ReadonlyArray<SourceEntry>, SourceError>;
+  readonly read: (id: EntryId, limit: number) => Effect.Effect<Uint8Array, SourceError>;
   readonly write: (id: EntryId, content: Uint8Array) => Effect.Effect<SourceEntry, SourceError>;
   readonly create: (
     parent: EntryId,
@@ -202,11 +203,33 @@ export class AuditLog extends Context.Service<
 
 export class CurrentActor extends Context.Service<CurrentActor, Actor>()("@starlight/core/CurrentActor") {}
 
+export type AgentToolContent =
+  | { readonly _tag: "Text"; readonly text: string }
+  | { readonly _tag: "Image"; readonly mediaType: string; readonly data: string };
+
+export interface AgentToolResult {
+  readonly content: ReadonlyArray<AgentToolContent>;
+  readonly failed: boolean;
+}
+
+export interface AgentTool {
+  readonly name: string;
+  readonly description: string;
+  readonly parameters: JsonSchema.JsonSchema;
+}
+
+export interface AgentToolkit {
+  readonly instructions: string;
+  readonly tools: ReadonlyArray<AgentTool>;
+  readonly call: (name: string, input: unknown) => Effect.Effect<AgentToolResult>;
+}
+
 export interface AgentTurnInput {
   readonly prompt: string;
   readonly history: ReadonlyArray<ChatMessage>;
   readonly session: Option.Option<string>;
   readonly model: ModelChoice;
+  readonly toolkit: Option.Option<AgentToolkit>;
 }
 
 export type AgentTurnEvent =

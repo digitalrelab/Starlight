@@ -1,10 +1,16 @@
 import { type AgentModel, type AgentProviderStatus, type ModelChoice, ModelId } from "@starlight/contracts";
-import { type AgentProviderDriver, type AgentTurnEvent, AgentTurnFailed } from "@starlight/core";
+import {
+  type AgentProviderDriver,
+  type AgentToolkit,
+  type AgentTurnEvent,
+  AgentTurnFailed,
+} from "@starlight/core";
 import { Cause, Effect, Option, Queue, Stream } from "effect";
 import { AGENT_INSTRUCTIONS, asError, capitalized, effortLabel, notReady } from "#adapters/agent.ts";
 import { output } from "#adapters/cli.ts";
-import type { Notification } from "./app-server.ts";
+import type { Inbound } from "./app-server.ts";
 import { type Connection, findExecutable, makeConnector } from "./connection.ts";
+import { answerToolCalls, threadTools } from "./tools.ts";
 import { makeUsage } from "./usage.ts";
 
 interface CodexModel {
@@ -98,7 +104,12 @@ export const makeCodexDriver = (workingDirectory: string): AgentProviderDriver =
     config: connection.isolation,
   });
 
-  const openThread = async (connection: Connection, session: Option.Option<string>, model: ModelChoice) => {
+  const openThread = async (
+    connection: Connection,
+    session: Option.Option<string>,
+    model: ModelChoice,
+    toolkit: Option.Option<AgentToolkit>,
+  ) => {
     if (Option.isSome(session) && connection.threads.has(session.value)) return session.value;
     const params = thread(connection, model);
     const { thread: opened } = await (Option.isSome(session)
@@ -107,7 +118,7 @@ export const makeCodexDriver = (workingDirectory: string): AgentProviderDriver =
           threadId: session.value,
           excludeTurns: true,
         })
-      : connection.server.request<Opened>("thread/start", params));
+      : connection.server.request<Opened>("thread/start", { ...params, ...threadTools(toolkit) }));
     connection.threads.add(opened.id);
     return opened.id;
   };
@@ -169,12 +180,12 @@ export const makeCodexDriver = (workingDirectory: string): AgentProviderDriver =
           return server.request("thread/delete", { threadId: session });
         }),
       ).pipe(Effect.catch((error) => Effect.logWarning("Codex thread could not be deleted", error))),
-    respond: ({ prompt, session, model }) =>
+    respond: ({ prompt, session, model, toolkit }) =>
       Stream.callback<AgentTurnEvent, AgentTurnFailed>((queue) =>
         Effect.gen(function* () {
           const connection = yield* Effect.tryPromise({ try: connect, catch: AgentTurnFailed.from });
           const threadId = yield* Effect.tryPromise({
-            try: () => openThread(connection, session, model),
+            try: () => openThread(connection, session, model, toolkit),
             catch: AgentTurnFailed.from,
           });
           const effort = yield* Effect.tryPromise({
@@ -189,7 +200,7 @@ export const makeCodexDriver = (workingDirectory: string): AgentProviderDriver =
             Queue.failCauseUnsafe(queue, Cause.fail(new AgentTurnFailed({ message })));
           };
 
-          const onNotification = ({ method, params }: Notification) => {
+          const onNotification = ({ method, params }: Inbound) => {
             if (params.threadId !== threadId) return;
             if (method === "item/agentMessage/delta") {
               Queue.offerUnsafe(queue, { _tag: "TextDelta", text: String(params["delta"]) });
@@ -205,10 +216,13 @@ export const makeCodexDriver = (workingDirectory: string): AgentProviderDriver =
           };
 
           yield* Effect.acquireRelease(
-            Effect.sync(() => connection.server.listen(onNotification)),
-            (unlisten) =>
+            Effect.sync(() => [
+              connection.server.listen(onNotification),
+              connection.server.answer(answerToolCalls(threadId, toolkit)),
+            ]),
+            (subscriptions) =>
               Effect.sync(() => {
-                unlisten();
+                for (const unsubscribe of subscriptions) unsubscribe();
                 if (!finished && turnId !== undefined) {
                   void connection.server.request("turn/interrupt", { threadId, turnId }).catch(() => {});
                 }

@@ -5,8 +5,11 @@ import {
   startup,
 } from "@anthropic-ai/claude-agent-sdk";
 import type { ModelChoice } from "@starlight/contracts";
+import type { AgentToolkit } from "@starlight/core";
+import type { Option } from "effect";
 import { AGENT_INSTRUCTIONS } from "#adapters/agent.ts";
 import { isEffort } from "./models.ts";
+import { ALLOWED_TOOLS, makeToolServer } from "./tools.ts";
 
 const createInput = () => {
   const pending: Array<SDKUserMessage> = [];
@@ -44,12 +47,15 @@ export const openSession = async (
       cwd: workingDirectory,
       systemPrompt: AGENT_INSTRUCTIONS,
       tools: [],
+      allowedTools: ALLOWED_TOOLS,
+      permissionMode: "dontAsk",
       settingSources: [],
       includePartialMessages: true,
       ...(resume === undefined ? {} : { resume }),
     },
   });
   const query = warm.query(input.messages);
+  const tools = makeToolServer();
   let id = resume;
   let model: string | undefined;
   let effort: EffortLevel | null | undefined;
@@ -60,7 +66,11 @@ export const openSession = async (
     get id() {
       return id;
     },
-    async *turn(prompt: string, choice: ModelChoice): AsyncGenerator<SDKMessage> {
+    async *turn(
+      prompt: string,
+      choice: ModelChoice,
+      toolkit: Option.Option<AgentToolkit>,
+    ): AsyncGenerator<SDKMessage> {
       if (choice.model !== model) {
         await query.setModel(choice.model);
         model = choice.model;
@@ -70,6 +80,7 @@ export const openSession = async (
         await query.applyFlagSettings({ effortLevel: level });
         effort = level;
       }
+      await tools.use(query, toolkit);
       input.push(prompt);
       for (;;) {
         const { value, done } = await query.next();

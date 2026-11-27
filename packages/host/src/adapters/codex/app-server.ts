@@ -9,10 +9,21 @@ interface Message {
   readonly error?: { readonly message: string };
 }
 
-export interface Notification {
+export interface Inbound {
   readonly method: string;
   readonly params: { readonly threadId?: string } & Record<string, unknown>;
 }
+
+export type Answerer = (request: Inbound) => Promise<unknown> | undefined;
+
+const subscribe =
+  <A>(subscribers: Set<A>) =>
+  (subscriber: A) => {
+    subscribers.add(subscriber);
+    return () => {
+      subscribers.delete(subscriber);
+    };
+  };
 
 const parse = (line: string): Message | undefined => {
   try {
@@ -25,7 +36,8 @@ const parse = (line: string): Message | undefined => {
 export const connectAppServer = async (executable: string) => {
   const child = spawn(executable, ["app-server"], { stdio: ["pipe", "pipe", "ignore"] });
   const pending = new Map<number, { resolve: (result: unknown) => void; reject: (error: Error) => void }>();
-  const listeners = new Set<(notification: Notification) => void>();
+  const listeners = new Set<(notification: Inbound) => void>();
+  const answerers = new Set<Answerer>();
   let next = 0;
   let alive = true;
 
@@ -35,6 +47,14 @@ export const connectAppServer = async (executable: string) => {
     alive = false;
     for (const waiter of pending.values()) waiter.reject(error);
     pending.clear();
+  };
+
+  const answerOf = (request: Inbound) => {
+    for (const answerer of answerers) {
+      const answer = answerer(request);
+      if (answer) return answer;
+    }
+    return undefined;
   };
 
   child.on("exit", () => stop(new Error("Codex stopped.")));
@@ -52,12 +72,21 @@ export const connectAppServer = async (executable: string) => {
       else waiter.resolve(message.result);
       return;
     }
-    if (message.id !== undefined) {
-      send({ id: message.id, error: { code: -32601, message: "Starlight does not handle this request." } });
+    const inbound = { method: message.method, params: (message.params ?? {}) as Inbound["params"] };
+    if (message.id === undefined) {
+      for (const listener of listeners) listener(inbound);
       return;
     }
-    const notification = { method: message.method, params: (message.params ?? {}) as Notification["params"] };
-    for (const listener of listeners) listener(notification);
+    const { id } = message;
+    const answer = answerOf(inbound);
+    if (!answer) {
+      send({ id, error: { code: -32601, message: "Starlight does not handle this request." } });
+      return;
+    }
+    answer.then(
+      (result) => send({ id, result }),
+      (error: unknown) => send({ id, error: { code: -32603, message: String(error) } }),
+    );
   });
 
   const request = <A>(method: string, params: unknown) =>
@@ -70,18 +99,14 @@ export const connectAppServer = async (executable: string) => {
 
   await request("initialize", {
     clientInfo: { name: "starlight", title: "Starlight", version: "1" },
-    capabilities: null,
+    capabilities: { experimentalApi: true },
   });
   send({ method: "initialized" });
 
   return {
     request,
-    listen: (listener: (notification: Notification) => void) => {
-      listeners.add(listener);
-      return () => {
-        listeners.delete(listener);
-      };
-    },
+    listen: subscribe(listeners),
+    answer: subscribe(answerers),
     get alive() {
       return alive;
     },

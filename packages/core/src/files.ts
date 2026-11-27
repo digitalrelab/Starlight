@@ -12,7 +12,7 @@ import {
 import { Context, Effect, Layer, Option } from "effect";
 import { EntryIndex } from "./entry-index.ts";
 import { Catalog } from "./catalog.ts";
-import { AuditLog, CurrentActor, FileTokens, versionOf } from "./ports.ts";
+import { AuditLog, CurrentActor, FileTokens, type SourceEntry, versionOf } from "./ports.ts";
 import { Projects } from "./projects.ts";
 
 export class Files extends Context.Service<
@@ -20,6 +20,11 @@ export class Files extends Context.Service<
   {
     readonly source: (projectId: ProjectId, file: EntryRef) => Effect.Effect<FileSource, FileError>;
     readonly details: (projectId: ProjectId, file: EntryRef) => Effect.Effect<FileDetails, FileError>;
+    readonly read: (
+      projectId: ProjectId,
+      file: EntryRef,
+      limit: number,
+    ) => Effect.Effect<{ readonly entry: SourceEntry; readonly content: Uint8Array }, FileError>;
     readonly write: (
       projectId: ProjectId,
       file: EntryRef,
@@ -75,6 +80,10 @@ export class Files extends Context.Service<
             palette: Option.getOrElse(palette, () => []),
             properties: Option.getOrElse(traits, () => []),
           };
+        }),
+        read: Effect.fn("Files.read")(function* (projectId, requested, limit) {
+          const { driver, file, entry } = yield* projects.locateFile(projectId, requested);
+          return { entry, content: yield* driver.read(file.id, Math.min(limit, entry.size)) };
         }),
         write: Effect.fn("Files.write")(function* (projectId, requested, content, base) {
           const { driver, file, entry } = yield* projects.locateFile(projectId, requested);
