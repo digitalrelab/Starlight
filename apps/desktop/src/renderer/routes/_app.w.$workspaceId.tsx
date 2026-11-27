@@ -9,7 +9,7 @@ import {
   toDirectorySearch,
 } from "../features/browser/directory-search.ts";
 import { DirectoryView } from "../features/browser/directory-view.tsx";
-import { readLayout, useLayoutPreference } from "../features/browser/layout-preference.ts";
+import { layoutPreference } from "../features/browser/layout-preference.ts";
 import { LayoutSwitcher } from "../features/browser/layout-switcher.tsx";
 import { layouts } from "../features/browser/layouts/registry.ts";
 import { PageHeader } from "../features/shell/page-header.tsx";
@@ -24,7 +24,11 @@ export const Route = createFileRoute("/_app/w/$workspaceId")({
     return Promise.all([
       queryClient.ensureQueryData(queries.workspace(params.workspaceId)),
       queryClient.ensureQueryData(queries.entries(params.workspaceId, deps.directory)),
-      layouts[readLayout(params.workspaceId)].preload?.(context, params.workspaceId, deps.directory),
+      layouts[layoutPreference(params.workspaceId).get()].preload?.(
+        context,
+        params.workspaceId,
+        deps.directory,
+      ),
     ]);
   },
   component: Browser,
@@ -38,7 +42,8 @@ function Browser() {
   const { queries, subscriptions } = useStarlight();
   const { data: workspace } = useSuspenseQuery(queries.workspace(workspaceId));
   const { data: listing, error, isFetching } = useSuspenseQuery(queries.entries(workspaceId, directory));
-  const [layout, setLayout] = useLayoutPreference(workspaceId);
+  const preference = layoutPreference(workspaceId);
+  const layout = preference.useValue();
   useEffect(() => subscriptions.entries(workspaceId), [subscriptions, workspaceId, workspace.mounts]);
 
   const onOpen = useCallback(
@@ -56,7 +61,7 @@ function Browser() {
         actions={
           <>
             <AddMountButton workspaceId={workspaceId} />
-            <LayoutSwitcher value={layout} onChange={setLayout} />
+            <LayoutSwitcher value={layout} onChange={preference.set} />
           </>
         }
       >

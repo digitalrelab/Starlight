@@ -1,33 +1,14 @@
-import { useCallback, useSyncExternalStore } from "react";
-import { DEFAULT_LAYOUT, isLayoutId, type LayoutId } from "./layouts/registry.ts";
+import { definePreference } from "@starlight/ui";
+import { DEFAULT_LAYOUT, type LayoutId, layoutIds } from "./layouts/registry.ts";
 
-const listeners = new Set<() => void>();
+type LayoutPreference = ReturnType<typeof definePreference<LayoutId>>;
 
-const storageKey = (workspaceId: string) => `starlight.layout.${workspaceId}`;
+const preferences = new Map<string, LayoutPreference>();
 
-const subscribe = (listener: () => void) => {
-  listeners.add(listener);
-  return () => listeners.delete(listener);
-};
-
-export const readLayout = (workspaceId: string): LayoutId => {
-  try {
-    const stored = localStorage.getItem(storageKey(workspaceId));
-    return isLayoutId(stored) ? stored : DEFAULT_LAYOUT;
-  } catch {
-    return DEFAULT_LAYOUT;
-  }
-};
-
-const writeLayout = (workspaceId: string, layout: LayoutId) => {
-  try {
-    localStorage.setItem(storageKey(workspaceId), layout);
-  } catch {}
-  for (const listener of listeners) listener();
-};
-
-export const useLayoutPreference = (workspaceId: string) => {
-  const layout = useSyncExternalStore(subscribe, () => readLayout(workspaceId));
-  const setLayout = useCallback((next: LayoutId) => writeLayout(workspaceId, next), [workspaceId]);
-  return [layout, setLayout] as const;
+export const layoutPreference = (workspaceId: string) => {
+  const existing = preferences.get(workspaceId);
+  if (existing) return existing;
+  const created = definePreference(`starlight.layout.${workspaceId}`, layoutIds, DEFAULT_LAYOUT);
+  preferences.set(workspaceId, created);
+  return created;
 };

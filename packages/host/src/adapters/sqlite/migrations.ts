@@ -31,7 +31,11 @@ export const migrations = Migrator.fromRecord({
       )
     `;
   }),
-  "0003_mounts": Effect.gen(function* () {
+  "0003_drop_settings": Effect.gen(function* () {
+    const sql = yield* SqlClient.SqlClient;
+    yield* sql`DROP TABLE settings`;
+  }),
+  "0004_mounts": Effect.gen(function* () {
     const sql = yield* SqlClient.SqlClient;
     yield* sql`ALTER TABLE workspaces RENAME TO legacy_workspaces`;
     yield* sql`

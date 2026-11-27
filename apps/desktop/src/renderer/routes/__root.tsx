@@ -1,13 +1,12 @@
+import { Interface } from "@starlight/ui";
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
-import { useApplyAppearance } from "../features/settings/use-apply-appearance.ts";
+import { colorScheme, cursor } from "../features/settings/appearance.ts";
 import type { RouterContext } from "../lib/context.ts";
 
 export const Route = createRootRouteWithContext<RouterContext>()({
-  loader: ({ context: { queryClient, queries } }) => queryClient.ensureQueryData(queries.settings()),
-  component: Root,
+  component: () => (
+    <Interface.Root colorScheme={colorScheme.useValue()} pointerCursors={cursor.useValue() === "pointer"}>
+      <Outlet />
+    </Interface.Root>
+  ),
 });
-
-function Root() {
-  useApplyAppearance();
-  return <Outlet />;
-}

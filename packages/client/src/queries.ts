@@ -4,7 +4,7 @@ import {
   queryOptions,
   type QueryClient,
 } from "@tanstack/react-query";
-import type { EntryRef, Listing, SettingsPatch, Update } from "@starlight/contracts";
+import type { EntryRef, Listing, Update } from "@starlight/contracts";
 import type { StarlightClient } from "./client.ts";
 import { entryKey } from "./refs.ts";
 
@@ -31,8 +31,6 @@ const createQueries = (client: StarlightClient) => ({
       queryKey: listingKey(workspaceId, directory && entryKey(directory), "media"),
       queryFn: () => client.media.list(workspaceId, directory),
     }),
-
-  settings: () => queryOptions({ queryKey: ["settings"], queryFn: () => client.settings.get() }),
 
   update: () =>
     queryOptions({
@@ -73,24 +71,6 @@ const createMutations = (client: StarlightClient, queryClient: QueryClient, quer
         ]);
       },
     }),
-
-  updateSettings: () => {
-    const { queryKey } = queries.settings();
-    return mutationOptions({
-      scope: { id: "settings" },
-      mutationFn: (patch: SettingsPatch) => client.settings.update(patch),
-      onMutate: async (patch) => {
-        await queryClient.cancelQueries({ queryKey });
-        const previous = queryClient.getQueryData(queryKey);
-        if (previous) queryClient.setQueryData(queryKey, { ...previous, ...patch });
-        return { previous };
-      },
-      onError: (_error, _patch, result) => {
-        if (result?.previous) queryClient.setQueryData(queryKey, result.previous);
-      },
-      onSuccess: (settings) => queryClient.setQueryData(queryKey, settings),
-    });
-  },
 });
 
 const createSubscriptions = (client: StarlightClient, queryClient: QueryClient) => ({

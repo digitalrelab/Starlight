@@ -36,6 +36,3 @@ export const layouts: Readonly<Record<LayoutId, LayoutDefinition>> = definitions
 export const DEFAULT_LAYOUT: LayoutId = "table";
 
 export const layoutIds = Object.keys(layouts) as ReadonlyArray<LayoutId>;
-
-export const isLayoutId = (value: unknown): value is LayoutId =>
-  typeof value === "string" && Object.hasOwn(layouts, value);

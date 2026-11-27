@@ -1,11 +1,4 @@
-import {
-  type EntryChange,
-  type EntryRef,
-  HostRpcs,
-  type SettingsPatch,
-  ShellRpcs,
-  type WorkspaceId,
-} from "@starlight/contracts";
+import { type EntryChange, type EntryRef, HostRpcs, ShellRpcs, type WorkspaceId } from "@starlight/contracts";
 import { Context, Effect, Layer, ManagedRuntime, Stream } from "effect";
 import { RpcClient, type RpcClientError } from "effect/rpc";
 import { layerProtocolPort } from "./transport.ts";
@@ -57,10 +50,6 @@ export const createClient = (ports: PortSources) => {
     media: {
       list: (workspaceId: string, directory: EntryRef | null) =>
         host((c) => c.ListMedia({ workspaceId: id(workspaceId), directory })),
-    },
-    settings: {
-      get: () => host((c) => c.GetSettings()),
-      update: (patch: SettingsPatch) => host((c) => c.UpdateSettings(patch)),
     },
     shell: {
       pickDirectory: () => shell((c) => c.PickDirectory()),
