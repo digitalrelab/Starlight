@@ -3,6 +3,7 @@ import { ContextMenu as BaseContextMenu, Menu as BaseMenu } from "@base-ui/react
 import { cn } from "cn";
 import { type ComponentProps, createContext, type ReactNode, use, useRef, useState } from "react";
 import { Icon } from "./icon.tsx";
+import { listBody, listItem } from "./list.tsx";
 import { popupSurface } from "./popup.ts";
 
 const POSITIONING = { align: "start", sideOffset: 4, collisionPadding: 8 } as const;
@@ -73,7 +74,7 @@ const Body = ({ finalFocus, children }: BodyProps) => {
         ref={list}
         style={{ minWidth: filter.width ?? undefined }}
         data-filtering={filter.query === "" ? undefined : ""}
-        className="group/list flex flex-col p-1.5"
+        className={cn("group/list", listBody)}
       >
         {children}
       </BaseMenu.List>
@@ -98,11 +99,8 @@ interface ItemProps extends Omit<ComponentProps<typeof BaseMenu.Item>, "classNam
 }
 
 const Item = ({ icon, children, ...props }: ItemProps) => (
-  <BaseMenu.Item
-    className="flex min-h-8 shrink-0 items-center gap-2 rounded-md px-2 text-subtle outline-none select-none data-[highlighted]:bg-neutral data-[highlighted]:text-default"
-    {...props}
-  >
-    <Icon icon={icon} className="shrink-0" />
+  <BaseMenu.Item className={listItem} {...props}>
+    <Icon icon={icon} />
     {children}
   </BaseMenu.Item>
 );

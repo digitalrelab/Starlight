@@ -69,11 +69,15 @@ export const createClient = (ports: PortSources) => {
         host((c) => c.ListEntries({ projectId: id(projectId), directory })),
       create: (projectId: string, directory: EntryRef, name: string, kind: CreatableKind) =>
         host((c) => c.CreateEntry({ projectId: id(projectId), directory, name, kind })),
+      rename: (projectId: string, entry: EntryRef, name: string) =>
+        host((c) => c.RenameEntry({ projectId: id(projectId), entry, name })),
       watch: (projectId: string, onChange: (change: EntryChange) => void) =>
         watch("Entries", (c) => c.WatchEntries({ projectId: id(projectId) }), onChange),
       locate: (ref: EntryRef) => host((c) => c.LocateEntry({ ref })),
+    },
+    references: {
       search: (query: string, projectId: string | null, includeHidden: boolean) =>
-        host((c) => c.SearchEntries({ query, projectId: optionalId(projectId), includeHidden })),
+        host((c) => c.SearchReferences({ query, projectId: optionalId(projectId), includeHidden })),
     },
     media: {
       list: (projectId: string, directory: EntryRef | null) =>

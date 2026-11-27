@@ -3,7 +3,7 @@ import { cn } from "cn";
 import { createElement, Fragment, memo, type ReactNode, useState } from "react";
 import { CodeBlock } from "./code-block.tsx";
 import { createIncrementalParser } from "./parse.ts";
-import { autolinkUrl, decodeEntity, referenceKey, safeUrl, unescape } from "./text.ts";
+import { autolinkUrl, decodeEntity, destinationOf, referenceKey, safeUrl } from "./text.ts";
 
 type References = ReadonlyMap<string, string>;
 
@@ -65,8 +65,6 @@ const childrenOf = (node: SyntaxNode) => {
 };
 
 const visibleChildrenOf = (node: SyntaxNode) => childrenOf(node).filter(({ name }) => !HIDDEN.has(name));
-
-const destinationOf = (raw: string) => unescape(raw.startsWith("<") ? raw.slice(1, -1) : raw);
 
 const inline = (node: SyntaxNode, source: Source, from = node.from, to = node.to) => {
   const nodes: Array<ReactNode> = [];

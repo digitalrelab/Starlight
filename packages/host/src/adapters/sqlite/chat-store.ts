@@ -4,6 +4,8 @@ import { ChatStore } from "@starlight/core";
 import { Effect, Layer, Option, Schema } from "effect";
 import { SqlClient, SqlSchema } from "effect/sql";
 
+const containing = (text: string) => `%${text.replace(/[\\%_]/g, "\\$&")}%`;
+
 const ChatRow = Schema.Struct({
   id: ChatId,
   project_id: Schema.NullOr(ProjectId),
@@ -45,6 +47,13 @@ export const SqliteChatStoreLive = Layer.effect(ChatStore)(
   Effect.gen(function* () {
     const sql = yield* SqlClient.SqlClient;
 
+    const search = SqlSchema.findAll({
+      Request: Schema.Struct({ query: Schema.String, limit: Schema.Number }),
+      Result: ChatRow,
+      execute: ({ query, limit }) =>
+        sql`SELECT * FROM chats WHERE title LIKE ${containing(query)} ESCAPE '\\' ORDER BY updated_at DESC LIMIT ${limit}`,
+    });
+
     const list = SqlSchema.findAll({
       Request: Schema.NullOr(ProjectId),
       Result: ChatRow,
@@ -66,6 +75,11 @@ export const SqliteChatStoreLive = Layer.effect(ChatStore)(
     });
 
     return ChatStore.of({
+      search: (query, limit) =>
+        search({ query, limit }).pipe(
+          Effect.map((rows) => rows.map(toChat)),
+          Effect.orDie,
+        ),
       list: (projectId) =>
         list(projectId).pipe(
           Effect.map((rows) => rows.map(toChat)),

@@ -3,6 +3,7 @@ import { cn } from "cn";
 import { matchSorter, rankings } from "match-sorter";
 import type { ReactNode } from "react";
 import { dialogBackdrop, dialogOption, dialogPopup, dialogRows, dialogViewport } from "./dialog.ts";
+import { ItemHint, ItemLeading } from "./list.tsx";
 import { ScrollArea } from "./scroll-area.tsx";
 
 export interface CommandItem {
@@ -84,15 +85,9 @@ const Root = ({ placeholder, query, onQueryChange, groups, onActivate }: RootPro
                   onClick={() => onActivate(item)}
                   className={dialogOption}
                 >
-                  <span className="flex size-5 shrink-0 items-center justify-center text-subtle">
-                    {item.leading}
-                  </span>
+                  <ItemLeading>{item.leading}</ItemLeading>
                   <span className="min-w-0 truncate">{item.label}</span>
-                  {item.detail ? (
-                    <span className="ml-auto max-w-1/2 min-w-0 shrink-0 truncate pl-4 text-subtlest">
-                      {item.detail}
-                    </span>
-                  ) : null}
+                  {item.detail ? <ItemHint>{item.detail}</ItemHint> : null}
                 </Autocomplete.Item>
               )}
             </Autocomplete.Collection>

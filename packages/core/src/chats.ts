@@ -27,8 +27,12 @@ import { Projects } from "./projects.ts";
 
 const TITLE_LENGTH = 80;
 
+const INLINE_LINK = /\[((?:\\.|[^\]\\])*)\]\([^)\s]*\)/g;
+
 const titleFrom = (text: string) => {
-  const line = text.trim().split("\n")[0] ?? "";
+  const line = (text.trim().split("\n")[0] ?? "").replace(INLINE_LINK, (_, label: string) =>
+    label.replace(/\\(.)/g, "$1"),
+  );
   return line.length > TITLE_LENGTH ? `${line.slice(0, TITLE_LENGTH - 1)}…` : line;
 };
 
