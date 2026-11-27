@@ -36,7 +36,7 @@ const KINDS: Readonly<Record<ItemKind, { readonly icon: IconProps["icon"]; reado
   other: { icon: File01Icon, className: "text-accent-gray" },
 };
 
-export const kindOf = (entry: Entry): ItemKind =>
+export const itemKindOf = (entry: Entry): ItemKind =>
   entry.kind === "directory" ? "folder" : fileKindOf(entry.name);
 
 interface KindIconProps extends Omit<IconProps, "icon"> {

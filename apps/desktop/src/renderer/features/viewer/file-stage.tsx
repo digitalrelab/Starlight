@@ -6,7 +6,7 @@ import { fileUrl } from "../../../shared/files.ts";
 import { thumbnailUrl } from "../../../shared/thumbnails.ts";
 import { useStarlight } from "../../lib/context.ts";
 import { reveal } from "../../lib/reveal.ts";
-import { type ItemKind, KindIcon, kindOf } from "../files/kind-icon.tsx";
+import { type ItemKind, KindIcon, itemKindOf } from "../files/kind-icon.tsx";
 import { pictureUrl, presentationOf } from "./presentation.ts";
 
 const PLACEHOLDER_PIXELS = 512;
@@ -88,8 +88,8 @@ export const FileStage = ({ workspaceId, directory, entry }: Props) => {
     ...queries.fileSource(workspaceId, directory, entry.ref),
     enabled: presentation !== "none",
   });
-  if (presentation === "none") return <Notice kind={kindOf(entry)}>No preview available</Notice>;
-  if (source.isError) return <Notice kind={kindOf(entry)}>Can’t open this file</Notice>;
+  if (presentation === "none") return <Notice kind={itemKindOf(entry)}>No preview available</Notice>;
+  if (source.isError) return <Notice kind={itemKindOf(entry)}>Can’t open this file</Notice>;
   if (!source.data) return null;
   if (presentation === "video") return <Video source={source.data} />;
   return <Picture name={entry.name} source={source.data} presentation={presentation} />;

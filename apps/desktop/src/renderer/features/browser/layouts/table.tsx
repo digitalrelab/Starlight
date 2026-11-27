@@ -3,7 +3,7 @@ import { cn } from "@starlight/ui";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { type KeyboardEvent, useEffect, useEffectEvent, useRef } from "react";
 import { formatDate, formatSize } from "../../../lib/format.ts";
-import { KindIcon, kindOf } from "../../files/kind-icon.tsx";
+import { KindIcon, itemKindOf } from "../../files/kind-icon.tsx";
 import type { LayoutProps } from "./types.ts";
 
 const ROW_HEIGHT = 26;
@@ -65,7 +65,7 @@ export const TableLayout = ({ entries, selected, onSelect, onOpen }: LayoutProps
                 style={{ height: ROW_HEIGHT, transform: `translateY(${row.start}px)` }}
               >
                 <span className="flex min-w-0 items-center gap-2">
-                  <KindIcon kind={kindOf(entry)} />
+                  <KindIcon kind={itemKindOf(entry)} />
                   <span className="truncate">{entry.name}</span>
                 </span>
                 <span className="text-right text-subtle tabular-nums">

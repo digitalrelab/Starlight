@@ -4,7 +4,7 @@ import { Button, Icon, IconButton, Theater } from "@starlight/ui";
 import { type KeyboardEvent, useEffect, useEffectEvent, useMemo, useRef } from "react";
 import { useStarlight } from "../../lib/context.ts";
 import { FileStage } from "./file-stage.tsx";
-import { KindIcon, kindOf } from "../files/kind-icon.tsx";
+import { KindIcon, itemKindOf } from "../files/kind-icon.tsx";
 import { pictureUrl, presentationOf } from "./presentation.ts";
 
 interface Props {
@@ -103,7 +103,7 @@ export const FileViewer = ({
         <Theater.Title>
           {current ? (
             <>
-              <KindIcon kind={kindOf(current)} />
+              <KindIcon kind={itemKindOf(current)} />
               <span className="truncate">{current.name}</span>
             </>
           ) : null}
