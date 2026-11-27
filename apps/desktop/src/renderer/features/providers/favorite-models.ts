@@ -26,21 +26,26 @@ const parse = (raw: string): ReadonlyArray<Favorite> => {
 
 type ModelKey = Pick<Favorite, "provider" | "model">;
 
-const same = (a: ModelKey, b: ModelKey) => a.provider === b.provider && a.model === b.model;
+export const sameModel = (a: ModelKey, b: ModelKey) => a.provider === b.provider && a.model === b.model;
 
 export const useFavoriteModels = () => {
   const favorites = parse(useStored(favoriteModels));
-  const isFavorite = (key: ModelKey) => favorites.some((candidate) => same(candidate, key));
+  const isFavorite = (key: ModelKey) => favorites.some((candidate) => sameModel(candidate, key));
   return {
     favorites,
     isFavorite,
-    toggle: (favorite: Favorite) =>
+    toggle: (favorite: Favorite, order: ReadonlyArray<Favorite> = []) => {
+      const rank = (candidate: Favorite) => {
+        const index = order.findIndex((known) => sameModel(known, candidate));
+        return index === -1 ? order.length : index;
+      };
       favoriteModels.set(
         JSON.stringify(
           isFavorite(favorite)
-            ? favorites.filter((candidate) => !same(candidate, favorite))
-            : [...favorites, favorite],
+            ? favorites.filter((candidate) => !sameModel(candidate, favorite))
+            : [...favorites, favorite].toSorted((a, b) => rank(a) - rank(b)),
         ),
-      ),
+      );
+    },
   };
 };

@@ -9,7 +9,7 @@ import {
 import type { AgentEffort, AgentModel, AgentProvider, ModelChoice } from "@starlight/client";
 import { cn, Icon, Kbd, Popover, PopoverContent, PopoverTrigger, ScrollArea } from "@starlight/ui";
 import { type ReactNode, useEffect, useEffectEvent, useState } from "react";
-import { useFavoriteModels } from "./favorite-models.ts";
+import { type Favorite, sameModel, useFavoriteModels } from "./favorite-models.ts";
 import { providerAppearance } from "./provider-appearance.ts";
 
 const FAVORITES = "favorites";
@@ -56,14 +56,12 @@ const Row = ({
       type="button"
       aria-pressed={selected}
       onClick={onClick}
-      className="flex h-full min-w-0 flex-1 items-center gap-2 rounded-md pl-2 text-left focus-ring"
+      className="flex h-full min-w-0 flex-1 items-center gap-2 rounded-md px-2 text-left focus-ring"
     >
+      <Icon icon={Tick02Icon} size={14} className={cn("shrink-0", !selected && "invisible")} />
       {children}
     </button>
-    <span className="flex shrink-0 items-center gap-2 px-2">
-      {trailing}
-      <Icon icon={Tick02Icon} size={14} className={cn(!selected && "invisible")} />
-    </span>
+    {trailing ? <span className="flex shrink-0 items-center gap-2 pr-2">{trailing}</span> : null}
   </div>
 );
 
@@ -81,7 +79,7 @@ const Star = ({
     aria-label={starred ? `Remove ${label} from favorites` : `Add ${label} to favorites`}
     aria-pressed={starred}
     onClick={onToggle}
-    className="inline-flex size-5 items-center justify-center rounded-sm text-subtlest opacity-0 focus-ring group-hover/row:opacity-100 hover:text-default focus-visible:opacity-100 aria-pressed:text-accent-yellow aria-pressed:opacity-100"
+    className="inline-flex size-5 items-center justify-center rounded-sm text-subtlest opacity-0 focus-ring group-hover/row:opacity-100 hover:text-default focus-visible:opacity-100 aria-pressed:text-accent-yellow aria-pressed:opacity-100 aria-pressed:hover:text-accent-yellow/50"
   >
     <Icon icon={starred ? StarFilledIcon : StarIcon} size={14} />
   </button>
@@ -120,13 +118,18 @@ export const ModelPicker = ({ providers, choice, onChoose }: Props) => {
   const [browsing, setBrowsing] = useState<string>(choice.provider);
   const [search, setSearch] = useState("");
   const [showLegacy, setShowLegacy] = useState(false);
+  const [kept, setKept] = useState<ReadonlyArray<Favorite>>([]);
 
-  const starred = favorites.flatMap((favorite) => {
-    const provider = providers.find(({ id }) => id === favorite.provider);
-    const model = provider?.models.find(({ id }) => id === favorite.model);
-    const entry = provider && model ? entryOf(provider, model, favorite.effort) : undefined;
-    return entry ? [entry] : [];
-  });
+  const resolve = (list: ReadonlyArray<Favorite>) =>
+    list.flatMap((favorite) => {
+      const provider = providers.find(({ id }) => id === favorite.provider);
+      const model = provider?.models.find(({ id }) => id === favorite.model);
+      const entry = provider && model ? entryOf(provider, model, favorite.effort) : undefined;
+      return entry ? [entry] : [];
+    });
+
+  const starred = resolve(favorites);
+  const slotOf = (entry: Entry) => starred.findIndex(({ choice }) => sameModel(choice, entry.choice)) + 1;
 
   const onShortcut = useEffectEvent((event: KeyboardEvent) => {
     const slot = Number(event.key);
@@ -154,6 +157,11 @@ export const ModelPicker = ({ providers, choice, onChoose }: Props) => {
   );
   const hasLegacy = query === "" && shown.models.some((candidate) => candidate.legacy);
 
+  const favoritesShown = resolve([
+    ...kept,
+    ...favorites.filter((favorite) => !kept.some((known) => sameModel(known, favorite))),
+  ]);
+
   const withCurrentEffort = (candidate: AgentModel) =>
     entryOf(shown, candidate, choice.effort) ?? entryOf(shown, candidate, null);
 
@@ -162,7 +170,7 @@ export const ModelPicker = ({ providers, choice, onChoose }: Props) => {
       <Star
         label={entry.model.name}
         starred={isFavorite(entry.choice)}
-        onToggle={() => toggle(entry.choice)}
+        onToggle={() => toggle(entry.choice, kept)}
       />
     ) : null;
 
@@ -171,6 +179,7 @@ export const ModelPicker = ({ providers, choice, onChoose }: Props) => {
       onOpenChange={(open) => {
         if (!open) return;
         setBrowsing(starred.length > 0 ? FAVORITES : choice.provider);
+        setKept(favorites);
         setSearch("");
         setShowLegacy(false);
       }}
@@ -225,8 +234,9 @@ export const ModelPicker = ({ providers, choice, onChoose }: Props) => {
           <ScrollArea className="flex-1" contentClassName="flex flex-col gap-0.5 p-1.5">
             {browsing === FAVORITES ? (
               <>
-                {starred.map((entry, index) =>
-                  matches(entry.model) ? (
+                {favoritesShown.map((entry) => {
+                  const slot = slotOf(entry);
+                  return matches(entry.model) ? (
                     <Row
                       key={`${entry.choice.provider}/${entry.choice.model}`}
                       selected={
@@ -238,7 +248,9 @@ export const ModelPicker = ({ providers, choice, onChoose }: Props) => {
                       trailing={
                         <>
                           {star(entry)}
-                          {index < SHORTCUT_SLOTS ? <Kbd shortcut={["Meta", String(index + 1)]} /> : null}
+                          {slot > 0 && slot <= SHORTCUT_SLOTS ? (
+                            <Kbd shortcut={["Meta", String(slot)]} />
+                          ) : null}
                         </>
                       }
                     >
@@ -248,9 +260,9 @@ export const ModelPicker = ({ providers, choice, onChoose }: Props) => {
                         <span className="shrink-0 text-subtlest">{entry.effort.label}</span>
                       ) : null}
                     </Row>
-                  ) : null,
-                )}
-                {starred.length === 0 ? (
+                  ) : null;
+                })}
+                {favoritesShown.length === 0 ? (
                   <p className="px-2 py-1.5 text-sm text-subtlest">
                     Star a model to keep it here with its reasoning level.
                   </p>
