@@ -24,7 +24,7 @@ const toReact = (node: ChildNode, key: number): ReactNode => {
   if (!(node instanceof Element)) return null;
   const tag = node.localName;
   if (!RENDERED.has(tag) && !UNWRAPPED.has(tag)) return null;
-  return createElement(RENDERED.has(tag) ? tag : Fragment, { key }, Array.from(node.childNodes, toReact));
+  return createElement(RENDERED.has(tag) ? tag : Fragment, { key }, ...Array.from(node.childNodes, toReact));
 };
 
 const Root = ({ className, ...props }: ComponentProps<"div">) => (
