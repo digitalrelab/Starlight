@@ -57,15 +57,17 @@ function Browser() {
 
   const directoryKey = directory ? entryKey(directory) : "";
   const [selection, setSelection] = useState<Selection>({ directory: directoryKey, key: undefined });
-  const selectedKey = fileKey ?? (selection.directory === directoryKey ? selection.key : undefined);
   const select = (key: string | undefined) => setSelection({ directory: directoryKey, key });
+  if (fileKey && (selection.directory !== directoryKey || selection.key !== fileKey)) select(fileKey);
+  const selectedKey = selection.directory === directoryKey ? selection.key : undefined;
 
   const showFile = (shown: EntryRef) => {
-    if (directory) void navigate({ search: toFileSearch(directory, shown), replace: true });
+    if (directory) void navigate({ search: toFileSearch(directory, shown), replace: true, state: true });
   };
   const onOpen = (entry: Entry) => {
     if (entry.kind === "directory") void navigate({ search: toDirectorySearch(entry.ref) });
-    else if (entry.kind === "file") showFile(entry.ref);
+    else if (entry.kind === "file" && directory)
+      void navigate({ search: toFileSearch(directory, entry.ref), state: { fromDirectory: true } });
   };
   const preloadFolder = (folder: EntryRef) =>
     router.preloadRoute({
@@ -78,8 +80,8 @@ function Browser() {
   };
   useFoldersAhead(projectId, listing.entries, preloadFolder);
   const closeViewer = () => {
-    select(fileKey);
-    void navigate({ search: toDirectorySearch(directory), replace: true });
+    if (router.history.location.state.fromDirectory) router.history.back();
+    else void navigate({ search: toDirectorySearch(directory), replace: true });
   };
 
   if (error && !isFetching) throw error;
