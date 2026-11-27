@@ -4,6 +4,7 @@ export * from "./connection.ts";
 export * from "./conversation.ts";
 export * from "./entry.ts";
 export * from "./errors.ts";
+export * from "./file-types.ts";
 export * from "./ids.ts";
 export * from "./media.ts";
 export * from "./rpc.ts";
