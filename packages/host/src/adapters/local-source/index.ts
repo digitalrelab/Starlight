@@ -1,5 +1,5 @@
 import type { Stats } from "node:fs";
-import { lstat, mkdir, open, readdir, realpath, stat, writeFile } from "node:fs/promises";
+import { lstat, mkdir, open, readdir, realpath, rename, stat, writeFile } from "node:fs/promises";
 import { basename, dirname, join, relative, resolve, sep } from "node:path";
 import { subscribe } from "@parcel/watcher";
 import { type CreatableKind, EntryId, type EntryKind, type SourceError } from "@starlight/contracts";
@@ -60,6 +60,20 @@ const writeInPlace = async (path: string, content: Uint8Array) => {
 const createNew = async (path: string, kind: CreatableKind) => {
   await (kind === "directory" ? mkdir(path) : writeFile(path, "", { flag: "wx" }));
   return stat(path);
+};
+
+const lstatIfPresent = (path: string) =>
+  lstat(path).catch((error: NodeJS.ErrnoException) => {
+    if (error.code === "ENOENT") return undefined;
+    throw error;
+  });
+
+const renameWithin = async (from: string, to: string) => {
+  const [source, taken] = await Promise.all([lstat(from), lstatIfPresent(to)]);
+  if (taken && (taken.dev !== source.dev || taken.ino !== source.ino))
+    throw Object.assign(new Error(`Already exists: ${to}`), { code: "EEXIST" });
+  await rename(from, to);
+  return lstat(to);
 };
 
 const staleDirectories = (paths: ReadonlyArray<string>) =>
@@ -123,6 +137,13 @@ export const makeLocalSource = (imaging: Imaging["Service"]): SourceDriver => {
       return Effect.tryPromise({ try: () => createNew(id, kind), catch: toSourceError(id) }).pipe(
         Effect.map((s) => toEntry(id, s)),
       );
+    },
+    rename: (parent, from, to) => {
+      const id = EntryId.make(join(parent, to));
+      return Effect.tryPromise({
+        try: () => renameWithin(join(parent, from), id),
+        catch: toSourceError(id),
+      }).pipe(Effect.map((s) => toEntry(id, s)));
     },
     watch,
     extractors: { dimensions: dimensionsExtractor, duration: durationExtractor },

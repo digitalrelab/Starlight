@@ -64,8 +64,10 @@ const onListKey = (event: KeyboardEvent, list: ListHandlers, step: Step) => {
   event.preventDefault();
 };
 
-export const isOnItem = (target: EventTarget) =>
-  target instanceof Element && target.closest("[data-index]") !== null;
+export const itemIndexAt = (target: EventTarget) => {
+  const item = target instanceof Element ? target.closest<HTMLElement>("[data-index]") : null;
+  return item ? Number(item.dataset["index"]) : null;
+};
 
 export const listOf = (element: Element) => element.closest<HTMLElement>("[role=listbox]");
 
@@ -75,6 +77,6 @@ export const listProps = (list: ListHandlers, step: Step) => ({
   "aria-multiselectable": true,
   onKeyDown: (event: KeyboardEvent) => onListKey(event, list, step),
   onClick: (event: MouseEvent) => {
-    if (!isOnItem(event.target) && isPlain(event)) list.selection.clear();
+    if (itemIndexAt(event.target) === null && isPlain(event)) list.selection.clear();
   },
 });

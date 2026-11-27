@@ -14,7 +14,7 @@ import { DirectoryView } from "#renderer/features/browser/directory-view.tsx";
 import { layoutPreference } from "#renderer/features/browser/layout-preference.ts";
 import { LayoutSwitcher } from "#renderer/features/browser/layout-switcher.tsx";
 import { layouts } from "#renderer/features/browser/layouts/registry.ts";
-import { NewEntryContextMenu, NewEntryMenu } from "#renderer/features/browser/new-entry/new-entry-menu.tsx";
+import { NewEntryMenu } from "#renderer/features/browser/naming/new-entry-menu.tsx";
 import { useFoldersAhead } from "#renderer/features/browser/use-folders-ahead.ts";
 import { hiddenFiles } from "#renderer/features/settings/files.ts";
 import { PageError } from "#renderer/features/shell/page-error.tsx";
@@ -80,19 +80,6 @@ function Browser() {
 
   if (error && !isFetching) throw error;
 
-  const view = (
-    <DirectoryView
-      key={directoryKey}
-      projectId={projectId}
-      directory={directory}
-      entries={entries}
-      layout={layout}
-      shown={file}
-      onOpen={onOpen}
-      onIntent={prefetch}
-    />
-  );
-
   return (
     <>
       <PageHeader
@@ -106,13 +93,16 @@ function Browser() {
       >
         <DirectoryBreadcrumbs project={project} trail={listing.trail} />
       </PageHeader>
-      {directory ? (
-        <NewEntryContextMenu directory={directory} entries={listing.entries}>
-          {view}
-        </NewEntryContextMenu>
-      ) : (
-        view
-      )}
+      <DirectoryView
+        key={directoryKey}
+        projectId={projectId}
+        directory={directory}
+        entries={entries}
+        layout={layout}
+        shown={file}
+        onOpen={onOpen}
+        onIntent={prefetch}
+      />
       {directory && file ? (
         <FileViewer
           projectId={projectId}

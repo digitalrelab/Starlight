@@ -1,6 +1,5 @@
 import {
   type CreatableKind,
-  type CreateError,
   type DirectoryError,
   type Entry,
   type EntryChange,
@@ -10,6 +9,7 @@ import {
   InvalidName,
   type Listing,
   type Mount,
+  type NamingError,
   type ProjectId,
   type ProjectNotFound,
   type SourceError,
@@ -44,6 +44,11 @@ const toEntry = (
 const isValidName = (name: string) =>
   name.trim() !== "" && name !== "." && name !== ".." && !/[/\\\0]/.test(name);
 
+const failIfTaken = (name: string) =>
+  Effect.mapError((error: SourceError) =>
+    error.reason === "AlreadyExists" ? new EntryExists({ name }) : error,
+  );
+
 const resync: EntryChange = { _tag: "Resync" };
 
 const sameMounts = (a: ReadonlyArray<Mount>, b: ReadonlyArray<Mount>) =>
@@ -77,7 +82,12 @@ export class Entries extends Context.Service<
       directory: EntryRef,
       name: string,
       kind: CreatableKind,
-    ) => Effect.Effect<EntryRef, CreateError, CurrentActor>;
+    ) => Effect.Effect<EntryRef, NamingError, CurrentActor>;
+    readonly rename: (
+      projectId: ProjectId,
+      entry: EntryRef,
+      name: string,
+    ) => Effect.Effect<EntryRef, NamingError, CurrentActor>;
     readonly watch: (
       projectId: ProjectId,
     ) => Stream.Stream<EntryChange, ProjectNotFound | SourceUnavailable | SourceError>;
@@ -126,18 +136,29 @@ export class Entries extends Context.Service<
         create: Effect.fn("Entries.create")(function* (projectId, requested, name, kind) {
           if (!isValidName(name)) return yield* new InvalidName({ name });
           const { driver, directory } = yield* projects.locateDirectory(projectId, requested);
-          const created = yield* driver
-            .create(directory.id, name, kind)
-            .pipe(
-              Effect.mapError((error) =>
-                error.reason === "AlreadyExists" ? new EntryExists({ name }) : error,
-              ),
-            );
+          const created = yield* driver.create(directory.id, name, kind).pipe(failIfTaken(name));
           const ref = { source: directory.source, id: created.id };
           yield* audit.record({
             actor: yield* CurrentActor,
             action: kind === "file" ? "CreateFile" : "CreateDirectory",
             target: JSON.stringify(ref),
+          });
+          return ref;
+        }),
+
+        rename: Effect.fn("Entries.rename")(function* (projectId, requested, name) {
+          if (!isValidName(name)) return yield* new InvalidName({ name });
+          const driver = yield* projects.driverFor(requested.source);
+          const parent = { source: requested.source, id: driver.parent(requested.id) };
+          const { directory } = yield* projects.locateDirectory(projectId, parent);
+          const { name: from } = yield* driver.stat(requested.id);
+          if (from === name) return requested;
+          const renamed = yield* driver.rename(directory.id, from, name).pipe(failIfTaken(name));
+          const ref = { source: directory.source, id: renamed.id };
+          yield* audit.record({
+            actor: yield* CurrentActor,
+            action: "RenameEntry",
+            target: JSON.stringify({ from: requested, to: ref }),
           });
           return ref;
         }),
