@@ -42,7 +42,7 @@ const Message = ({
 
 export const Transcript = ({ messages, draft, failure, className }: Props) => {
   const viewport = useRef<HTMLDivElement>(null);
-  const lastQuestion = messages.findLast((message) => message.role === "user")?.id;
+  const lastUserMessage = messages.findLast((message) => message.role === "user")?.id;
   const items = draft
     ? [...messages, { id: draft.id, role: "assistant" as const, text: draft.text }]
     : messages;
@@ -59,7 +59,7 @@ export const Transcript = ({ messages, draft, failure, className }: Props) => {
     followOnAppend: true,
     scrollEndThreshold: AT_END_WITHIN_PX,
   });
-  useEffect(() => virtualizer.scrollToEnd(), [virtualizer, lastQuestion]);
+  useEffect(() => virtualizer.scrollToEnd(), [virtualizer, lastUserMessage]);
 
   return (
     <ScrollArea className="flex-1" ref={viewport} contentClassName={className}>
@@ -80,7 +80,11 @@ export const Transcript = ({ messages, draft, failure, className }: Props) => {
           );
         })}
       </div>
-      {failure ? <p className="pb-8 text-sm text-danger">{failure}</p> : null}
+      {failure ? (
+        <p className="text-sm text-danger" style={{ paddingBottom: EDGE_SPACE }}>
+          {failure}
+        </p>
+      ) : null}
     </ScrollArea>
   );
 };
