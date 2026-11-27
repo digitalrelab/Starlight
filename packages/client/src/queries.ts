@@ -242,6 +242,7 @@ const createSubscriptions = (client: StarlightClient, queryClient: QueryClient, 
       );
       void queryClient.invalidateQueries({
         queryKey: [...directoryKey(projectId), entryKey(directory), "details"],
+        predicate: ({ queryKey }) => byKey.has(String(queryKey.at(-1))),
       });
     }),
   entries: (projectId: string) =>
