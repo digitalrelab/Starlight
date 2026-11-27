@@ -2,23 +2,23 @@ import { DirectoryMissing, type Entry, type EntryRef, entryKey } from "@starligh
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, type ErrorComponentProps, Navigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
-import { Breadcrumbs } from "../features/browser/breadcrumbs.tsx";
+import { Breadcrumbs } from "#renderer/features/browser/breadcrumbs.tsx";
 import {
   parseDirectorySearch,
   toDirectory,
   toDirectorySearch,
   toFile,
   toFileSearch,
-} from "../features/browser/directory-search.ts";
-import { DirectoryView } from "../features/browser/directory-view.tsx";
-import { layoutPreference } from "../features/browser/layout-preference.ts";
-import { LayoutSwitcher } from "../features/browser/layout-switcher.tsx";
-import { layouts } from "../features/browser/layouts/registry.ts";
-import { PageError } from "../features/shell/page-error.tsx";
-import { PageHeader } from "../features/shell/page-header.tsx";
-import { FileViewer } from "../features/viewer/file-viewer.tsx";
-import { AddMountButton } from "../features/workspaces/add-mount-button.tsx";
-import { useStarlight } from "../lib/context.ts";
+} from "#renderer/features/browser/directory-search.ts";
+import { DirectoryView } from "#renderer/features/browser/directory-view.tsx";
+import { layoutPreference } from "#renderer/features/browser/layout-preference.ts";
+import { LayoutSwitcher } from "#renderer/features/browser/layout-switcher.tsx";
+import { layouts } from "#renderer/features/browser/layouts/registry.ts";
+import { PageError } from "#renderer/features/shell/page-error.tsx";
+import { PageHeader } from "#renderer/features/shell/page-header.tsx";
+import { FileViewer } from "#renderer/features/viewer/file-viewer.tsx";
+import { AddMountButton } from "#renderer/features/workspaces/add-mount-button.tsx";
+import { useStarlight } from "#renderer/lib/context.ts";
 
 interface Selection {
   readonly directory: string;

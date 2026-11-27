@@ -1,5 +1,5 @@
 import type { PortSources } from "@starlight/client";
-import { Channel } from "../../shared/channels.ts";
+import { Channel } from "#shared/channels.ts";
 
 const ports = new Promise<readonly [MessagePort, MessagePort]>((resolve) => {
   const onMessage = (event: MessageEvent) => {

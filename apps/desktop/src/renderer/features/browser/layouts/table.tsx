@@ -2,8 +2,8 @@ import { entryKey } from "@starlight/client";
 import { cn, ScrollArea } from "@starlight/ui";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { type KeyboardEvent, useEffect, useEffectEvent, useRef } from "react";
-import { formatDate, formatSize } from "../../../lib/format.ts";
-import { KindIcon, itemKindOf } from "../../files/kind-icon.tsx";
+import { formatDate, formatSize } from "#renderer/lib/format.ts";
+import { KindIcon, itemKindOf } from "#renderer/features/files/kind-icon.tsx";
 import type { LayoutProps } from "./types.ts";
 
 const ROW_HEIGHT = 26;

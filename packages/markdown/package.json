@@ -2,6 +2,9 @@
   "name": "@starlight/markdown",
   "private": true,
   "type": "module",
+  "imports": {
+    "#*": "./src/*"
+  },
   "exports": {
     ".": "./src/index.ts",
     "./editor": "./src/editor/index.tsx",

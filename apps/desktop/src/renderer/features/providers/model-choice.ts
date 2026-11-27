@@ -1,8 +1,8 @@
 import type { AgentProvider, Conversation, ModelChoice } from "@starlight/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { useStarlight } from "../../lib/context.ts";
-import { anyString, defineStored } from "../../lib/storage.ts";
+import { useStarlight } from "#renderer/lib/context.ts";
+import { anyString, defineStored } from "#renderer/lib/storage.ts";
 
 interface Wanted {
   readonly provider?: string;

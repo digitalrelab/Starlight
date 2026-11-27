@@ -2,8 +2,8 @@ import type { DiskUsage } from "@starlight/client";
 import { Button, cn, Item, Tooltip } from "@starlight/ui";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
-import { useStarlight } from "../../lib/context.ts";
-import { formatSize } from "../../lib/format.ts";
+import { useStarlight } from "#renderer/lib/context.ts";
+import { formatSize } from "#renderer/lib/format.ts";
 
 interface Part {
   readonly key: keyof DiskUsage;

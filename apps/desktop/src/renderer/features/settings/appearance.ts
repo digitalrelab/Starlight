@@ -1,7 +1,7 @@
 import { COLOR_SCHEMES } from "@starlight/ui";
 import { useLayoutEffect } from "react";
-import { Channel } from "../../../shared/channels.ts";
-import { defineStored, oneOf } from "../../lib/storage.ts";
+import { Channel } from "#shared/channels.ts";
+import { defineStored, oneOf } from "#renderer/lib/storage.ts";
 
 export const colorScheme = defineStored("color-scheme", oneOf(COLOR_SCHEMES), "system");
 

@@ -1,6 +1,6 @@
 import { ScrollArea } from "@starlight/ui";
 import type { ReactNode } from "react";
-import { PageHeader } from "../shell/page-header.tsx";
+import { PageHeader } from "#renderer/features/shell/page-header.tsx";
 
 interface Props {
   readonly title: string;

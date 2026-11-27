@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { join } from "node:path";
 import { app, BrowserWindow, ipcMain, MessageChannelMain, protocol } from "electron";
-import { Channel } from "../shared/channels.ts";
+import { Channel } from "#shared/channels.ts";
 import { superviseHost } from "./host.ts";
 import { serveShell } from "./shell.ts";
 import { fileScheme, serveFiles } from "./files.ts";
