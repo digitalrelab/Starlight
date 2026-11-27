@@ -1,7 +1,7 @@
 import type { EffortLevel } from "@anthropic-ai/claude-agent-sdk";
 import { type AgentModel, ModelId } from "@starlight/contracts";
 import { Effect } from "effect";
-import { COMMAND_TIMEOUT_MS } from "./executable.ts";
+import { COMMAND_TIMEOUT_MS } from "#adapters/cli.ts";
 import type { Pool } from "./pool.ts";
 
 const EFFORTS: Readonly<Record<EffortLevel, string>> = {

@@ -2,11 +2,13 @@ import { deleteSession } from "@anthropic-ai/claude-agent-sdk";
 import type { AgentProviderStatus } from "@starlight/contracts";
 import type { AgentProviderDriver } from "@starlight/core";
 import { Effect, Option, Schema } from "effect";
-import { findExecutable, output } from "./executable.ts";
+import { findCommand, output } from "#adapters/cli.ts";
 import { makeModels } from "./models.ts";
 import { makePool } from "./pool.ts";
 import { respond } from "./respond.ts";
 import { openSession } from "./session.ts";
+
+const findExecutable = findCommand("claude", [".local/bin/claude", ".claude/local/claude"]);
 
 const AuthStatus = Schema.fromJsonString(
   Schema.Struct({

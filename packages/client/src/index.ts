@@ -20,6 +20,7 @@ export type {
 } from "@starlight/contracts";
 export {
   ClaudeCodeProvider,
+  CodexProvider,
   ChatNotFound,
   DirectoryMissing,
   fileKindOf,

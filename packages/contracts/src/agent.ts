@@ -4,6 +4,7 @@ export const AgentProviderId = Schema.String.pipe(Schema.brand("AgentProviderId"
 export type AgentProviderId = typeof AgentProviderId.Type;
 
 export const ClaudeCodeProvider = AgentProviderId.make("claude-code");
+export const CodexProvider = AgentProviderId.make("codex");
 
 export const AgentProviderStatus = Schema.Union([
   Schema.TaggedStruct("Ready", {
