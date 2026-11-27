@@ -3,7 +3,7 @@ import { type KeyboardEvent, Suspense, useEffect, useRef } from "react";
 import { type LayoutId, layouts } from "./layouts/registry.ts";
 
 interface Props {
-  readonly workspaceId: string;
+  readonly projectId: string;
   readonly directory: EntryRef | null;
   readonly entries: ReadonlyArray<Entry>;
   readonly layout: LayoutId;
@@ -25,7 +25,7 @@ const useDwell = (onDwell: (entry: Entry) => void) => {
 };
 
 export const DirectoryView = ({
-  workspaceId,
+  projectId,
   directory,
   entries,
   layout,
@@ -59,7 +59,7 @@ export const DirectoryView = ({
     <div className="flex min-h-0 flex-1 flex-col" onKeyDown={onKeyDown}>
       <Suspense fallback={<div className="flex-1" />}>
         <Layout
-          workspaceId={workspaceId}
+          projectId={projectId}
           directory={directory}
           entries={entries}
           selected={selected}

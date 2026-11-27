@@ -13,7 +13,7 @@ export interface LayoutDefinition {
   readonly component: ComponentType<LayoutProps>;
   readonly preload?: (
     context: RouterContext,
-    workspaceId: string,
+    projectId: string,
     directory: EntryRef | null,
   ) => Promise<unknown>;
 }
@@ -24,8 +24,8 @@ const definitions = {
     label: "Grid",
     icon: GridViewIcon,
     component: GridLayout,
-    preload: ({ queryClient, queries }, workspaceId, directory) =>
-      queryClient.ensureQueryData(queries.media(workspaceId, directory)),
+    preload: ({ queryClient, queries }, projectId, directory) =>
+      queryClient.ensureQueryData(queries.media(projectId, directory)),
   },
 } satisfies Record<string, LayoutDefinition>;
 

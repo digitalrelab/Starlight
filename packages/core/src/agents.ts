@@ -4,7 +4,10 @@ import { AgentProviderDrivers } from "./ports.ts";
 
 export class AgentProviders extends Context.Service<
   AgentProviders,
-  { readonly list: Effect.Effect<ReadonlyArray<AgentProvider>> }
+  {
+    readonly list: Effect.Effect<ReadonlyArray<AgentProvider>>;
+    readonly prepare: Effect.Effect<void>;
+  }
 >()("@starlight/core/AgentProviders") {
   static readonly layer = Layer.effect(AgentProviders)(
     Effect.gen(function* () {
@@ -20,6 +23,7 @@ export class AgentProviders extends Context.Service<
             }),
           { concurrency: "unbounded" },
         ),
+        prepare: Effect.forEach(drivers, ([, driver]) => driver.prepare, { discard: true }),
       });
     }),
   );

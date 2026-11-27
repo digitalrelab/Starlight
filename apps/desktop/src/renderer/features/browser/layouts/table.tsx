@@ -4,6 +4,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { type KeyboardEvent, useEffect, useEffectEvent, useRef } from "react";
 import { formatDate, formatSize } from "#renderer/lib/format.ts";
 import { KindIcon, itemKindOf } from "#renderer/features/files/kind-icon.tsx";
+import { itemEvents } from "./item-events.ts";
 import type { LayoutProps } from "./types.ts";
 
 const ROW_HEIGHT = 26;
@@ -47,10 +48,7 @@ export const TableLayout = ({ entries, selected, onSelect, onHover, onOpen }: La
             return (
               <div
                 key={entryKey(entry.ref)}
-                onClick={() => onSelect(row.index)}
-                onDoubleClick={() => onOpen(entry)}
-                onPointerEnter={() => onHover(row.index)}
-                onPointerLeave={() => onHover(null)}
+                {...itemEvents(row.index, entry, { onSelect, onHover, onOpen })}
                 className={cn(
                   COLUMNS,
                   "absolute inset-x-2 items-center rounded-md px-2",

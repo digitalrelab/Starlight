@@ -1,5 +1,5 @@
 import { Schema } from "effect";
-import { EntryRef } from "./ids.ts";
+import { EntryRef, FileId } from "./ids.ts";
 
 export const FileToken = Schema.String.pipe(Schema.brand("FileToken"));
 export type FileToken = typeof FileToken.Type;
@@ -13,12 +13,25 @@ export const Dimensions = Schema.Struct({
 });
 export type Dimensions = typeof Dimensions.Type;
 
+export const MediaAppearance = Schema.Struct({
+  placeholder: Schema.NullOr(Schema.String),
+});
+export type MediaAppearance = typeof MediaAppearance.Type;
+
 export const Media = Schema.Struct({
   ...Dimensions.fields,
+  ...MediaAppearance.fields,
   ref: EntryRef,
+  fileId: FileId,
   token: FileToken,
 });
 export type Media = typeof Media.Type;
+
+export const MediaUpdate = Schema.Struct({
+  ...MediaAppearance.fields,
+  ref: EntryRef,
+});
+export type MediaUpdate = typeof MediaUpdate.Type;
 
 export const FileSource = Schema.Struct({
   token: FileToken,

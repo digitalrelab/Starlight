@@ -5,6 +5,7 @@ import { subscribe } from "@parcel/watcher";
 import { EntryId, type EntryKind, type SourceError } from "@starlight/contracts";
 import type { SourceChange, SourceCrumb, SourceDriver, SourceEntry } from "@starlight/core";
 import { Effect, Queue, Stream } from "effect";
+import type { Imaging } from "#adapters/imaging.ts";
 import { dimensionsExtractor } from "./dimensions/index.ts";
 import { toSourceError } from "./source-error.ts";
 
@@ -17,6 +18,7 @@ const toEntry = (path: string, s: Stats): SourceEntry => {
   const name = basename(path) || path;
   return {
     id: EntryId.make(path),
+    key: `${s.dev}:${s.ino}`,
     name,
     kind: kindOf(s),
     size: s.size,
@@ -76,7 +78,7 @@ const watch = (root: EntryId) =>
     ).pipe(Effect.andThen(Queue.offer(queue, resync))),
   );
 
-export const makeLocalSource = (): SourceDriver => {
+export const makeLocalSource = (imaging: Imaging["Service"]): SourceDriver => {
   return {
     canonicalize: (id) =>
       Effect.tryPromise({ try: () => realpath(id), catch: toSourceError(id) }).pipe(
@@ -112,5 +114,6 @@ export const makeLocalSource = (): SourceDriver => {
       ),
     watch,
     extractors: { dimensions: dimensionsExtractor },
+    sample: (entry) => imaging.sample(entry.id),
   };
 };

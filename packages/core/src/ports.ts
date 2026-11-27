@@ -15,18 +15,26 @@ import type {
   SourceError,
   SourceId,
   FileToken,
-  Workspace,
-  WorkspaceId,
+  FileId,
+  PixelSample,
+  SampleFailed,
+  Project,
+  ProjectId,
 } from "@starlight/contracts";
 import { Context, Data, type Effect, type Option, type Stream } from "effect";
 
 export interface SourceEntry {
   readonly id: EntryId;
+  readonly key: string;
   readonly name: string;
   readonly kind: EntryKind;
   readonly size: number;
   readonly modifiedAt: number;
   readonly hidden: boolean;
+}
+
+export interface IdentifiedEntry extends SourceEntry {
+  readonly fileId: FileId;
 }
 
 export interface SourceCrumb {
@@ -38,9 +46,15 @@ export type SourceChange =
   | { readonly _tag: "Changed"; readonly directories: ReadonlyArray<EntryId> }
   | { readonly _tag: "Resync" };
 
-export interface Facts {
+export interface ProbedFacts {
   readonly dimensions: Dimensions;
 }
+
+export interface ProcessedFacts {
+  readonly placeholder: string;
+}
+
+export type Facts = ProbedFacts & ProcessedFacts;
 
 export type FactName = keyof Facts;
 
@@ -50,7 +64,12 @@ export interface Extractor<A> {
   readonly extract: (entry: SourceEntry) => Effect.Effect<Option.Option<A>>;
 }
 
-export type Extractors = { readonly [F in FactName]: Extractor<Facts[F]> };
+export type Extractors = { readonly [F in keyof ProbedFacts]: Extractor<ProbedFacts[F]> };
+
+export interface Processor<A> {
+  readonly version: number;
+  readonly process: (sample: PixelSample) => A;
+}
 
 export interface SourceDriver {
   readonly canonicalize: (id: EntryId) => Effect.Effect<EntryId, SourceError>;
@@ -62,6 +81,7 @@ export interface SourceDriver {
   readonly write: (id: EntryId, content: Uint8Array) => Effect.Effect<SourceEntry, SourceError>;
   readonly watch: (root: EntryId) => Stream.Stream<SourceChange, SourceError>;
   readonly extractors: Extractors;
+  readonly sample: (entry: SourceEntry) => Effect.Effect<Option.Option<PixelSample>, SampleFailed>;
 }
 
 export class SourceDrivers extends Context.Service<SourceDrivers, ReadonlyMap<SourceId, SourceDriver>>()(
@@ -74,7 +94,7 @@ export class FileTokens extends Context.Service<
 >()("@starlight/core/FileTokens") {}
 
 export interface StoredFact {
-  readonly entry: EntryId;
+  readonly fileId: FileId;
   readonly size: number;
   readonly modifiedAt: number;
   readonly version: number;
@@ -90,30 +110,51 @@ export class FactStore extends Context.Service<
   FactStore,
   {
     readonly inDirectory: (scope: FactScope, directory: EntryId) => Effect.Effect<ReadonlyArray<StoredFact>>;
-    readonly find: (scope: FactScope, entry: EntryId) => Effect.Effect<Option.Option<StoredFact>>;
-    readonly save: (
-      scope: FactScope,
-      directory: EntryId,
-      facts: ReadonlyArray<StoredFact>,
-    ) => Effect.Effect<void>;
-    readonly forget: (scope: FactScope, entries: ReadonlyArray<EntryId>) => Effect.Effect<void>;
+    readonly find: (fact: FactName, fileId: FileId) => Effect.Effect<Option.Option<StoredFact>>;
+    readonly save: (fact: FactName, facts: ReadonlyArray<StoredFact>) => Effect.Effect<void>;
   }
 >()("@starlight/core/FactStore") {}
 
-export class WorkspaceStore extends Context.Service<
-  WorkspaceStore,
+export interface FileIdentity {
+  readonly id: FileId;
+  readonly entry: EntryId;
+  readonly key: string;
+}
+
+export class FileIdentityStore extends Context.Service<
+  FileIdentityStore,
+  {
+    readonly inDirectory: (
+      source: SourceId,
+      directory: EntryId,
+    ) => Effect.Effect<ReadonlyArray<FileIdentity>>;
+    readonly withKeys: (
+      source: SourceId,
+      keys: ReadonlyArray<string>,
+    ) => Effect.Effect<ReadonlyArray<FileIdentity>>;
+    readonly save: (
+      source: SourceId,
+      directory: EntryId,
+      identities: ReadonlyArray<FileIdentity>,
+    ) => Effect.Effect<void>;
+  }
+>()("@starlight/core/FileIdentityStore") {}
+
+export class ProjectStore extends Context.Service<
+  ProjectStore,
   {
     readonly create: (input: {
       readonly name: string;
       readonly mounts: ReadonlyArray<Mount>;
-    }) => Effect.Effect<Workspace>;
-    readonly addMount: (id: WorkspaceId, mount: Mount) => Effect.Effect<void>;
-    readonly touch: (id: WorkspaceId) => Effect.Effect<Workspace>;
-    readonly findById: (id: WorkspaceId) => Effect.Effect<Option.Option<Workspace>>;
-    readonly findBySoleMount: (root: EntryRef) => Effect.Effect<Option.Option<Workspace>>;
-    readonly recent: (limit: number) => Effect.Effect<ReadonlyArray<Workspace>>;
+    }) => Effect.Effect<Project>;
+    readonly rename: (id: ProjectId, name: string) => Effect.Effect<void>;
+    readonly remove: (id: ProjectId) => Effect.Effect<void>;
+    readonly addMount: (id: ProjectId, mount: Mount) => Effect.Effect<void>;
+    readonly removeMount: (id: ProjectId, root: EntryRef) => Effect.Effect<void>;
+    readonly findById: (id: ProjectId) => Effect.Effect<Option.Option<Project>>;
+    readonly list: Effect.Effect<ReadonlyArray<Project>>;
   }
->()("@starlight/core/WorkspaceStore") {}
+>()("@starlight/core/ProjectStore") {}
 
 export interface AuditRecord {
   readonly actor: Actor;
@@ -145,6 +186,7 @@ export interface AgentProviderDriver {
   readonly name: string;
   readonly status: Effect.Effect<AgentProviderStatus>;
   readonly models: Effect.Effect<ReadonlyArray<AgentModel>>;
+  readonly prepare: Effect.Effect<void>;
   readonly forget: (session: string) => Effect.Effect<void>;
   readonly respond: (input: AgentTurnInput) => Stream.Stream<AgentTurnEvent, AgentTurnFailed>;
 }

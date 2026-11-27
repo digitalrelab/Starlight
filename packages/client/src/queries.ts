@@ -4,39 +4,38 @@ import {
   queryOptions,
   type QueryClient,
 } from "@tanstack/react-query";
-import type { ChatDetail, EntryRef, Listing, ModelChoice, UpdaterState } from "@starlight/contracts";
+import type { ChatDetail, EntryRef, Listing, ModelChoice, Project, UpdaterState } from "@starlight/contracts";
 import type { StarlightClient } from "./client.ts";
 import { createFileSession, type FileSessionOptions } from "./file-session.ts";
 import { entryKey } from "./refs.ts";
 
-const directoryKey = (workspaceId: string) => ["directory", workspaceId] as const;
+const directoryKey = (projectId: string) => ["directory", projectId] as const;
 
-const listingKey = (workspaceId: string, directory: string | null, facet: "entries" | "media") =>
-  [...directoryKey(workspaceId), directory, facet] as const;
+const listingKey = (projectId: string, directory: string | null, facet: "entries" | "media") =>
+  [...directoryKey(projectId), directory, facet] as const;
 
 const createQueries = (client: StarlightClient) => ({
-  recentWorkspaces: () =>
-    queryOptions({ queryKey: ["recentWorkspaces"], queryFn: () => client.workspaces.recent() }),
+  projects: () => queryOptions({ queryKey: ["projects"], queryFn: () => client.projects.list() }),
 
-  workspace: (id: string) =>
-    queryOptions({ queryKey: ["workspace", id], queryFn: () => client.workspaces.get(id) }),
+  project: (id: string) =>
+    queryOptions({ queryKey: ["project", id], queryFn: () => client.projects.get(id) }),
 
-  entries: (workspaceId: string, directory: EntryRef | null) =>
+  entries: (projectId: string, directory: EntryRef | null) =>
     queryOptions({
-      queryKey: listingKey(workspaceId, directory && entryKey(directory), "entries"),
-      queryFn: () => client.entries.list(workspaceId, directory),
+      queryKey: listingKey(projectId, directory && entryKey(directory), "entries"),
+      queryFn: () => client.entries.list(projectId, directory),
     }),
 
-  media: (workspaceId: string, directory: EntryRef | null) =>
+  media: (projectId: string, directory: EntryRef | null) =>
     queryOptions({
-      queryKey: listingKey(workspaceId, directory && entryKey(directory), "media"),
-      queryFn: () => client.media.list(workspaceId, directory),
+      queryKey: listingKey(projectId, directory && entryKey(directory), "media"),
+      queryFn: () => client.media.list(projectId, directory),
     }),
 
-  fileSource: (workspaceId: string, directory: EntryRef, file: EntryRef) =>
+  fileSource: (projectId: string, directory: EntryRef, file: EntryRef) =>
     queryOptions({
-      queryKey: [...directoryKey(workspaceId), entryKey(directory), "source", entryKey(file)],
-      queryFn: () => client.files.source(workspaceId, file),
+      queryKey: [...directoryKey(projectId), entryKey(directory), "source", entryKey(file)],
+      queryFn: () => client.files.source(projectId, file),
     }),
 
   agentProviders: () =>
@@ -77,6 +76,15 @@ const createQueries = (client: StarlightClient) => ({
     }),
 });
 
+const cacheProject = (queryClient: QueryClient, queries: Queries, project: Project) => {
+  queryClient.setQueryData(queries.project(project.id).queryKey, project);
+  queryClient.setQueryData(queries.projects().queryKey, (list) => {
+    if (!list) return list;
+    const index = list.findIndex(({ id }) => id === project.id);
+    return index === -1 ? [...list, project] : list.with(index, project);
+  });
+};
+
 const createMutations = (client: StarlightClient, queryClient: QueryClient, queries: Queries) => ({
   pickDirectory: () => mutationOptions({ mutationFn: () => client.shell.pickDirectory() }),
 
@@ -106,6 +114,8 @@ const createMutations = (client: StarlightClient, queryClient: QueryClient, quer
       onSettled: () => queryClient.invalidateQueries(queries.diskUsage()),
     }),
 
+  prepareAgentProviders: () => mutationOptions({ mutationFn: () => client.agents.prepare() }),
+
   renameChat: () =>
     mutationOptions({
       mutationFn: ({ chatId, title }: { readonly chatId: string; readonly title: string }) =>
@@ -125,24 +135,46 @@ const createMutations = (client: StarlightClient, queryClient: QueryClient, quer
       },
     }),
 
-  openWorkspace: () =>
+  createProject: () =>
     mutationOptions({
-      mutationFn: (root: EntryRef) => client.workspaces.open(root),
-      onSuccess: (workspace) => {
-        queryClient.setQueryData(queries.workspace(workspace.id).queryKey, workspace);
-        return queryClient.invalidateQueries(queries.recentWorkspaces());
+      mutationFn: (root: EntryRef) => client.projects.create(root),
+      onSuccess: (project) => cacheProject(queryClient, queries, project),
+    }),
+
+  renameProject: () =>
+    mutationOptions({
+      mutationFn: ({ projectId, name }: { readonly projectId: string; readonly name: string }) =>
+        client.projects.rename(projectId, name),
+      onSuccess: (project) => cacheProject(queryClient, queries, project),
+    }),
+
+  deleteProject: () =>
+    mutationOptions({
+      mutationFn: (projectId: string) => client.projects.remove(projectId),
+      onSuccess: (_, projectId) => {
+        queryClient.setQueryData(queries.projects().queryKey, (list) =>
+          list?.filter(({ id }) => id !== projectId),
+        );
+        queryClient.removeQueries(queries.project(projectId));
+        queryClient.removeQueries({ queryKey: directoryKey(projectId) });
       },
     }),
 
-  addMount: (workspaceId: string) =>
+  addMount: (projectId: string) =>
     mutationOptions({
-      mutationFn: (root: EntryRef) => client.workspaces.addMount(workspaceId, root),
-      onSuccess: (workspace) => {
-        queryClient.setQueryData(queries.workspace(workspace.id).queryKey, workspace);
-        return Promise.all([
-          queryClient.invalidateQueries(queries.entries(workspace.id, null)),
-          queryClient.invalidateQueries(queries.recentWorkspaces()),
-        ]);
+      mutationFn: (root: EntryRef) => client.projects.addMount(projectId, root),
+      onSuccess: (project) => {
+        cacheProject(queryClient, queries, project);
+        return queryClient.invalidateQueries(queries.entries(projectId, null));
+      },
+    }),
+
+  removeMount: (projectId: string) =>
+    mutationOptions({
+      mutationFn: (root: EntryRef) => client.projects.removeMount(projectId, root),
+      onSuccess: (project) => {
+        cacheProject(queryClient, queries, project);
+        return queryClient.invalidateQueries({ queryKey: directoryKey(projectId) });
       },
     }),
 });
@@ -175,21 +207,31 @@ const createSubscriptions = (client: StarlightClient, queryClient: QueryClient, 
       }
     });
   },
-  entries: (workspaceId: string) =>
-    client.entries.watch(workspaceId, (change) => {
+  media: (projectId: string, directory: EntryRef) =>
+    client.media.process(projectId, directory, (updates) => {
+      const byKey = new Map(updates.map((update) => [entryKey(update.ref), update]));
+      queryClient.setQueryData(queries.media(projectId, directory).queryKey, (media) =>
+        media?.map((item) => {
+          const update = byKey.get(entryKey(item.ref));
+          return update ? { ...item, ...update } : item;
+        }),
+      );
+    }),
+  entries: (projectId: string) =>
+    client.entries.watch(projectId, (change) => {
       if (change._tag === "Resync") {
-        void queryClient.invalidateQueries({ queryKey: directoryKey(workspaceId) });
+        void queryClient.invalidateQueries({ queryKey: directoryKey(projectId) });
         return;
       }
       const stale = new Set(change.directories.map(entryKey));
       const isStale = (directory: string) =>
         stale.has(directory) ||
         (queryClient
-          .getQueryData<Listing>(listingKey(workspaceId, directory, "entries"))
+          .getQueryData<Listing>(listingKey(projectId, directory, "entries"))
           ?.trail.some((crumb) => stale.has(entryKey(crumb.ref))) ??
           false);
       void queryClient.invalidateQueries({
-        queryKey: directoryKey(workspaceId),
+        queryKey: directoryKey(projectId),
         predicate: ({ queryKey: [, , directory] }) => typeof directory === "string" && isStale(directory),
       });
     }),

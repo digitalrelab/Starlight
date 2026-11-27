@@ -11,33 +11,47 @@ import {
   WriteError,
   SourceError,
   SourceUnavailable,
-  WorkspaceNotFound,
+  ProjectNotFound,
 } from "./errors.ts";
-import { EntryRef, WorkspaceId } from "./ids.ts";
-import { FileSource, FileVersion, Media } from "./media.ts";
+import { EntryRef, ProjectId } from "./ids.ts";
+import { FileSource, FileVersion, Media, MediaUpdate } from "./media.ts";
 import { UpdaterState } from "./update.ts";
-import { Workspace } from "./workspace.ts";
+import { Project } from "./project.ts";
 
-const DirectoryRequest = { workspaceId: WorkspaceId, directory: Schema.NullOr(EntryRef) };
+const DirectoryRequest = { projectId: ProjectId, directory: Schema.NullOr(EntryRef) };
 
 export class HostRpcs extends RpcGroup.make(
-  Rpc.make("OpenWorkspace", {
+  Rpc.make("CreateProject", {
     payload: { root: EntryRef },
-    success: Workspace,
+    success: Project,
     error: MountError,
   }),
+  Rpc.make("ListProjects", {
+    success: Schema.Array(Project),
+  }),
+  Rpc.make("GetProject", {
+    payload: { projectId: ProjectId },
+    success: Project,
+    error: ProjectNotFound,
+  }),
+  Rpc.make("RenameProject", {
+    payload: { projectId: ProjectId, name: Schema.NonEmptyString },
+    success: Project,
+    error: ProjectNotFound,
+  }),
+  Rpc.make("DeleteProject", {
+    payload: { projectId: ProjectId },
+    error: ProjectNotFound,
+  }),
   Rpc.make("AddMount", {
-    payload: { workspaceId: WorkspaceId, root: EntryRef },
-    success: Workspace,
-    error: Schema.Union([WorkspaceNotFound, MountError]),
+    payload: { projectId: ProjectId, root: EntryRef },
+    success: Project,
+    error: Schema.Union([ProjectNotFound, MountError]),
   }),
-  Rpc.make("ListRecentWorkspaces", {
-    success: Schema.Array(Workspace),
-  }),
-  Rpc.make("GetWorkspace", {
-    payload: { workspaceId: WorkspaceId },
-    success: Workspace,
-    error: WorkspaceNotFound,
+  Rpc.make("RemoveMount", {
+    payload: { projectId: ProjectId, root: EntryRef },
+    success: Project,
+    error: ProjectNotFound,
   }),
   Rpc.make("ListEntries", {
     payload: DirectoryRequest,
@@ -49,25 +63,32 @@ export class HostRpcs extends RpcGroup.make(
     success: Schema.Array(Media),
     error: DirectoryError,
   }),
+  Rpc.make("ProcessMedia", {
+    payload: DirectoryRequest,
+    success: Schema.Array(MediaUpdate),
+    error: DirectoryError,
+    stream: true,
+  }),
   Rpc.make("GetFileSource", {
-    payload: { workspaceId: WorkspaceId, file: EntryRef },
+    payload: { projectId: ProjectId, file: EntryRef },
     success: FileSource,
     error: FileError,
   }),
   Rpc.make("WriteFile", {
-    payload: { workspaceId: WorkspaceId, file: EntryRef, content: Schema.Uint8Array, base: FileVersion },
+    payload: { projectId: ProjectId, file: EntryRef, content: Schema.Uint8Array, base: FileVersion },
     success: FileVersion,
     error: WriteError,
   }),
   Rpc.make("WatchEntries", {
-    payload: { workspaceId: WorkspaceId },
+    payload: { projectId: ProjectId },
     success: EntryChange,
-    error: Schema.Union([WorkspaceNotFound, SourceUnavailable, SourceError]),
+    error: Schema.Union([ProjectNotFound, SourceUnavailable, SourceError]),
     stream: true,
   }),
   Rpc.make("ListAgentProviders", {
     success: Schema.Array(AgentProvider),
   }),
+  Rpc.make("PrepareAgentProviders"),
   Rpc.make("ListChats", {
     success: Schema.Array(Chat),
   }),

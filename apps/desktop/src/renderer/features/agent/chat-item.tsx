@@ -1,6 +1,6 @@
-import { Delete02Icon, MoreHorizontalIcon, PencilEdit02Icon } from "@hugeicons-pro/core-stroke-rounded";
+import { Delete02Icon, PencilEdit02Icon } from "@hugeicons-pro/core-stroke-rounded";
 import type { Chat } from "@starlight/client";
-import { ConfirmDialog, ContextMenu, IconButton, Menu, NavItem } from "@starlight/ui";
+import { ConfirmDialog, Menu, NavItem, RenameInput } from "@starlight/ui";
 import { useMutation } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useState } from "react";
@@ -15,30 +15,19 @@ export const ChatItem = ({ chat: { id, title } }: { readonly chat: Chat }) => {
   const navigate = useNavigate();
   const { chatId } = useParams({ strict: false });
 
-  const commit = (next: string) => {
-    setRenaming(false);
-    const trimmed = next.trim();
-    if (trimmed !== "" && trimmed !== title) rename.mutate({ chatId: id, title: trimmed });
-  };
-
   if (renaming) {
     return (
-      <input
+      <RenameInput
         autoFocus
-        defaultValue={title}
+        value={title}
         aria-label="Chat title"
-        onFocus={(event) => event.currentTarget.select()}
-        onBlur={(event) => commit(event.currentTarget.value)}
-        onKeyDown={(event) => {
-          if (event.key === "Enter") event.currentTarget.blur();
-          if (event.key === "Escape") setRenaming(false);
-        }}
-        className="h-8 w-full rounded-md bg-neutral px-2 text-base outline-none focus-ring"
+        onRename={(next) => rename.mutate({ chatId: id, title: next })}
+        onClose={() => setRenaming(false)}
       />
     );
   }
 
-  const actions = (
+  const items = (
     <>
       <Menu.Item icon={PencilEdit02Icon} onClick={() => setRenaming(true)}>
         Rename
@@ -52,32 +41,12 @@ export const ChatItem = ({ chat: { id, title } }: { readonly chat: Chat }) => {
 
   return (
     <>
-      <ContextMenu.Root>
-        <ContextMenu.Trigger
-          render={
-            <NavItem
-              render={<Link to="/agent/$chatId" params={{ chatId: id }} />}
-              actions={
-                <Menu.Root>
-                  <Menu.Trigger
-                    render={
-                      <IconButton
-                        icon={MoreHorizontalIcon}
-                        label="Chat actions"
-                        className="size-6 rounded-md"
-                      />
-                    }
-                  />
-                  <Menu.Popup>{actions}</Menu.Popup>
-                </Menu.Root>
-              }
-            />
-          }
-        >
-          {title}
-        </ContextMenu.Trigger>
-        <ContextMenu.Popup>{actions}</ContextMenu.Popup>
-      </ContextMenu.Root>
+      <NavItem
+        render={<Link to="/agent/$chatId" params={{ chatId: id }} />}
+        menu={{ label: "Chat actions", items }}
+      >
+        {title}
+      </NavItem>
       <ConfirmDialog
         open={deleting}
         onOpenChange={setDeleting}
@@ -85,8 +54,8 @@ export const ChatItem = ({ chat: { id, title } }: { readonly chat: Chat }) => {
         subject={title}
         message="The chat and its replies are deleted for good."
         icon={Delete02Icon}
-        onConfirm={() => {
-          if (chatId === id) void navigate({ to: "/agent" });
+        onConfirm={async () => {
+          if (chatId === id) await navigate({ to: "/agent" });
           remove.mutate(id);
         }}
       />
