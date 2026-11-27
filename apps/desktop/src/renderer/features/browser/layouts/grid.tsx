@@ -8,6 +8,7 @@ import {
   memo,
   type SyntheticEvent,
   useEffect,
+  useEffectEvent,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -71,10 +72,15 @@ export const GridLayout = ({ workspaceId, path, entries, selected, onSelect, onO
     virtualizer.measure();
   }, [virtualizer, layout]);
 
-  useEffect(() => {
+  const ready = layout.rows.length > 0;
+  const revealSelected = useEffectEvent(() => {
     const row = layout.rowOf[selected];
     if (row !== undefined) virtualizer.scrollToIndex(row);
-  }, [virtualizer, layout, selected]);
+  });
+  const selectedPath = entries[selected]?.path;
+  useEffect(() => {
+    if (ready) revealSelected();
+  }, [ready, selectedPath]);
 
   const moveVertically = (direction: 1 | -1) => {
     if (selected < 0) return onSelect(0);

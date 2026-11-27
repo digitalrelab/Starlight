@@ -1,6 +1,6 @@
 import { cn } from "@starlight/ui";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { type KeyboardEvent, useEffect, useRef } from "react";
+import { type KeyboardEvent, useEffect, useEffectEvent, useRef } from "react";
 import { formatDate, formatSize } from "../../../lib/format.ts";
 import { EntryIcon } from "../entry-icon.tsx";
 import type { LayoutProps } from "./types.ts";
@@ -17,9 +17,11 @@ export const TableLayout = ({ entries, selected, onSelect, onOpen }: LayoutProps
     overscan: 16,
   });
 
-  useEffect(() => {
+  const revealSelected = useEffectEvent(() => {
     if (selected >= 0) virtualizer.scrollToIndex(selected);
-  }, [virtualizer, selected]);
+  });
+  const selectedPath = entries[selected]?.path;
+  useEffect(() => revealSelected(), [selectedPath]);
 
   const onKeyDown = (event: KeyboardEvent) => {
     if (event.key === "ArrowDown") onSelect(selected + 1);

@@ -1,5 +1,5 @@
 import type { Entry } from "@starlight/client";
-import { type KeyboardEvent, Suspense, useCallback, useState } from "react";
+import { type KeyboardEvent, Suspense, useCallback, useMemo, useState } from "react";
 import { type LayoutId, layouts } from "./layouts/registry.ts";
 
 interface Props {
@@ -11,10 +11,14 @@ interface Props {
 }
 
 export const DirectoryView = ({ workspaceId, path, entries, layout, onOpen }: Props) => {
-  const [selected, setSelected] = useState(-1);
+  const [selectedPath, setSelectedPath] = useState<string>();
+  const selected = useMemo(
+    () => entries.findIndex((entry) => entry.path === selectedPath),
+    [entries, selectedPath],
+  );
   const onSelect = useCallback(
-    (index: number) => setSelected(Math.max(0, Math.min(entries.length - 1, index))),
-    [entries.length],
+    (index: number) => setSelectedPath(entries[Math.max(0, Math.min(entries.length - 1, index))]?.path),
+    [entries],
   );
 
   if (entries.length === 0) {
