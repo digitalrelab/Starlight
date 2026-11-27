@@ -103,10 +103,6 @@ export class HostRpcs extends RpcGroup.make(
   Rpc.make("GetAgentUsage", {
     success: Schema.Array(AgentProviderUsage),
   }),
-  Rpc.make("WatchAgentUsage", {
-    success: AgentProviderId,
-    stream: true,
-  }),
   Rpc.make("ListChats", {
     payload: { projectId: Schema.NullOr(ProjectId) },
     success: Schema.Array(Chat),
@@ -147,6 +143,10 @@ export class HostRpcs extends RpcGroup.make(
     payload: { chatId: ChatId },
     success: ChatEvent,
     error: ChatNotFound,
+    stream: true,
+  }),
+  Rpc.make("WatchSettledTurns", {
+    success: AgentProviderId,
     stream: true,
   }),
 ) {}

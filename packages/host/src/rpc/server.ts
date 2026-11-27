@@ -30,7 +30,6 @@ const HandlersLive = HostRpcs.toLayer(
       ListAgentProviders: () => agentProviders.list,
       PrepareAgentProviders: () => agentProviders.prepare,
       GetAgentUsage: () => agentProviders.usage,
-      WatchAgentUsage: () => agentProviders.usageChanges,
       ListChats: ({ projectId }) => chats.list(projectId),
       GetChat: ({ chatId }) => chats.get(chatId),
       StartChat: ({ projectId, text, model }) => chats.start(projectId, text, model),
@@ -38,6 +37,7 @@ const HandlersLive = HostRpcs.toLayer(
       RenameChat: ({ chatId, title }) => chats.rename(chatId, title),
       DeleteChat: ({ chatId }) => chats.remove(chatId),
       WatchChat: ({ chatId }) => chats.watch(chatId),
+      WatchSettledTurns: () => chats.settledTurns,
     });
   }),
 );

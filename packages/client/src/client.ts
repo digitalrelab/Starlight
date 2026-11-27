@@ -91,7 +91,6 @@ export const createClient = (ports: PortSources) => {
       providers: () => host((c) => c.ListAgentProviders()),
       prepare: () => host((c) => c.PrepareAgentProviders()),
       usage: () => host((c) => c.GetAgentUsage()),
-      watchUsage: (onChange: () => void) => watch("Agent usage", (c) => c.WatchAgentUsage(), onChange),
     },
     chats: {
       list: (projectId: string | null) => host((c) => c.ListChats({ projectId: optionalId(projectId) })),
@@ -104,6 +103,8 @@ export const createClient = (ports: PortSources) => {
       remove: (chatId: string) => host((c) => c.DeleteChat({ chatId: chat(chatId) })),
       watch: (chatId: string, onEvent: (event: ChatEvent) => void) =>
         watch("Chat", (c) => c.WatchChat({ chatId: chat(chatId) }), onEvent),
+      watchSettled: (onSettled: () => void) =>
+        watch("Settled turns", (c) => c.WatchSettledTurns(), onSettled),
     },
     shell: {
       pickDirectory: () => shell((c) => c.PickDirectory()),

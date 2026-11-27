@@ -17,7 +17,7 @@ import { useWindowReady } from "#renderer/lib/use-window-ready.ts";
 
 const Root = () => {
   const { subscriptions } = useStarlight();
-  useEffect(() => subscriptions.agentUsage(), [subscriptions]);
+  useEffect(() => subscriptions.settledTurns(), [subscriptions]);
   useInterfaceZoom();
   useNativeColorScheme();
   useChatAppearance();

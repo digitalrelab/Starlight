@@ -237,8 +237,8 @@ const createMutations = (client: StarlightClient, queryClient: QueryClient, quer
 });
 
 const createSubscriptions = (client: StarlightClient, queryClient: QueryClient, queries: Queries) => ({
-  agentUsage: () =>
-    client.agents.watchUsage(
+  settledTurns: () =>
+    client.chats.watchSettled(
       () => void queryClient.invalidateQueries({ queryKey: queries.agentUsage().queryKey }),
     ),
   chat: (id: string) => {
