@@ -9,7 +9,11 @@ import { PageHeader } from "../features/shell/page-header.tsx";
 import { useStarlight } from "../lib/context.ts";
 
 export const Route = createFileRoute("/_app/agent/")({
-  loader: ({ context: { queryClient, queries } }) => queryClient.ensureQueryData(queries.conversations()),
+  loader: ({ context: { queryClient, queries } }) =>
+    Promise.all([
+      queryClient.ensureQueryData(queries.conversations()),
+      queryClient.ensureQueryData(queries.agentProviders()),
+    ]),
   component: Agent,
 });
 

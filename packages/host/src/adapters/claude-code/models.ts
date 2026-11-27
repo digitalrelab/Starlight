@@ -1,7 +1,7 @@
 import { type EffortLevel, query, type SDKUserMessage } from "@anthropic-ai/claude-agent-sdk";
 import { type AgentModel, ModelId } from "@starlight/contracts";
 import { Effect, Option } from "effect";
-import { findExecutable } from "./executable.ts";
+import { COMMAND_TIMEOUT_MS, findExecutable } from "./executable.ts";
 
 const EFFORTS: Readonly<Record<EffortLevel, string>> = {
   low: "Low",
@@ -19,10 +19,7 @@ const load = (workingDirectory: string) =>
   Effect.gen(function* () {
     const executable = yield* findExecutable;
     if (Option.isNone(executable)) return [];
-    let release = () => {};
-    const closed = new Promise<void>((resolve) => {
-      release = resolve;
-    });
+    const { promise: closed, resolve: release } = Promise.withResolvers<void>();
     const session = query({
       prompt: {
         [Symbol.asyncIterator]: () => ({
@@ -38,6 +35,7 @@ const load = (workingDirectory: string) =>
       },
     });
     const models = yield* Effect.tryPromise(() => session.supportedModels()).pipe(
+      Effect.timeout(COMMAND_TIMEOUT_MS),
       Effect.ensuring(
         Effect.sync(() => {
           release();

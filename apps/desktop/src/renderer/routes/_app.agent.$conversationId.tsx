@@ -13,7 +13,10 @@ import { useStarlight } from "../lib/context.ts";
 
 export const Route = createFileRoute("/_app/agent/$conversationId")({
   loader: ({ context: { queryClient, queries }, params }) =>
-    queryClient.ensureQueryData(queries.conversation(params.conversationId)),
+    Promise.all([
+      queryClient.ensureQueryData(queries.conversation(params.conversationId)),
+      queryClient.ensureQueryData(queries.agentProviders()),
+    ]),
   component: ConversationPage,
   errorComponent: ConversationError,
 });
