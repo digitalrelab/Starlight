@@ -1,5 +1,5 @@
 import type { ChatMessage, Draft } from "@starlight/client";
-import { cn, Markdown, Shimmer } from "@starlight/ui";
+import { cn, Markdown, ScrollArea, Shimmer } from "@starlight/ui";
 import { useRevealedText } from "./use-revealed-text.ts";
 import { useStickToBottom } from "./use-stick-to-bottom.ts";
 
@@ -26,24 +26,27 @@ const Message = ({
 };
 
 export const Transcript = ({ messages, draft, failure, className }: Props) => {
-  const { scroller, content } = useStickToBottom(messages.findLast((message) => message.role === "user")?.id);
+  const { viewport, content } = useStickToBottom(messages.findLast((message) => message.role === "user")?.id);
   const items = draft
     ? [...messages, { id: draft.id, role: "assistant" as const, text: draft.text }]
     : messages;
 
   return (
-    <div ref={scroller} className="min-h-0 flex-1 overflow-y-auto">
-      <div ref={content} className={cn("flex flex-col gap-6", className)}>
-        {items.map((message) => (
-          <Message
-            key={message.id}
-            role={message.role}
-            text={message.text}
-            pending={message.id === draft?.id}
-          />
-        ))}
-        {failure ? <p className="text-sm text-danger">{failure}</p> : null}
-      </div>
-    </div>
+    <ScrollArea
+      className="flex-1"
+      viewportRef={viewport}
+      contentRef={content}
+      contentClassName={cn("flex flex-col gap-6", className)}
+    >
+      {items.map((message) => (
+        <Message
+          key={message.id}
+          role={message.role}
+          text={message.text}
+          pending={message.id === draft?.id}
+        />
+      ))}
+      {failure ? <p className="text-sm text-danger">{failure}</p> : null}
+    </ScrollArea>
   );
 };
