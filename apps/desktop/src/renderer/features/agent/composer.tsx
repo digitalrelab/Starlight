@@ -58,7 +58,7 @@ export const Composer = ({ placeholder, disabled = false, autoFocus = false, act
             onSubmit={submit}
           />
         </ScrollArea>
-        {mentions.menu}
+        {mentions.element}
         <div className="flex items-center justify-end gap-1">
           {actions}
           <IconButton

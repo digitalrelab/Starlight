@@ -3,6 +3,7 @@ import { type ReferenceMatch, referenceOf, referenceUrl } from "@starlight/clien
 import {
   type ActiveTrigger,
   insertLink,
+  type MentionHosts,
   mentionChips,
   type TriggerSource,
   type TriggerStore,
@@ -11,9 +12,11 @@ import {
 import { Icon } from "@starlight/ui";
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import { itemKindOf, KindIcon } from "#renderer/features/files/kind-icon.tsx";
 import { useStarlight } from "#renderer/lib/context.ts";
 import { useDebouncedValue } from "#renderer/lib/use-debounced-value.ts";
+import { renderReference } from "./reference-link.tsx";
 import { type Resolution, TriggerMenu, type TriggerOption } from "./trigger-menu.tsx";
 
 const SEARCH_DELAY_MS = 150;
@@ -76,6 +79,11 @@ const MentionMenu = ({ store }: { readonly store: TriggerStore<MentionChoice> })
   return active && <OpenMentionMenu active={active} />;
 };
 
+const MentionPortals = ({ hosts }: { readonly hosts: MentionHosts }) =>
+  useSyncExternalStore(hosts.subscribe, hosts.get).map(({ key, element, url, label }) =>
+    createPortal(renderReference({ url, label }), element, key),
+  );
+
 export const useMentions = () => {
   const queryClient = useQueryClient();
   const { queries } = useStarlight();
@@ -86,9 +94,15 @@ export const useMentions = () => {
       void queryClient.prefetchQuery({ ...queries.referenceSearch(""), staleTime: SEARCH_FRESH_MS }),
   }));
   const trigger = useTrigger(source);
-  const [extension] = useState(() => [
-    trigger.extension,
-    mentionChips((url) => referenceOf(url) !== undefined),
-  ]);
-  return { extension, menu: <MentionMenu store={trigger.store} /> };
+  const [chips] = useState(() => mentionChips((url) => referenceOf(url) !== undefined));
+  const [extension] = useState(() => [trigger.extension, chips.extension]);
+  return {
+    extension,
+    element: (
+      <>
+        <MentionMenu store={trigger.store} />
+        <MentionPortals hosts={chips.hosts} />
+      </>
+    ),
+  };
 };

@@ -280,8 +280,8 @@
   font: inherit;
 }
 
-.markdown-editor .md-mention {
-  @apply rounded-md bg-neutral px-1.5 py-px text-default;
+.markdown-editor .md-mention[data-selected] > * {
+  @apply ring-2 ring-selected;
 }
 
 body .cm-tooltip.md-trigger {

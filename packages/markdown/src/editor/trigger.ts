@@ -17,6 +17,7 @@ import {
   ViewPlugin,
 } from "@codemirror/view";
 import { useState } from "react";
+import { type Store, storeOf } from "./store.ts";
 
 export interface TriggerSource<Choice> {
   readonly character: string;
@@ -43,26 +44,7 @@ export interface ActiveTrigger<Choice> {
   readonly dismiss: () => void;
 }
 
-export interface TriggerStore<Choice> {
-  readonly get: () => ActiveTrigger<Choice> | null;
-  readonly subscribe: (listener: () => void) => () => void;
-}
-
-const storeOf = <Value>(initial: Value) => {
-  let value = initial;
-  const listeners = new Set<() => void>();
-  return {
-    get: () => value,
-    set: (next: Value) => {
-      value = next;
-      for (const listener of listeners) listener();
-    },
-    subscribe: (listener: () => void) => {
-      listeners.add(listener);
-      return () => listeners.delete(listener);
-    },
-  };
-};
+export type TriggerStore<Choice> = Store<ActiveTrigger<Choice> | null>;
 
 const latestIn = <Value>(tr: Transaction, type: StateEffectType<Value>, fallback: Value) => {
   const effect = tr.effects.findLast((each) => each.is(type));
