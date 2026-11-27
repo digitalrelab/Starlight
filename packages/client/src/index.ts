@@ -2,6 +2,8 @@ export type {
   AgentEffort,
   AgentModel,
   AgentProvider,
+  AgentProviderUsage,
+  AgentUsage,
   Chat,
   ChatMessage,
   Crumb,
@@ -22,6 +24,7 @@ export type {
   Swatch,
   Update,
   UpdaterState,
+  UsageWindow,
 } from "@starlight/contracts";
 export {
   ClaudeCodeProvider,

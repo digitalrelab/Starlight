@@ -3,6 +3,7 @@ import type {
   AgentProviderId,
   AgentModel,
   AgentProviderStatus,
+  AgentUsage,
   ChatMessage,
   Chat,
   ChatId,
@@ -198,6 +199,7 @@ export interface AgentProviderDriver {
   readonly name: string;
   readonly status: Effect.Effect<AgentProviderStatus>;
   readonly models: Effect.Effect<ReadonlyArray<AgentModel>>;
+  readonly usage: Effect.Effect<AgentUsage>;
   readonly prepare: Effect.Effect<void>;
   readonly forget: (session: string) => Effect.Effect<void>;
   readonly respond: (input: AgentTurnInput) => Stream.Stream<AgentTurnEvent, AgentTurnFailed>;
