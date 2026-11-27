@@ -61,15 +61,15 @@ export const GridLayout = ({
   const media = useMemo(() => indexByKey(data), [data]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const width = useElementWidth(scrollRef);
-  const folders = useMemo(() => leadingFolders(entries), [entries]);
+  const folderCount = useMemo(() => leadingFolders(entries), [entries]);
 
   const aspects = useMemo(
-    () => Float64Array.from(entries.slice(folders), (entry) => aspectOf(media.get(entryKey(entry.ref)))),
-    [entries, folders, media],
+    () => Float64Array.from(entries.slice(folderCount), (entry) => aspectOf(media.get(entryKey(entry.ref)))),
+    [entries, folderCount, media],
   );
   const layout = useMemo(() => {
     const inner = Math.max(0, width - GUTTER * 2);
-    const shelf = shelve(folders, {
+    const shelf = shelve(folderCount, {
       width: inner,
       minWidth: CHIP_MIN_WIDTH,
       height: CHIP_HEIGHT,
@@ -82,8 +82,12 @@ export const GridLayout = ({
       gap: TILE_GAP,
       chrome: CHROME,
     });
-    return { ...stack(shelf, GUTTER, tiles, GUTTER - TILE_INSET), shelfRows: shelf.rows.length };
-  }, [aspects, folders, width]);
+    return {
+      ...stack(shelf, GUTTER, tiles, GUTTER - TILE_INSET, SECTION_GAP - TILE_INSET),
+      shelved: shelf.rows.length > 0,
+      tiled: tiles.rows.length > 0,
+    };
+  }, [aspects, folderCount, width]);
 
   const ahead = useMemo(
     () =>
@@ -97,20 +101,15 @@ export const GridLayout = ({
   );
   usePreviewsAhead(ahead);
 
-  const hasTiles = layout.rows.length > layout.shelfRows;
-  const rowGap = (index: number) => {
-    if (index === layout.rows.length - 1) return 0;
-    if (index < layout.shelfRows - 1) return CHIP_GAP;
-    if (index === layout.shelfRows - 1) return SECTION_GAP - TILE_INSET;
-    return TILE_GAP;
-  };
-
   const virtualizer = useVirtualizer({
     count: layout.rows.length,
     getScrollElement: () => scrollRef.current,
-    estimateSize: (index) => (layout.rows[index]?.height ?? 0) + rowGap(index),
-    paddingStart: layout.shelfRows > 0 ? GUTTER : GUTTER - TILE_INSET,
-    paddingEnd: hasTiles ? GUTTER - TILE_INSET : GUTTER,
+    estimateSize: (index) => {
+      const row = layout.rows[index];
+      return row ? row.height + (index < layout.rows.length - 1 ? row.gap : 0) : 0;
+    },
+    paddingStart: layout.shelved ? GUTTER : GUTTER - TILE_INSET,
+    paddingEnd: layout.tiled ? GUTTER - TILE_INSET : GUTTER,
     overscan: 3,
   });
 
@@ -175,7 +174,7 @@ export const GridLayout = ({
                   onHover,
                   onOpen,
                 };
-                return index < folders ? (
+                return index < folderCount ? (
                   <FolderChip key={key} {...cell} />
                 ) : (
                   <Tile key={key} {...cell} media={media.get(key)} visible={visible} />
@@ -215,7 +214,7 @@ const FolderChip = memo((props: CellProps) => {
       {...cellEvents(props)}
       title={entry.name}
       className={cn(
-        "absolute top-0 flex min-w-0 cursor-interactive items-center gap-2.5 rounded-md px-3",
+        "absolute top-0 flex cursor-interactive items-center gap-2.5 rounded-md px-3",
         selected ? "bg-selected text-selected" : "bg-surface-sunken hover:bg-neutral-subtle-hovered",
         entry.hidden && "opacity-50",
       )}
@@ -239,10 +238,7 @@ const Tile = memo((props: TileProps) => {
     <div
       {...cellEvents(props)}
       title={entry.name}
-      className={cn(
-        "group absolute top-0 flex cursor-interactive flex-col rounded-lg",
-        entry.hidden && "opacity-50",
-      )}
+      className={cn("group absolute top-0 flex cursor-interactive flex-col", entry.hidden && "opacity-50")}
       style={{ left, width, height, padding: TILE_INSET }}
     >
       <div
@@ -266,18 +262,15 @@ const Tile = memo((props: TileProps) => {
         )}
         {selected && (
           <>
-            <span className="pointer-events-none absolute inset-0 bg-selected-overlay/60" />
+            <span className="absolute inset-0 bg-selected-overlay/60" />
             <span className="absolute top-1.5 left-1.5 grid size-5 place-items-center rounded-full bg-selected-bold text-inverse shadow-sm">
               <Icon icon={Tick02Icon} size={12} strokeWidth={2.5} />
             </span>
           </>
         )}
       </div>
-      <div
-        className="flex shrink-0 items-start gap-1.5 px-1 pt-1.5 text-sm"
-        style={{ height: CAPTION_HEIGHT }}
-      >
-        <KindIcon kind={kind} size={14} className="mt-0.75" />
+      <div className="flex shrink-0 items-center gap-1.5 px-1 text-sm" style={{ height: CAPTION_HEIGHT }}>
+        <KindIcon kind={kind} size={14} />
         <span className="min-w-0 truncate">{entry.name}</span>
       </div>
     </div>

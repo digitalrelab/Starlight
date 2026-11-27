@@ -17,6 +17,7 @@ export interface JustifiedRow {
   readonly start: number;
   readonly end: number;
   readonly height: number;
+  readonly gap: number;
 }
 
 export interface JustifiedLayout {
@@ -69,7 +70,7 @@ export const justify = (aspects: Float64Array, options: JustifyOptions): Justifi
       rowOf[i] = rowIndex;
       x = next + gap;
     }
-    rows.push({ start, end, height: Math.round(height + chrome.height) });
+    rows.push({ start, end, height: Math.round(height + chrome.height), gap });
     start = end;
   }
   return { rows, left, width: widths, rowOf };
@@ -89,7 +90,7 @@ export const shelve = (count: number, options: ShelfOptions): JustifiedLayout =>
     left[i] = Math.round(x);
     widths[i] = Math.round(x + column) - left[i]!;
     rowOf[i] = Math.floor(i / columns);
-    if (i % columns === 0) rows.push({ start: i, end: Math.min(total, i + columns), height });
+    if (i % columns === 0) rows.push({ start: i, end: Math.min(total, i + columns), height, gap });
   }
   return { rows, left, width: widths, rowOf };
 };
@@ -99,19 +100,26 @@ export const stack = (
   topLeft: number,
   bottom: JustifiedLayout,
   bottomLeft: number,
+  gap: number,
 ): JustifiedLayout => {
   const offset = top.left.length;
   const left = new Float64Array(offset + bottom.left.length);
   const width = new Float64Array(left.length);
   const rowOf = new Uint32Array(left.length);
-  top.left.forEach((x, i) => (left[i] = x + topLeft));
-  bottom.left.forEach((x, i) => (left[offset + i] = x + bottomLeft));
+  left.set(top.left.map((x) => x + topLeft));
+  left.set(
+    bottom.left.map((x) => x + bottomLeft),
+    offset,
+  );
   width.set(top.width);
   width.set(bottom.width, offset);
   rowOf.set(top.rowOf);
-  bottom.rowOf.forEach((row, i) => (rowOf[offset + i] = row + top.rows.length));
+  rowOf.set(
+    bottom.rowOf.map((row) => row + top.rows.length),
+    offset,
+  );
   const rows = [
-    ...top.rows,
+    ...top.rows.map((row, index) => (index === top.rows.length - 1 ? { ...row, gap } : row)),
     ...bottom.rows.map((row) => ({ ...row, start: row.start + offset, end: row.end + offset })),
   ];
   return { rows, left, width, rowOf };
