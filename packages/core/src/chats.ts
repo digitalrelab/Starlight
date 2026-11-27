@@ -1,4 +1,5 @@
 import {
+  type AgentProviderId,
   type ChatMessage,
   type Draft,
   type Chat,
@@ -58,6 +59,7 @@ export class Chats extends Context.Service<
     readonly rename: (id: ChatId, title: string) => Effect.Effect<Chat, ChatNotFound, CurrentActor>;
     readonly remove: (id: ChatId) => Effect.Effect<void, ChatNotFound, CurrentActor>;
     readonly watch: (id: ChatId) => Stream.Stream<ChatEvent, ChatNotFound>;
+    readonly settledTurns: Stream.Stream<AgentProviderId>;
   }
 >()("@starlight/core/Chats") {
   static readonly layer = Layer.effect(Chats)(
@@ -68,6 +70,7 @@ export class Chats extends Context.Service<
       const audit = yield* AuditLog;
       const ids = yield* IdGenerator;
       const events = yield* PubSub.unbounded<Published>();
+      const settled = yield* PubSub.unbounded<AgentProviderId>();
       const turns = yield* FiberMap.make<ChatId>();
       const drafts = new Map<ChatId, Draft>();
       const failures = new Map<ChatId, string>();
@@ -103,7 +106,7 @@ export class Chats extends Context.Service<
         const settle = (event: ChatEvent) =>
           Effect.suspend(() => {
             drafts.delete(id);
-            return publish(id, event);
+            return Effect.andThen(publish(id, event), PubSub.publish(settled, model.provider));
           });
         return Effect.gen(function* () {
           let draft = initial;
@@ -220,6 +223,7 @@ export class Chats extends Context.Service<
               );
             }),
           ),
+        settledTurns: Stream.fromPubSub(settled),
       });
     }),
   );

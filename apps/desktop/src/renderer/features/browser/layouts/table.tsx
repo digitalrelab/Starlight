@@ -10,15 +10,18 @@ import type { LayoutProps } from "./types.ts";
 
 const ROW_HEIGHT = 26;
 const COLUMNS = "grid grid-cols-[minmax(0,1fr)_96px_168px] gap-4";
+const ROW = cn(COLUMNS, "absolute inset-x-2 items-center rounded-md px-2");
+const NAME = "flex min-w-0 items-center gap-2";
 
 const step: Step = (from, key) => (key === "ArrowDown" ? from + 1 : key === "ArrowUp" ? from - 1 : undefined);
 
-export const TableLayout = ({ entries, selection, onHover, onOpen }: LayoutProps) => {
+export const TableLayout = ({ entries, selection, draft, onHover, onOpen }: LayoutProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const virtualizer = useVirtualizer({
     count: entries.length,
     getScrollElement: () => scrollRef.current,
     estimateSize: () => ROW_HEIGHT,
+    paddingStart: draft ? ROW_HEIGHT : 0,
     overscan: 16,
   });
 
@@ -33,6 +36,11 @@ export const TableLayout = ({ entries, selection, onHover, onOpen }: LayoutProps
       </div>
       <ScrollArea ref={scrollRef} {...listProps({ entries, selection, onOpen }, step)} className="flex-1">
         <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
+          {draft ? (
+            <div className={ROW} style={{ height: ROW_HEIGHT }}>
+              <span className={NAME}>{draft}</span>
+            </div>
+          ) : null}
           {virtualizer.getVirtualItems().map((row) => {
             const entry = entries[row.index];
             return entry ? (
@@ -65,14 +73,13 @@ const Row = memo(({ index, entry, start, ...handlers }: RowProps) => {
     <div
       {...props}
       className={cn(
-        COLUMNS,
-        "absolute inset-x-2 items-center rounded-md px-2",
+        ROW,
         selected ? "bg-selected hover:bg-selected-hovered" : "hover:bg-neutral-subtle-hovered",
         entry.hidden && "opacity-50",
       )}
       style={{ height: ROW_HEIGHT, transform: `translateY(${start}px)` }}
     >
-      <span className="flex min-w-0 items-center gap-2">
+      <span className={NAME}>
         <KindIcon kind={itemKindOf(entry)} />
         <span className="truncate">{entry.name}</span>
       </span>

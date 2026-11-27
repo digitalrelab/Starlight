@@ -7,6 +7,7 @@ import type {
   ChatMessage,
   Chat,
   ChatId,
+  CreatableKind,
   Dimensions,
   EntryId,
   EntryKind,
@@ -89,6 +90,11 @@ export interface SourceDriver {
   readonly stat: (id: EntryId) => Effect.Effect<SourceEntry, SourceError>;
   readonly list: (id: EntryId) => Effect.Effect<ReadonlyArray<SourceEntry>, SourceError>;
   readonly write: (id: EntryId, content: Uint8Array) => Effect.Effect<SourceEntry, SourceError>;
+  readonly create: (
+    parent: EntryId,
+    name: string,
+    kind: CreatableKind,
+  ) => Effect.Effect<SourceEntry, SourceError>;
   readonly watch: (root: EntryId) => Stream.Stream<SourceChange, SourceError>;
   readonly extractors: Extractors;
   readonly sample: (entry: SourceEntry) => Effect.Effect<Option.Option<PixelSample>, SampleFailed>;
@@ -130,17 +136,22 @@ export interface StoredEntry extends SourceEntry {
   readonly fileId: FileId | null;
 }
 
-export interface EntryMatch {
+export interface FoundEntry extends StoredEntry {
   readonly source: SourceId;
-  readonly entry: StoredEntry;
-  readonly parentName: string | null;
+  readonly parent: EntryId;
+}
+
+export interface EntryQuery {
+  readonly text: string;
+  readonly group: "folders" | "files";
+  readonly includeHidden: boolean;
+  readonly limit: number;
 }
 
 export class EntryStore extends Context.Service<
   EntryStore,
   {
     readonly roots: Effect.Effect<ReadonlyArray<EntryRef>>;
-    readonly search: (query: string, limit: number) => Effect.Effect<ReadonlyArray<EntryMatch>>;
     readonly children: (source: SourceId, directory: EntryId) => Effect.Effect<ReadonlyArray<StoredEntry>>;
     readonly withKeys: (
       source: SourceId,
@@ -156,6 +167,7 @@ export class EntryStore extends Context.Service<
       ids: ReadonlyArray<EntryId>,
       keep: ReadonlyArray<EntryId>,
     ) => Effect.Effect<ReadonlyArray<FileId>>;
+    readonly search: (query: EntryQuery) => Effect.Effect<ReadonlyArray<FoundEntry>>;
   }
 >()("@starlight/core/EntryStore") {}
 

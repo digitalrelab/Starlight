@@ -4,6 +4,7 @@ import {
   Chats,
   CurrentActor,
   Entries,
+  EntrySearch,
   Files,
   MediaLibrary,
   Projects,
@@ -21,6 +22,7 @@ const HandlersLive = HostRpcs.toLayer(
     const agentProviders = yield* AgentProviders;
     const chats = yield* Chats;
     const references = yield* References;
+    const search = yield* EntrySearch;
     return HostRpcs.of({
       CreateProject: ({ root }) => projects.create(root),
       ListProjects: () => projects.list,
@@ -30,12 +32,15 @@ const HandlersLive = HostRpcs.toLayer(
       AddMount: ({ projectId, root }) => projects.addMount(projectId, root),
       RemoveMount: ({ projectId, root }) => projects.removeMount(projectId, root),
       ListEntries: ({ projectId, directory }) => entries.list(projectId, directory),
+      CreateEntry: ({ projectId, directory, name, kind }) => entries.create(projectId, directory, name, kind),
       WatchEntries: ({ projectId }) => entries.watch(projectId),
       ListMedia: ({ projectId, directory }) => media.list(projectId, directory),
       ProcessMedia: ({ projectId, directory }) => media.process(projectId, directory),
       GetFileSource: ({ projectId, file }) => files.source(projectId, file),
-      SearchReferences: ({ query }) => references.search(query),
+      SearchReferences: ({ query, projectId, includeHidden }) =>
+        references.search(query, projectId, includeHidden),
       LocateEntry: ({ ref }) => references.locate(ref),
+      SearchEntries: ({ query, projectId, includeHidden }) => search.search(query, projectId, includeHidden),
       GetFileDetails: ({ projectId, file }) => files.details(projectId, file),
       WriteFile: ({ projectId, file, content, base }) => files.write(projectId, file, content, base),
       ListAgentProviders: () => agentProviders.list,
@@ -48,6 +53,7 @@ const HandlersLive = HostRpcs.toLayer(
       RenameChat: ({ chatId, title }) => chats.rename(chatId, title),
       DeleteChat: ({ chatId }) => chats.remove(chatId),
       WatchChat: ({ chatId }) => chats.watch(chatId),
+      WatchSettledTurns: () => chats.settledTurns,
     });
   }),
 );

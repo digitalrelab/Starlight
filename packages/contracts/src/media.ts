@@ -25,6 +25,7 @@ export type Palette = typeof Palette.Type;
 
 export const MediaAppearance = Schema.Struct({
   placeholder: Schema.NullOr(Schema.String),
+  transparent: Schema.Boolean,
 });
 export type MediaAppearance = typeof MediaAppearance.Type;
 

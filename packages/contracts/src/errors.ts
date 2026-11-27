@@ -52,7 +52,7 @@ export class DirectoryMissing extends Schema.TaggedError<DirectoryMissing>()("Di
 
 export class SourceError extends Schema.TaggedError<SourceError>()("SourceError", {
   entry: EntryRef,
-  reason: Schema.Literals(["NotFound", "PermissionDenied", "Unknown"]),
+  reason: Schema.Literals(["NotFound", "AlreadyExists", "PermissionDenied", "Unknown"]),
   message: Schema.String,
 }) {}
 
@@ -87,3 +87,22 @@ export type FileError = typeof FileError.Type;
 
 export const WriteError = Schema.Union([...FileError.members, VersionConflict]);
 export type WriteError = typeof WriteError.Type;
+
+export class InvalidName extends Schema.TaggedError<InvalidName>()("InvalidName", {
+  name: Schema.String,
+}) {
+  override get message() {
+    return `Not a valid name: ${this.name}`;
+  }
+}
+
+export class EntryExists extends Schema.TaggedError<EntryExists>()("EntryExists", {
+  name: Schema.String,
+}) {
+  override get message() {
+    return `Already exists: ${this.name}`;
+  }
+}
+
+export const CreateError = Schema.Union([...DirectoryError.members, InvalidName, EntryExists]);
+export type CreateError = typeof CreateError.Type;

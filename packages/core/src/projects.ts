@@ -24,6 +24,17 @@ import {
   type SourceEntry,
 } from "./ports.ts";
 
+const mountOf = (project: Project, driver: SourceDriver, ref: EntryRef) =>
+  project.mounts.find((mount) => mount.root.source === ref.source && driver.contains(mount.root.id, ref.id));
+
+export const ownerOf = (projects: ReadonlyArray<Project>, driver: SourceDriver, ref: EntryRef) => {
+  for (const project of projects) {
+    const mount = mountOf(project, driver, ref);
+    if (mount) return { project, mount };
+  }
+  return undefined;
+};
+
 export interface LocatedDirectory {
   readonly mount: Mount;
   readonly driver: SourceDriver;
@@ -35,9 +46,6 @@ export interface LocatedFile {
   readonly file: EntryRef;
   readonly entry: SourceEntry;
 }
-
-export const mountOf = (project: Project, driver: SourceDriver, ref: EntryRef) =>
-  project.mounts.find((mount) => mount.root.source === ref.source && driver.contains(mount.root.id, ref.id));
 
 export class Projects extends Context.Service<
   Projects,

@@ -39,23 +39,11 @@ export const referenceOf = (url: string): Reference | undefined => {
   return Option.getOrUndefined(decodeReference(candidate));
 };
 
-export const ReferenceMatch = Schema.Union([
-  Schema.TaggedStruct("Entry", {
-    ref: EntryRef,
-    name: Schema.String,
-    kind: EntryKind,
-    parentName: Schema.String,
-    preview: Schema.NullOr(FileToken),
-  }),
-  Schema.TaggedStruct("Chat", { id: ChatId, title: Schema.String }),
-]);
-export type ReferenceMatch = typeof ReferenceMatch.Type;
-
 export const EntryLocation = Schema.Struct({
   name: Schema.String,
   kind: EntryKind,
   project: Schema.NullOr(ProjectId),
   directory: EntryRef,
-  preview: Schema.NullOr(FileToken),
+  token: Schema.NullOr(FileToken),
 });
 export type EntryLocation = typeof EntryLocation.Type;

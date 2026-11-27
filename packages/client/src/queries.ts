@@ -7,6 +7,7 @@ import {
 import type {
   AgentProviderUsage,
   ChatDetail,
+  CreatableKind,
   EntryRef,
   Listing,
   ModelChoice,
@@ -65,19 +66,29 @@ const createQueries = (client: StarlightClient) => ({
       queryFn: () => client.files.details(projectId, file),
     }),
 
-  referenceSearch: (query: string) =>
-    queryOptions({ queryKey: ["referenceSearch", query], queryFn: () => client.references.search(query) }),
+  referenceSearch: (query: string, projectId: string | null, includeHidden: boolean) =>
+    queryOptions({
+      queryKey: ["referenceSearch", query, projectId, includeHidden],
+      queryFn: () => client.references.search(query, projectId, includeHidden),
+    }),
 
   entryLocation: (ref: EntryRef) =>
     queryOptions({ queryKey: ["entryLocation", entryKey(ref)], queryFn: () => client.entries.locate(ref) }),
+
+  entrySearch: (query: string, projectId: string | null, includeHidden: boolean) =>
+    queryOptions({
+      queryKey: ["entrySearch", query, projectId, includeHidden],
+      queryFn: () => client.entries.search(query, projectId, includeHidden),
+      staleTime: 0,
+    }),
 
   agentProviders: () =>
     queryOptions({
       queryKey: ["agentProviders"],
       queryFn: () => client.agents.providers(),
       gcTime: Infinity,
-      refetchOnMount: "always",
-      refetchOnWindowFocus: "always",
+      refetchOnMount: false,
+      refetchOnWindowFocus: true,
     }),
 
   agentUsage: () =>
@@ -229,6 +240,13 @@ const createMutations = (client: StarlightClient, queryClient: QueryClient, quer
       },
     }),
 
+  createEntry: (projectId: string, directory: EntryRef) =>
+    mutationOptions({
+      mutationFn: ({ name, kind }: { readonly name: string; readonly kind: CreatableKind }) =>
+        client.entries.create(projectId, directory, name, kind),
+      onSuccess: () => queryClient.invalidateQueries(queries.entries(projectId, directory)),
+    }),
+
   removeMount: (projectId: string) =>
     mutationOptions({
       mutationFn: (root: EntryRef) => client.projects.removeMount(projectId, root),
@@ -240,6 +258,10 @@ const createMutations = (client: StarlightClient, queryClient: QueryClient, quer
 });
 
 const createSubscriptions = (client: StarlightClient, queryClient: QueryClient, queries: Queries) => ({
+  settledTurns: () =>
+    client.chats.watchSettled(
+      () => void queryClient.invalidateQueries({ queryKey: queries.agentUsage().queryKey }),
+    ),
   chat: (id: string) => {
     const { queryKey } = queries.chat(id);
     const update = (change: (detail: ChatDetail) => ChatDetail) =>

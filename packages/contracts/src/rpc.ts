@@ -1,11 +1,12 @@
 import { Schema } from "effect";
 import { Rpc, RpcGroup } from "effect/rpc";
-import { AgentProvider, AgentProviderUsage, ModelChoice } from "./agent.ts";
+import { AgentProvider, AgentProviderId, AgentProviderUsage, ModelChoice } from "./agent.ts";
 import { Chat, ChatBusy, ChatDetail, ChatEvent, ChatId, ChatNotFound, ModelUnavailable } from "./chat.ts";
 import { DiskUsage } from "./disk.ts";
-import { EntryLocation, ReferenceMatch } from "./reference.ts";
-import { EntryChange, Listing } from "./entry.ts";
+import { EntryLocation } from "./reference.ts";
+import { CreatableKind, EntryChange, Listing } from "./entry.ts";
 import {
+  CreateError,
   DirectoryError,
   FileError,
   MountError,
@@ -16,6 +17,7 @@ import {
 } from "./errors.ts";
 import { EntryRef, ProjectId } from "./ids.ts";
 import { FileDetails, FileSource, FileVersion, Media, MediaUpdate } from "./media.ts";
+import { EntryMatch, ReferenceMatch } from "./search.ts";
 import { UpdaterState } from "./update.ts";
 import { Project } from "./project.ts";
 
@@ -59,6 +61,11 @@ export class HostRpcs extends RpcGroup.make(
     success: Listing,
     error: DirectoryError,
   }),
+  Rpc.make("CreateEntry", {
+    payload: { projectId: ProjectId, directory: EntryRef, name: Schema.NonEmptyString, kind: CreatableKind },
+    success: EntryRef,
+    error: CreateError,
+  }),
   Rpc.make("ListMedia", {
     payload: DirectoryRequest,
     success: Schema.Array(Media),
@@ -76,13 +83,17 @@ export class HostRpcs extends RpcGroup.make(
     error: FileError,
   }),
   Rpc.make("SearchReferences", {
-    payload: { query: Schema.String },
+    payload: { query: Schema.String, projectId: Schema.NullOr(ProjectId), includeHidden: Schema.Boolean },
     success: Schema.Array(ReferenceMatch),
   }),
   Rpc.make("LocateEntry", {
     payload: { ref: EntryRef },
     success: EntryLocation,
     error: Schema.Union([SourceUnavailable, SourceError]),
+  }),
+  Rpc.make("SearchEntries", {
+    payload: { query: Schema.String, projectId: Schema.NullOr(ProjectId), includeHidden: Schema.Boolean },
+    success: Schema.Array(EntryMatch),
   }),
   Rpc.make("GetFileDetails", {
     payload: { projectId: ProjectId, file: EntryRef },
@@ -147,6 +158,10 @@ export class HostRpcs extends RpcGroup.make(
     payload: { chatId: ChatId },
     success: ChatEvent,
     error: ChatNotFound,
+    stream: true,
+  }),
+  Rpc.make("WatchSettledTurns", {
+    success: AgentProviderId,
     stream: true,
   }),
 ) {}

@@ -1,6 +1,7 @@
 import {
   type ChatEvent,
   type ChatId,
+  type CreatableKind,
   type EntryChange,
   type EntryRef,
   type FileVersion,
@@ -66,12 +67,17 @@ export const createClient = (ports: PortSources) => {
     entries: {
       list: (projectId: string, directory: EntryRef | null) =>
         host((c) => c.ListEntries({ projectId: id(projectId), directory })),
+      create: (projectId: string, directory: EntryRef, name: string, kind: CreatableKind) =>
+        host((c) => c.CreateEntry({ projectId: id(projectId), directory, name, kind })),
       watch: (projectId: string, onChange: (change: EntryChange) => void) =>
         watch("Entries", (c) => c.WatchEntries({ projectId: id(projectId) }), onChange),
       locate: (ref: EntryRef) => host((c) => c.LocateEntry({ ref })),
+      search: (query: string, projectId: string | null, includeHidden: boolean) =>
+        host((c) => c.SearchEntries({ query, projectId: optionalId(projectId), includeHidden })),
     },
     references: {
-      search: (query: string) => host((c) => c.SearchReferences({ query })),
+      search: (query: string, projectId: string | null, includeHidden: boolean) =>
+        host((c) => c.SearchReferences({ query, projectId: optionalId(projectId), includeHidden })),
     },
     media: {
       list: (projectId: string, directory: EntryRef | null) =>
@@ -106,6 +112,8 @@ export const createClient = (ports: PortSources) => {
       remove: (chatId: string) => host((c) => c.DeleteChat({ chatId: chat(chatId) })),
       watch: (chatId: string, onEvent: (event: ChatEvent) => void) =>
         watch("Chat", (c) => c.WatchChat({ chatId: chat(chatId) }), onEvent),
+      watchSettled: (onSettled: () => void) =>
+        watch("Settled turns", (c) => c.WatchSettledTurns(), onSettled),
     },
     shell: {
       pickDirectory: () => shell((c) => c.PickDirectory()),

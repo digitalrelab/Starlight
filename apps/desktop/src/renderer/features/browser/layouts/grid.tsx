@@ -7,8 +7,8 @@ import { useStarlight } from "#renderer/lib/context.ts";
 import { useElementWidth } from "#renderer/lib/use-element-width.ts";
 import { useRevealFocus } from "#renderer/features/browser/selection.ts";
 import { listProps, type Step } from "./events.ts";
-import { justify, nearestInRow, shelve, stack } from "./rows.ts";
-import { FolderChip, TILE_CHROME, TILE_INSET, Tile, tilePreviewUrl } from "./tile.tsx";
+import { dropLeading, justify, nearestInRow, shelve, stack } from "./rows.ts";
+import { DraftChip, FolderChip, TILE_CHROME, TILE_INSET, Tile, tilePreviewUrl } from "./tile.tsx";
 import type { LayoutProps } from "./types.ts";
 import { usePreviewsAhead } from "#renderer/features/files/use-preview.ts";
 
@@ -50,15 +50,18 @@ const useGridLayout = (
   entries: ReadonlyArray<Entry>,
   { byKey, aspects }: ReturnType<typeof useMedia>,
   width: number,
+  drafting: boolean,
 ) => {
   const folderCount = leadingFolders(entries);
   const inner = Math.max(0, width - GUTTER * 2);
-  const shelf = shelve(folderCount, {
+  const lead = drafting ? 1 : 0;
+  const slots = shelve(folderCount + lead, {
     width: inner,
     minWidth: CHIP_MIN_WIDTH,
     height: CHIP_HEIGHT,
     gap: CHIP_GAP,
   });
+  const shelf = dropLeading(slots, lead);
   const tiles = justify(aspects.subarray(folderCount), {
     width: inner + TILE_INSET * 2,
     targetHeight: TARGET_ROW_HEIGHT,
@@ -66,10 +69,15 @@ const useGridLayout = (
     gap: TILE_GAP,
     chrome: TILE_CHROME,
   });
+  const paddingStart = shelf.rows.length > 0 ? GUTTER : GUTTER - TILE_INSET;
   const layout = {
     ...stack(shelf, GUTTER, tiles, GUTTER - TILE_INSET, SECTION_GAP - TILE_INSET),
     folderCount,
-    paddingStart: shelf.rows.length > 0 ? GUTTER : GUTTER - TILE_INSET,
+    draftSlot:
+      drafting && slots.width.length > 0
+        ? { top: paddingStart, left: GUTTER + slots.left[0]!, width: slots.width[0]! }
+        : null,
+    paddingStart,
     paddingEnd: tiles.rows.length > 0 ? GUTTER - TILE_INSET : GUTTER,
   };
   usePreviewsAhead(
@@ -83,11 +91,19 @@ const useGridLayout = (
   return layout;
 };
 
-export const GridLayout = ({ projectId, directory, entries, selection, onHover, onOpen }: LayoutProps) => {
+export const GridLayout = ({
+  projectId,
+  directory,
+  entries,
+  selection,
+  draft,
+  onHover,
+  onOpen,
+}: LayoutProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const width = useElementWidth(scrollRef);
   const media = useMedia(projectId, directory, entries);
-  const layout = useGridLayout(entries, media, width);
+  const layout = useGridLayout(entries, media, width, draft !== null);
 
   const virtualizer = useVirtualizer({
     count: layout.rows.length,
@@ -130,6 +146,11 @@ export const GridLayout = ({ projectId, directory, entries, selection, onHover, 
   return (
     <ScrollArea ref={scrollRef} {...listProps({ entries, selection, onOpen }, step)} className="flex-1">
       <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
+        {draft && layout.draftSlot ? (
+          <DraftChip {...layout.draftSlot} height={CHIP_HEIGHT}>
+            {draft}
+          </DraftChip>
+        ) : null}
         {virtualizer.getVirtualItems().map((item) => {
           const row = layout.rows[item.index];
           if (!row) return null;

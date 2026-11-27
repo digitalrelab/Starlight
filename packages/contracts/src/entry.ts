@@ -4,6 +4,9 @@ import { EntryRef, FileId } from "./ids.ts";
 export const EntryKind = Schema.Literals(["file", "directory", "symlink", "other"]);
 export type EntryKind = typeof EntryKind.Type;
 
+export const CreatableKind = Schema.Literals(["file", "directory"]);
+export type CreatableKind = typeof CreatableKind.Type;
+
 export const Entry = Schema.Struct({
   ref: EntryRef,
   fileId: Schema.NullOr(FileId),

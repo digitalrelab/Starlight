@@ -1,13 +1,13 @@
 import { BubbleChatIcon } from "@hugeicons-pro/core-stroke-rounded";
-import { type EntryLocation, type EntryRef, referenceOf } from "@starlight/client";
+import { type EntryRef, referenceOf } from "@starlight/client";
 import type { RenderLink } from "@starlight/markdown";
 import { cn, Icon } from "@starlight/ui";
 import { useQuery } from "@tanstack/react-query";
 import { Link, type LinkOptions } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { chatLink } from "#renderer/features/agent/chat-links.ts";
-import { toDirectorySearch, toFileSearch } from "#renderer/features/browser/directory-search.ts";
 import { EntryIcon } from "#renderer/features/files/entry-icon.tsx";
+import { entryLink } from "#renderer/features/files/entry-link.ts";
 import { itemKindOf } from "#renderer/features/files/kind-icon.tsx";
 import { useStarlight } from "#renderer/lib/context.ts";
 
@@ -36,15 +36,6 @@ const Chip = ({ icon, label, link, unresolved }: ChipProps) => {
   );
 };
 
-const openingOf = (ref: EntryRef, { kind, project, directory }: EntryLocation): LinkOptions | undefined =>
-  project === null
-    ? undefined
-    : {
-        to: "/p/$projectId",
-        params: { projectId: project },
-        search: kind === "directory" ? toDirectorySearch(ref) : toFileSearch(directory, ref),
-      };
-
 const ICON_SIZE = 14;
 
 const EntryChip = ({ entry, label }: { readonly entry: EntryRef; readonly label: ReactNode }) => {
@@ -55,12 +46,12 @@ const EntryChip = ({ entry, label }: { readonly entry: EntryRef; readonly label:
       icon={
         <EntryIcon
           kind={location ? itemKindOf(location) : "other"}
-          preview={location?.preview ?? null}
+          token={location?.token ?? null}
           size={ICON_SIZE}
         />
       }
       label={label}
-      link={location && openingOf(entry, location)}
+      link={location && entryLink(entry, location)}
       unresolved={isError ? "No longer exists" : location?.project === null ? "Not in a project" : undefined}
     />
   );

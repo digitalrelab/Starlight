@@ -1,6 +1,8 @@
 import { type Entry, type EntryRef, entryKey } from "@starlight/client";
 import { Suspense, useEffect, useEffectEvent, useLayoutEffect, useRef, useState } from "react";
 import { type LayoutId, layouts } from "./layouts/registry.ts";
+import { DraftField } from "./new-entry/draft-field.tsx";
+import { useDraft } from "./new-entry/draft.ts";
 import { createSelection, type SelectionStore, selectionId, useSelectedCount } from "./selection.ts";
 
 interface Props {
@@ -9,11 +11,18 @@ interface Props {
   readonly entries: ReadonlyArray<Entry>;
   readonly layout: LayoutId;
   readonly shown: EntryRef | null;
-  readonly onOpen: (entry: Entry) => void;
+  readonly onOpen: (entry: Pick<Entry, "ref" | "kind">) => void;
   readonly onIntent: (entry: Entry) => void;
 }
 
 const INTENT_DWELL_MS = 100;
+
+const selectionIdOf = (entries: ReadonlyArray<Entry>, ref: EntryRef | null) => {
+  if (!ref) return undefined;
+  const key = entryKey(ref);
+  const entry = entries.find((candidate) => entryKey(candidate.ref) === key);
+  return entry && selectionId(entry);
+};
 
 const useDwell = (onDwell: (entry: Entry) => void) => {
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -29,19 +38,24 @@ export const DirectoryView = ({ projectId, directory, entries, layout, shown, on
   const ids = entries.map(selectionId);
   useLayoutEffect(() => selection.setItems(ids), [selection, ids]);
 
-  const shownKey = shown && entryKey(shown);
-  const shownEntry = shownKey ? entries.find((entry) => entryKey(entry.ref) === shownKey) : undefined;
-  const shownId = shownEntry && selectionId(shownEntry);
+  const shownId = selectionIdOf(entries, shown);
   useLayoutEffect(() => {
     if (shownId) selection.follow(shownId);
   }, [selection, shownId]);
+
+  const draft = useDraft(directory);
+  const [landing, setLanding] = useState<EntryRef | null>(null);
+  const landedId = selectionIdOf(entries, landing);
+  useLayoutEffect(() => {
+    if (landedId) selection.follow(landedId);
+  }, [selection, landedId]);
 
   const dwell = useDwell(onIntent);
   const intend = useEffectEvent((index: number) => dwell(entries[index]));
   useEffect(() => selection.subscribeFocus((index) => intend(index)), [selection]);
   const onHover = (index: number | null) => dwell(index === null ? undefined : entries[index]);
 
-  if (entries.length === 0) {
+  if (entries.length === 0 && !draft) {
     return <div className="flex flex-1 items-center justify-center text-subtle">Empty folder</div>;
   }
 
@@ -54,6 +68,19 @@ export const DirectoryView = ({ projectId, directory, entries, layout, shown, on
           directory={directory}
           entries={entries}
           selection={selection}
+          draft={
+            draft && directory ? (
+              <DraftField
+                key={draft.key}
+                projectId={projectId}
+                directory={directory}
+                draft={draft}
+                onCreated={(created) =>
+                  created.kind === "directory" ? setLanding(created.ref) : onOpen(created)
+                }
+              />
+            ) : null
+          }
           onHover={onHover}
           onOpen={onOpen}
         />
