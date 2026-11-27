@@ -41,19 +41,19 @@ export const DirectoryView = ({
     () => entries.findIndex((entry) => entryKey(entry.ref) === selectedKey),
     [entries, selectedKey],
   );
+  const dwell = useDwell(onIntent);
   const onSelect = useCallback(
     (index: number) => {
       const entry = entries[Math.max(0, Math.min(entries.length - 1, index))];
       onSelectKey(entry && entryKey(entry.ref));
+      dwell(entry);
     },
-    [entries, onSelectKey],
+    [entries, onSelectKey, dwell],
   );
-  const dwell = useDwell(onIntent);
   const onHover = useCallback(
     (index: number | null) => dwell(index === null ? undefined : entries[index]),
     [dwell, entries],
   );
-  useEffect(() => dwell(entries[selected]), [dwell, entries, selected]);
 
   if (entries.length === 0) {
     return <div className="flex flex-1 items-center justify-center text-subtle">Empty folder</div>;
