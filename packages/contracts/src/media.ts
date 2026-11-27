@@ -1,4 +1,5 @@
 import { Schema } from "effect";
+import { Crumb } from "./entry.ts";
 import { EntryRef, FileId } from "./ids.ts";
 import { Property } from "./property.ts";
 
@@ -47,7 +48,18 @@ export const FileSource = Schema.Struct({
   token: FileToken,
   version: FileVersion,
   dimensions: Schema.NullOr(Dimensions),
+});
+export type FileSource = typeof FileSource.Type;
+
+export const FileDetails = Schema.Struct({
+  fileId: FileId,
+  folder: Crumb,
+  size: Schema.Number,
+  createdAt: Schema.Number,
+  modifiedAt: Schema.Number,
+  mediaType: Schema.NullOr(Schema.String),
+  dimensions: Schema.NullOr(Dimensions),
   palette: Palette,
   properties: Schema.Array(Property),
 });
-export type FileSource = typeof FileSource.Type;
+export type FileDetails = typeof FileDetails.Type;

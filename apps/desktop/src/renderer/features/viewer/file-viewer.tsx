@@ -4,8 +4,9 @@ import { PLAYER_ATTRIBUTE } from "@starlight/media-player";
 import { Button, Icon, IconButton, Theater } from "@starlight/ui";
 import { type KeyboardEvent, useEffect, useEffectEvent, useRef, useState } from "react";
 import { KindIcon, itemKindOf } from "#renderer/features/files/kind-icon.tsx";
+import { Inspector } from "#renderer/features/inspector/inspector.tsx";
+import { InspectorToggle } from "#renderer/features/inspector/inspector-toggle.tsx";
 import { useStarlight } from "#renderer/lib/context.ts";
-import { FileDetails } from "./file-details.tsx";
 import { FileStage } from "./file-stage.tsx";
 import { fileBytes } from "#renderer/features/files/file-bytes.ts";
 import { loadEditor } from "./markdown-file.ts";
@@ -20,6 +21,7 @@ interface Props {
   readonly file: EntryRef;
   readonly onShow: (file: EntryRef) => void;
   readonly onClose: () => void;
+  readonly inspector: boolean;
 }
 
 const PREVIOUS_KEY = "ArrowLeft";
@@ -68,6 +70,7 @@ export const FileViewer = ({
   file,
   onShow,
   onClose,
+  inspector,
 }: Props) => {
   const files = entries.filter((entry) => entry.kind === "file");
   const sequenced = files.length > 1;
@@ -121,9 +124,6 @@ export const FileViewer = ({
           <span ref={setStatusSlot} className="flex shrink-0 items-center empty:hidden" />
         </Theater.Title>
         <Theater.End className="app-no-drag">
-          {current ? (
-            <FileDetails key={file.id} projectId={projectId} directory={directory} entry={current} />
-          ) : null}
           {sequenced ? (
             <>
               <IconButton
@@ -143,16 +143,27 @@ export const FileViewer = ({
               <Theater.Separator />
             </>
           ) : null}
+          <InspectorToggle />
           <Theater.Close />
         </Theater.End>
       </Theater.Header>
-      <Theater.Stage>
-        {current ? (
-          <StatusSlot value={statusSlot}>
-            <FileStage key={file.id} projectId={projectId} directory={directory} entry={current} />
-          </StatusSlot>
+      <div className="flex min-h-0 flex-1">
+        <Theater.Stage>
+          {current ? (
+            <StatusSlot value={statusSlot}>
+              <FileStage key={file.id} projectId={projectId} directory={directory} entry={current} />
+            </StatusSlot>
+          ) : null}
+        </Theater.Stage>
+        {inspector ? (
+          <Inspector
+            projectId={projectId}
+            directory={directory}
+            entry={current}
+            className="mr-2 mb-2 rounded-lg bg-surface shadow-lifted"
+          />
         ) : null}
-      </Theater.Stage>
+      </div>
     </Theater.Root>
   );
 };

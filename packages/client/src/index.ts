@@ -9,6 +9,7 @@ export type {
   Draft,
   Entry,
   EntryRef,
+  FileDetails,
   FileKind,
   FileSource,
   Listing,
