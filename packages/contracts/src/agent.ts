@@ -26,6 +26,7 @@ export const AgentModel = Schema.Struct({
   id: ModelId,
   name: Schema.String,
   efforts: Schema.Array(AgentEffort),
+  legacy: Schema.Boolean,
 });
 export type AgentModel = typeof AgentModel.Type;
 

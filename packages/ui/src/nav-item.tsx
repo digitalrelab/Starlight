@@ -20,9 +20,9 @@ const NavItemControl = ({ icon, render, className, children, ...props }: Omit<Na
       {
         className: cn(
           "group flex h-8 w-full items-center gap-2 rounded-md px-2 text-base text-default focus-ring",
-          "highlighted:bg-neutral-subtle-hovered group-has-data-[popup-open]/nav-item:bg-neutral-subtle-hovered disabled:opacity-50",
+          "highlighted:bg-neutral-subtle-hovered group-engaged/nav-item:bg-neutral-subtle-hovered disabled:opacity-50",
           "aria-[current=page]:bg-selected aria-[current=page]:text-selected",
-          "aria-[current=page]:highlighted:bg-selected-hovered aria-[current=page]:group-has-data-[popup-open]/nav-item:bg-selected-hovered",
+          "aria-[current=page]:highlighted:bg-selected-hovered aria-[current=page]:group-engaged/nav-item:bg-selected-hovered",
           className,
         ),
         children: (
@@ -45,13 +45,9 @@ export const NavItem = ({ menu, className, ...props }: NavItemProps) =>
     <ContextMenu.Root>
       <div className="group/nav-item relative">
         <ContextMenu.Trigger render={<NavItemControl className={cn("pr-8", className)} {...props} />} />
-        <div className="absolute inset-y-0 right-1 flex items-center opacity-0 group-focus-within/nav-item:opacity-100 group-hover/nav-item:opacity-100 group-has-data-[popup-open]/nav-item:opacity-100">
+        <div className="absolute inset-y-0 right-1 flex items-center opacity-0 group-focus-within/nav-item:opacity-100 group-hover/nav-item:opacity-100 group-engaged/nav-item:opacity-100">
           <Menu.Root>
-            <Menu.Trigger
-              render={
-                <IconButton icon={MoreHorizontalIcon} label={menu.label} className="size-6 rounded-md" />
-              }
-            />
+            <Menu.Trigger render={<IconButton icon={MoreHorizontalIcon} label={menu.label} size="sm" />} />
             <Menu.Popup>{menu.items}</Menu.Popup>
           </Menu.Root>
         </div>

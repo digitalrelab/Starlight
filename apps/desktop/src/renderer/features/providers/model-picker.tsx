@@ -1,8 +1,28 @@
-import { ArrowDown01Icon, Search01Icon, Tick02Icon } from "@hugeicons-pro/core-stroke-rounded";
-import type { AgentProvider, ModelChoice } from "@starlight/client";
-import { cn, Icon, Popover, PopoverContent, PopoverTrigger, ScrollArea } from "@starlight/ui";
-import { type ReactNode, useState } from "react";
+import { StarIcon as StarFilledIcon } from "@hugeicons-pro/core-solid-rounded";
+import {
+  ArrowDown01Icon,
+  ArrowRight01Icon,
+  Search01Icon,
+  StarIcon,
+  Tick02Icon,
+} from "@hugeicons-pro/core-stroke-rounded";
+import type { AgentEffort, AgentModel, AgentProvider, ModelChoice } from "@starlight/client";
+import {
+  cn,
+  Icon,
+  IconButton,
+  Kbd,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  ScrollArea,
+} from "@starlight/ui";
+import { type ReactNode, useEffect, useEffectEvent, useState } from "react";
+import { type Favorite, sameModel, useFavoriteModels } from "./favorite-models.ts";
 import { providerAppearance } from "./provider-appearance.ts";
+
+const FAVORITES = "favorites";
+const SHORTCUT_SLOTS = 9;
 
 interface Props {
   readonly providers: ReadonlyArray<AgentProvider>;
@@ -10,49 +30,167 @@ interface Props {
   readonly onChoose: (choice: ModelChoice) => void;
 }
 
+interface Entry {
+  readonly choice: ModelChoice;
+  readonly provider: AgentProvider;
+  readonly model: AgentModel;
+  readonly effort: AgentEffort | null;
+}
+
 const Mark = ({ provider, size = 16 }: { readonly provider: string; readonly size?: number }) => {
   const { icon, color } = providerAppearance(provider);
   return <Icon icon={icon} size={size} className={cn("shrink-0", color)} />;
 };
 
-const Option = ({
+const Row = ({
   selected,
   onClick,
+  trailing,
+  className,
   children,
 }: {
   readonly selected: boolean;
+  readonly onClick: () => void;
+  readonly trailing?: ReactNode;
+  readonly className?: string;
+  readonly children: ReactNode;
+}) => (
+  <div
+    className={cn(
+      "group/row flex h-8 shrink-0 items-center rounded-md text-subtle highlighted:bg-neutral-subtle-hovered highlighted:text-default has-[>button[aria-pressed=true]]:text-default",
+      className,
+    )}
+  >
+    <button
+      type="button"
+      aria-pressed={selected}
+      onClick={onClick}
+      className="flex h-full min-w-0 flex-1 items-center gap-2 rounded-md px-2 text-left focus-ring"
+    >
+      <Icon icon={Tick02Icon} size={14} className={cn("shrink-0", !selected && "invisible")} />
+      {children}
+    </button>
+    {trailing ? <span className="flex shrink-0 items-center gap-2 pr-2">{trailing}</span> : null}
+  </div>
+);
+
+const Star = ({
+  model,
+  starred,
+  onToggle,
+}: {
+  readonly model: string;
+  readonly starred: boolean;
+  readonly onToggle: () => void;
+}) => (
+  <IconButton
+    icon={StarIcon}
+    pressedIcon={StarFilledIcon}
+    label={starred ? "Remove from favorites" : "Add to favorites"}
+    aria-label={starred ? `Remove ${model} from favorites` : `Add ${model} to favorites`}
+    aria-pressed={starred}
+    onClick={onToggle}
+    size="sm"
+    className="text-subtlest opacity-0 group-hover/row:opacity-100 highlighted:bg-neutral-hovered focus-visible:opacity-100 aria-pressed:text-accent-yellow aria-pressed:opacity-100 aria-pressed:highlighted:text-accent-yellow"
+  />
+);
+
+const RailButton = ({
+  label,
+  pressed,
+  onClick,
+  children,
+}: {
+  readonly label: string;
+  readonly pressed: boolean;
   readonly onClick: () => void;
   readonly children: ReactNode;
 }) => (
   <button
     type="button"
-    aria-pressed={selected}
+    aria-label={label}
+    aria-pressed={pressed}
     onClick={onClick}
-    className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-subtle focus-ring highlighted:bg-neutral-subtle-hovered highlighted:text-default aria-pressed:text-default"
+    className="inline-flex size-control items-center justify-center rounded-md focus-ring highlighted:bg-neutral-subtle-hovered aria-pressed:bg-selected"
   >
     {children}
-    {selected ? <Icon icon={Tick02Icon} size={14} className="ml-auto shrink-0" /> : null}
   </button>
 );
 
+const entryOf = (provider: AgentProvider, model: AgentModel, effortId: string | null): Entry => {
+  const effort = model.efforts.find(({ id }) => id === effortId) ?? null;
+  return {
+    choice: { provider: provider.id, model: model.id, effort: effort?.id ?? null },
+    provider,
+    model,
+    effort,
+  };
+};
+
 export const ModelPicker = ({ providers, choice, onChoose }: Props) => {
-  const [browsing, setBrowsing] = useState(choice.provider);
+  const { favorites, isFavorite, toggle } = useFavoriteModels();
+  const [browsing, setBrowsing] = useState<string>(choice.provider);
   const [search, setSearch] = useState("");
+  const [showLegacy, setShowLegacy] = useState(false);
+  const [kept, setKept] = useState<ReadonlyArray<Favorite>>([]);
+
+  const resolve = (list: ReadonlyArray<Favorite>) =>
+    list.flatMap((favorite) => {
+      const provider = providers.find(({ id }) => id === favorite.provider);
+      const model = provider?.models.find(({ id }) => id === favorite.model);
+      return provider && model ? [entryOf(provider, model, favorite.effort)] : [];
+    });
+
+  const starred = resolve(favorites);
+  const slotOf = (entry: Entry) => starred.findIndex(({ choice }) => sameModel(choice, entry.choice)) + 1;
+
+  const onShortcut = useEffectEvent((event: KeyboardEvent) => {
+    const slot = Number(event.key);
+    const favorite = event.metaKey && slot >= 1 && slot <= SHORTCUT_SLOTS ? starred[slot - 1] : undefined;
+    if (!favorite) return;
+    event.preventDefault();
+    onChoose(favorite.choice);
+  });
+
+  useEffect(() => {
+    window.addEventListener("keydown", onShortcut);
+    return () => window.removeEventListener("keydown", onShortcut);
+  }, []);
+
   const provider = providers.find(({ id }) => id === choice.provider);
   const model = provider?.models.find(({ id }) => id === choice.model);
   if (!provider || !model) return null;
 
+  const effort = model.efforts.find(({ id }) => id === choice.effort) ?? null;
   const shown = providers.find(({ id }) => id === browsing) ?? provider;
   const query = search.trim().toLowerCase();
-  const models = shown.models.filter(({ name }) => name.toLowerCase().includes(query));
-  const effort = model.efforts.find(({ id }) => id === choice.effort);
+  const matches = ({ name }: AgentModel) => name.toLowerCase().includes(query);
+  const listed = shown.models.filter(
+    (candidate) => matches(candidate) && (query !== "" || showLegacy || !candidate.legacy),
+  );
+  const hasLegacy = query === "" && shown.models.some((candidate) => candidate.legacy);
+
+  const favoritesShown = resolve([
+    ...kept,
+    ...favorites.filter((favorite) => !kept.some((known) => sameModel(known, favorite))),
+  ]);
+
+  const star = (entry: Entry) => (
+    <Star
+      model={entry.model.name}
+      starred={isFavorite(entry.choice)}
+      onToggle={() => toggle(entry.choice, kept)}
+    />
+  );
 
   return (
     <Popover
       onOpenChange={(open) => {
         if (!open) return;
-        setBrowsing(choice.provider);
+        setBrowsing(starred.length > 0 ? FAVORITES : choice.provider);
+        setKept(favorites);
         setSearch("");
+        setShowLegacy(false);
       }}
     >
       <PopoverTrigger className="inline-flex h-control items-center gap-1.5 rounded-full px-2.5 text-sm text-subtle focus-ring highlighted:bg-neutral-subtle-hovered highlighted:text-default">
@@ -68,17 +206,26 @@ export const ModelPicker = ({ providers, choice, onChoose }: Props) => {
         className="h-[min(24rem,var(--available-height))] w-[min(38rem,var(--available-width))] flex-row p-0"
       >
         <nav aria-label="Providers" className="flex flex-col gap-1 border-r border-default p-2">
+          <RailButton
+            label="Favorites"
+            pressed={browsing === FAVORITES}
+            onClick={() => setBrowsing(FAVORITES)}
+          >
+            <Icon icon={StarFilledIcon} size={18} className="text-accent-yellow" />
+          </RailButton>
+          <div className="m-1 border-t border-default" />
           {providers.map(({ id, name }) => (
-            <button
+            <RailButton
               key={id}
-              type="button"
-              aria-label={name}
-              aria-pressed={id === shown.id}
-              onClick={() => setBrowsing(id)}
-              className="inline-flex size-control items-center justify-center rounded-md focus-ring highlighted:bg-neutral-subtle-hovered aria-pressed:bg-selected"
+              label={name}
+              pressed={browsing !== FAVORITES && id === shown.id}
+              onClick={() => {
+                setBrowsing(id);
+                setShowLegacy(false);
+              }}
             >
               <Mark provider={id} size={18} />
-            </button>
+            </RailButton>
           ))}
         </nav>
         <div className="flex min-w-0 flex-1 flex-col border-r border-default">
@@ -94,49 +241,98 @@ export const ModelPicker = ({ providers, choice, onChoose }: Props) => {
             />
           </label>
           <ScrollArea className="flex-1" contentClassName="flex flex-col gap-0.5 p-1.5">
-            {models.map((candidate) => (
-              <Option
-                key={candidate.id}
-                selected={shown.id === provider.id && candidate.id === model.id}
-                onClick={() =>
-                  onChoose({
-                    provider: shown.id,
-                    model: candidate.id,
-                    effort: candidate.efforts.some(({ id }) => id === choice.effort) ? choice.effort : null,
-                  })
-                }
-              >
-                <Mark provider={shown.id} />
-                <span className="truncate">{candidate.name}</span>
-              </Option>
-            ))}
-            {models.length === 0 ? (
-              <p className="px-2 py-1.5 text-sm text-subtlest">No models found</p>
-            ) : null}
+            {browsing === FAVORITES ? (
+              <>
+                {favoritesShown.map((entry) => {
+                  const slot = slotOf(entry);
+                  return matches(entry.model) ? (
+                    <Row
+                      key={`${entry.choice.provider}/${entry.choice.model}`}
+                      selected={
+                        entry.choice.provider === choice.provider &&
+                        entry.choice.model === choice.model &&
+                        entry.choice.effort === choice.effort
+                      }
+                      onClick={() => onChoose(entry.choice)}
+                      trailing={
+                        <>
+                          {star(entry)}
+                          {slot > 0 && slot <= SHORTCUT_SLOTS ? (
+                            <Kbd shortcut={["Meta", String(slot)]} />
+                          ) : null}
+                        </>
+                      }
+                    >
+                      <Mark provider={entry.provider.id} />
+                      <span className="truncate">{entry.model.name}</span>
+                      {entry.effort ? (
+                        <span className="shrink-0 text-subtlest">{entry.effort.label}</span>
+                      ) : null}
+                    </Row>
+                  ) : null;
+                })}
+                {favoritesShown.length === 0 ? (
+                  <p className="px-2 py-1.5 text-sm text-subtlest">
+                    Star a model to keep it here with its reasoning level.
+                  </p>
+                ) : null}
+              </>
+            ) : (
+              <>
+                {listed.map((candidate) => {
+                  const entry = entryOf(shown, candidate, choice.effort);
+                  return (
+                    <Row
+                      key={candidate.id}
+                      selected={shown.id === provider.id && candidate.id === model.id}
+                      onClick={() => onChoose(entry.choice)}
+                      trailing={star(entry)}
+                      className={cn(candidate.legacy && "text-subtlest")}
+                    >
+                      <Mark provider={shown.id} />
+                      <span className="truncate">{candidate.name}</span>
+                    </Row>
+                  );
+                })}
+                {hasLegacy ? (
+                  <button
+                    type="button"
+                    aria-expanded={showLegacy}
+                    onClick={() => setShowLegacy(!showLegacy)}
+                    className="flex h-8 shrink-0 items-center gap-2 rounded-md px-2 text-sm text-subtlest focus-ring highlighted:bg-neutral-subtle-hovered highlighted:text-subtle"
+                  >
+                    <Icon
+                      icon={ArrowRight01Icon}
+                      size={14}
+                      className={cn("transition-transform", showLegacy && "rotate-90")}
+                    />
+                    Older models
+                  </button>
+                ) : null}
+                {listed.length === 0 && !hasLegacy ? (
+                  <p className="px-2 py-1.5 text-sm text-subtlest">No models found</p>
+                ) : null}
+              </>
+            )}
           </ScrollArea>
         </div>
-        {model.efforts.length > 0 ? (
-          <div className="flex w-44 shrink-0 flex-col">
-            <div className="flex items-baseline justify-between gap-2 border-b border-default px-3 py-2.5">
-              <span className="text-subtle">Reasoning</span>
-              <span className="truncate text-sm text-subtlest">{model.name}</span>
-            </div>
-            <ScrollArea className="flex-1" contentClassName="flex flex-col gap-0.5 p-1.5">
-              <Option selected={choice.effort === null} onClick={() => onChoose({ ...choice, effort: null })}>
-                Default
-              </Option>
-              {model.efforts.map(({ id, label }) => (
-                <Option
-                  key={id}
-                  selected={choice.effort === id}
-                  onClick={() => onChoose({ ...choice, effort: id })}
-                >
-                  {label}
-                </Option>
-              ))}
-            </ScrollArea>
+        <div className="flex w-44 shrink-0 flex-col">
+          <div className="flex items-baseline justify-between gap-2 border-b border-default px-3 py-2.5">
+            <span className="text-subtle">Reasoning</span>
+            <span className="truncate text-sm text-subtlest">{model.name}</span>
           </div>
-        ) : null}
+          <ScrollArea className="flex-1" contentClassName="flex flex-col gap-0.5 p-1.5">
+            {[null, ...model.efforts].map((level) => (
+              <Row
+                key={level?.id ?? ""}
+                selected={choice.effort === (level?.id ?? null)}
+                onClick={() => onChoose({ ...choice, effort: level?.id ?? null })}
+              >
+                {level?.label ?? "Default"}
+              </Row>
+            ))}
+          </ScrollArea>
+        </div>
       </PopoverContent>
     </Popover>
   );
