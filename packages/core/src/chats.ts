@@ -9,6 +9,8 @@ import {
   ChatNotFound,
   type ModelChoice,
   ModelUnavailable,
+  type ProjectId,
+  type ProjectNotFound,
 } from "@starlight/contracts";
 import { Cause, Clock, Context, Effect, FiberMap, Layer, Option, PubSub, Stream } from "effect";
 import {
@@ -20,6 +22,7 @@ import {
   IdGenerator,
   type StoredChat,
 } from "./ports.ts";
+import { Projects } from "./projects.ts";
 
 const TITLE_LENGTH = 80;
 
@@ -36,10 +39,15 @@ interface Published {
 export class Chats extends Context.Service<
   Chats,
   {
-    readonly list: Effect.Effect<ReadonlyArray<Chat>>;
+    readonly list: (projectId: ProjectId | null) => Effect.Effect<ReadonlyArray<Chat>>;
     readonly get: (id: ChatId) => Effect.Effect<ChatDetail, ChatNotFound>;
+    readonly start: (
+      projectId: ProjectId | null,
+      text: string,
+      model: ModelChoice,
+    ) => Effect.Effect<Chat, ProjectNotFound | ModelUnavailable, CurrentActor>;
     readonly send: (
-      id: ChatId | null,
+      id: ChatId,
       text: string,
       model: ModelChoice,
     ) => Effect.Effect<Chat, ChatNotFound | ChatBusy | ModelUnavailable, CurrentActor>;
@@ -51,6 +59,7 @@ export class Chats extends Context.Service<
   static readonly layer = Layer.effect(Chats)(
     Effect.gen(function* () {
       const store = yield* ChatStore;
+      const projects = yield* Projects;
       const drivers = yield* AgentProviderDrivers;
       const audit = yield* AuditLog;
       const ids = yield* IdGenerator;
@@ -120,22 +129,37 @@ export class Chats extends Context.Service<
         );
       };
 
-      const begin = (id: ChatId | null, text: string, model: ModelChoice) =>
-        id === null
-          ? Effect.gen(function* () {
-              const driver = yield* driverFor(model);
-              const chat = yield* store.create({ model, title: titleFrom(text) });
-              const stored: StoredChat = { chat, messages: [], session: Option.none() };
-              return [stored, driver] as const;
-            })
-          : Effect.gen(function* () {
-              const stored = yield* find(id);
-              if (stored.chat.provider !== model.provider) {
-                return yield* new ModelUnavailable({ provider: model.provider });
-              }
-              yield* store.saveModel(id, model);
-              return [stored, yield* driverFor(model)] as const;
-            });
+      const release = (id: ChatId) => Effect.sync(() => drafts.delete(id));
+
+      const resume = Effect.fnUntraced(function* (id: ChatId, model: ModelChoice) {
+        const stored = yield* find(id);
+        if (stored.chat.provider !== model.provider) {
+          return yield* new ModelUnavailable({ provider: model.provider });
+        }
+        yield* store.saveModel(id, model);
+        return [stored, yield* driverFor(model)] as const;
+      });
+
+      const deliver = Effect.fnUntraced(function* (
+        stored: StoredChat,
+        driver: AgentProviderDriver,
+        draft: Draft,
+        text: string,
+        model: ModelChoice,
+      ) {
+        const chatId = stored.chat.id;
+        drafts.set(chatId, draft);
+        failures.delete(chatId);
+        yield* Effect.gen(function* () {
+          const prompt = yield* message(yield* ids.next, "user", text);
+          yield* store.append(chatId, prompt);
+          yield* audit.record({ actor: yield* CurrentActor, action: "SendMessage", target: chatId });
+          yield* publish(chatId, { _tag: "MessageAdded", message: prompt });
+          yield* publish(chatId, { _tag: "Draft", draft });
+        }).pipe(Effect.onError(() => release(chatId)));
+        yield* FiberMap.run(turns, chatId, respond(stored, driver, draft, text, model));
+        return { ...stored.chat, model: model.model, effort: model.effort };
+      });
 
       const get = (id: ChatId) =>
         Effect.map(find(id), ({ chat, messages }): ChatDetail => ({
@@ -148,32 +172,19 @@ export class Chats extends Context.Service<
       return Chats.of({
         list: store.list,
         get,
-        send: Effect.fn("Chats.send")(function* (id, text, model) {
+        start: Effect.fn("Chats.start")(function* (projectId, text, model) {
+          const driver = yield* driverFor(model);
+          if (projectId !== null) yield* projects.get(projectId);
           const draft: Draft = { id: yield* ids.next, text: "" };
-          if (id !== null) {
-            if (drafts.has(id)) return yield* new ChatBusy({ chatId: id });
-            drafts.set(id, draft);
-          }
-          const release = (chatId: ChatId) => Effect.sync(() => drafts.delete(chatId));
-          const [stored, driver] = yield* begin(id, text, model).pipe(
-            Effect.onError(() => (id === null ? Effect.void : release(id))),
-          );
-          const chatId = stored.chat.id;
-          drafts.set(chatId, draft);
-          failures.delete(chatId);
-          yield* Effect.gen(function* () {
-            const prompt = yield* message(yield* ids.next, "user", text);
-            yield* store.append(chatId, prompt);
-            yield* audit.record({
-              actor: yield* CurrentActor,
-              action: "SendMessage",
-              target: chatId,
-            });
-            yield* publish(chatId, { _tag: "MessageAdded", message: prompt });
-            yield* publish(chatId, { _tag: "Draft", draft });
-          }).pipe(Effect.onError(() => release(chatId)));
-          yield* FiberMap.run(turns, chatId, respond(stored, driver, draft, text, model));
-          return { ...stored.chat, model: model.model, effort: model.effort };
+          const chat = yield* store.create({ projectId, model, title: titleFrom(text) });
+          return yield* deliver({ chat, messages: [], session: Option.none() }, driver, draft, text, model);
+        }),
+        send: Effect.fn("Chats.send")(function* (id, text, model) {
+          if (drafts.has(id)) return yield* new ChatBusy({ chatId: id });
+          const draft: Draft = { id: yield* ids.next, text: "" };
+          drafts.set(id, draft);
+          const [stored, driver] = yield* resume(id, model).pipe(Effect.onError(() => release(id)));
+          return yield* deliver(stored, driver, draft, text, model);
         }),
         rename: Effect.fn("Chats.rename")(function* (id, title) {
           const { chat } = yield* find(id);

@@ -3,6 +3,9 @@ import { PageError } from "#renderer/features/shell/page-error.tsx";
 
 export const Route = createFileRoute("/_app/p/$projectId")({
   loader: ({ context: { queryClient, queries }, params }) =>
-    queryClient.ensureQueryData(queries.project(params.projectId)),
+    Promise.all([
+      queryClient.ensureQueryData(queries.project(params.projectId)),
+      queryClient.ensureQueryData(queries.chats(params.projectId)),
+    ]),
   errorComponent: PageError,
 });
