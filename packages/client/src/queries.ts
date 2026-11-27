@@ -106,6 +106,28 @@ const createMutations = (client: StarlightClient, queryClient: QueryClient, quer
       onSettled: () => queryClient.invalidateQueries(queries.diskUsage()),
     }),
 
+  renameConversation: () =>
+    mutationOptions({
+      mutationFn: ({ conversationId, title }: { readonly conversationId: string; readonly title: string }) =>
+        client.conversations.rename(conversationId, title),
+      onSuccess: (conversation) => {
+        queryClient.setQueryData(
+          queries.conversation(conversation.id).queryKey,
+          (detail) => detail && { ...detail, conversation },
+        );
+        return queryClient.invalidateQueries(queries.conversations());
+      },
+    }),
+
+  deleteConversation: () =>
+    mutationOptions({
+      mutationFn: (conversationId: string) => client.conversations.remove(conversationId),
+      onSuccess: (_, conversationId) => {
+        queryClient.removeQueries(queries.conversation(conversationId));
+        return queryClient.invalidateQueries(queries.conversations());
+      },
+    }),
+
   openWorkspace: () =>
     mutationOptions({
       mutationFn: (root: EntryRef) => client.workspaces.open(root),

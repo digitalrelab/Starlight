@@ -87,6 +87,15 @@ export class HostRpcs extends RpcGroup.make(
     success: Conversation,
     error: Schema.Union([ConversationNotFound, ConversationBusy, ModelUnavailable]),
   }),
+  Rpc.make("RenameConversation", {
+    payload: { conversationId: ConversationId, title: Schema.NonEmptyString },
+    success: Conversation,
+    error: ConversationNotFound,
+  }),
+  Rpc.make("DeleteConversation", {
+    payload: { conversationId: ConversationId },
+    error: ConversationNotFound,
+  }),
   Rpc.make("WatchConversation", {
     payload: { conversationId: ConversationId },
     success: ConversationEvent,

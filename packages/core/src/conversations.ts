@@ -10,7 +10,7 @@ import {
   type ModelChoice,
   ModelUnavailable,
 } from "@starlight/contracts";
-import { Cause, Clock, Context, Effect, FiberSet, Layer, Option, PubSub, Stream } from "effect";
+import { Cause, Clock, Context, Effect, FiberMap, Layer, Option, PubSub, Stream } from "effect";
 import {
   type AgentProviderDriver,
   AgentProviderDrivers,
@@ -47,6 +47,11 @@ export class Conversations extends Context.Service<
       ConversationNotFound | ConversationBusy | ModelUnavailable,
       CurrentActor
     >;
+    readonly rename: (
+      id: ConversationId,
+      title: string,
+    ) => Effect.Effect<Conversation, ConversationNotFound, CurrentActor>;
+    readonly remove: (id: ConversationId) => Effect.Effect<void, ConversationNotFound, CurrentActor>;
     readonly watch: (id: ConversationId) => Stream.Stream<ConversationEvent, ConversationNotFound>;
   }
 >()("@starlight/core/Conversations") {
@@ -57,7 +62,7 @@ export class Conversations extends Context.Service<
       const audit = yield* AuditLog;
       const ids = yield* IdGenerator;
       const events = yield* PubSub.unbounded<Published>();
-      const turns = yield* FiberSet.make();
+      const turns = yield* FiberMap.make<ConversationId>();
       const drafts = new Map<ConversationId, Draft>();
       const failures = new Map<ConversationId, string>();
 
@@ -178,8 +183,24 @@ export class Conversations extends Context.Service<
             yield* publish(conversationId, { _tag: "MessageAdded", message: prompt });
             yield* publish(conversationId, { _tag: "Draft", draft });
           }).pipe(Effect.onError(() => release(conversationId)));
-          yield* FiberSet.run(turns)(respond(stored, driver, draft, text, model));
+          yield* FiberMap.run(turns, conversationId, respond(stored, driver, draft, text, model));
           return { ...stored.conversation, model: model.model, effort: model.effort };
+        }),
+        rename: Effect.fn("Conversations.rename")(function* (id, title) {
+          const { conversation } = yield* find(id);
+          yield* store.rename(id, title);
+          yield* audit.record({ actor: yield* CurrentActor, action: "RenameConversation", target: id });
+          return { ...conversation, title };
+        }),
+        remove: Effect.fn("Conversations.remove")(function* (id) {
+          const { conversation, session } = yield* find(id);
+          yield* FiberMap.remove(turns, id);
+          drafts.delete(id);
+          failures.delete(id);
+          yield* store.remove(id);
+          const driver = drivers.get(conversation.provider);
+          if (driver && Option.isSome(session)) yield* driver.forget(session.value);
+          yield* audit.record({ actor: yield* CurrentActor, action: "DeleteConversation", target: id });
         }),
         watch: (id) =>
           Stream.unwrap(

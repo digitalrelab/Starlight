@@ -11,12 +11,9 @@ import { PageError } from "../features/shell/page-error.tsx";
 import { PageHeader } from "../features/shell/page-header.tsx";
 import { useStarlight } from "../lib/context.ts";
 
-export const Route = createFileRoute("/_app/agent/$conversationId")({
+export const Route = createFileRoute("/agent/$conversationId")({
   loader: ({ context: { queryClient, queries }, params }) =>
-    Promise.all([
-      queryClient.ensureQueryData(queries.conversation(params.conversationId)),
-      queryClient.ensureQueryData(queries.agentProviders()),
-    ]),
+    queryClient.ensureQueryData(queries.conversation(params.conversationId)),
   component: ConversationPage,
   errorComponent: ConversationError,
 });

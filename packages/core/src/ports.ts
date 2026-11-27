@@ -144,6 +144,7 @@ export interface AgentProviderDriver {
   readonly name: string;
   readonly status: Effect.Effect<AgentProviderStatus>;
   readonly models: Effect.Effect<ReadonlyArray<AgentModel>>;
+  readonly forget: (session: string) => Effect.Effect<void>;
   readonly respond: (input: AgentTurnInput) => Stream.Stream<AgentTurnEvent, AgentTurnFailed>;
 }
 
@@ -170,6 +171,8 @@ export class ConversationStore extends Context.Service<
     readonly append: (id: ConversationId, message: ChatMessage) => Effect.Effect<void>;
     readonly saveSession: (id: ConversationId, session: string) => Effect.Effect<void>;
     readonly saveModel: (id: ConversationId, model: ModelChoice) => Effect.Effect<void>;
+    readonly rename: (id: ConversationId, title: string) => Effect.Effect<void>;
+    readonly remove: (id: ConversationId) => Effect.Effect<void>;
   }
 >()("@starlight/core/ConversationStore") {}
 

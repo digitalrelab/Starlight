@@ -6,6 +6,7 @@ const intents = {
   ghost: "text-default highlighted:bg-neutral-subtle-hovered",
   secondary:
     "border border-input bg-surface-raised text-default shadow-xs highlighted:wash-neutral-subtle-hovered",
+  danger: "bg-danger-bold text-inverse highlighted:wash-neutral-subtle-hovered",
 } as const;
 
 export interface ButtonProps extends Omit<ComponentProps<typeof BaseButton>, "className"> {

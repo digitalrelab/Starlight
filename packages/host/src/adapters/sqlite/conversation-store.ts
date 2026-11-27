@@ -119,6 +119,17 @@ export const SqliteConversationStoreLive = Layer.effect(ConversationStore)(
           Effect.asVoid,
           Effect.orDie,
         ),
+      rename: (id, title) =>
+        sql`UPDATE conversations SET title = ${title} WHERE id = ${id}`.pipe(Effect.asVoid, Effect.orDie),
+      remove: (id) =>
+        sql
+          .withTransaction(
+            Effect.gen(function* () {
+              yield* sql`DELETE FROM conversation_messages WHERE conversation_id = ${id}`;
+              yield* sql`DELETE FROM conversations WHERE id = ${id}`;
+            }),
+          )
+          .pipe(Effect.orDie),
       saveSession: (id, session) =>
         sql`UPDATE conversations SET session = ${session} WHERE id = ${id}`.pipe(Effect.asVoid, Effect.orDie),
     });

@@ -30,6 +30,8 @@ const HandlersLive = HostRpcs.toLayer(
       ListConversations: () => conversations.list,
       GetConversation: ({ conversationId }) => conversations.get(conversationId),
       SendMessage: ({ conversationId, text, model }) => conversations.send(conversationId, text, model),
+      RenameConversation: ({ conversationId, title }) => conversations.rename(conversationId, title),
+      DeleteConversation: ({ conversationId }) => conversations.remove(conversationId),
       WatchConversation: ({ conversationId }) => conversations.watch(conversationId),
     });
   }),

@@ -82,6 +82,10 @@ export const createClient = (ports: PortSources) => {
             model,
           }),
         ),
+      rename: (conversationId: string, title: string) =>
+        host((c) => c.RenameConversation({ conversationId: conversation(conversationId), title })),
+      remove: (conversationId: string) =>
+        host((c) => c.DeleteConversation({ conversationId: conversation(conversationId) })),
       watch: (conversationId: string, onEvent: (event: ConversationEvent) => void) =>
         watch(
           "Conversation",
