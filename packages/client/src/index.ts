@@ -11,6 +11,7 @@ export type {
   Draft,
   Entry,
   EntryLocation,
+  EntryMatch,
   EntryRef,
   FileDetails,
   FileKind,

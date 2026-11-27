@@ -13,4 +13,5 @@ export * from "./project.ts";
 export * from "./property.ts";
 export * from "./reference.ts";
 export * from "./rpc.ts";
+export * from "./search.ts";
 export * from "./update.ts";

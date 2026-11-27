@@ -68,6 +68,13 @@ const createQueries = (client: StarlightClient) => ({
   entryLocation: (ref: EntryRef) =>
     queryOptions({ queryKey: ["entryLocation", entryKey(ref)], queryFn: () => client.entries.locate(ref) }),
 
+  entrySearch: (query: string, projectId: string | null, hidden: boolean) =>
+    queryOptions({
+      queryKey: ["entrySearch", query, projectId, hidden],
+      queryFn: () => client.entries.search(query, projectId, hidden),
+      staleTime: 0,
+    }),
+
   agentProviders: () =>
     queryOptions({
       queryKey: ["agentProviders"],

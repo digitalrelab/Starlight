@@ -3,6 +3,7 @@ import { EntryStore, type StoredEntry } from "@starlight/core";
 import { Array as Arr, Effect, Layer, Schema } from "effect";
 import { SqlClient, SqlSchema } from "effect/sql";
 import { BATCH_SIZE, batched } from "./batched.ts";
+import { wordsOf } from "./entry-words.ts";
 
 const Row = Schema.Struct({
   id: EntryId,
@@ -30,7 +31,16 @@ const toEntry = (row: typeof Row.Type): StoredEntry => ({
   fileId: row.file_id,
 });
 
+const Found = Schema.Struct({ ...Row.fields, source: SourceId, parent: EntryId });
+
 const Removed = Schema.Struct({ file_id: Schema.NullOr(FileId) });
+
+const TRIGRAM = 3;
+
+const phrase = (words: string) => `"${words.trim().replaceAll('"', '""')}"`;
+
+const successor = (text: string) =>
+  text.slice(0, -1) + String.fromCharCode(text.charCodeAt(text.length - 1) + 1);
 
 export const SqliteEntryStoreLive = Layer.effect(EntryStore)(
   Effect.gen(function* () {
@@ -60,6 +70,34 @@ export const SqliteEntryStoreLive = Layer.effect(EntryStore)(
         SELECT ${sql.literal(COLUMNS)} FROM entries
         WHERE source = ${source} AND file_id IS NOT NULL AND key IN ${sql.in(keys)}
       `,
+    });
+
+    const search = SqlSchema.findAll({
+      Request: Schema.Struct({
+        words: Schema.String,
+        directories: Schema.Boolean,
+        hidden: Schema.Boolean,
+        limit: Schema.Number,
+      }),
+      Result: Found,
+      execute: ({ words, directories, hidden, limit }) => {
+        const filters = sql`${directories ? sql`AND kind = 'directory'` : sql`AND kind != 'directory'`} ${
+          hidden ? sql.literal("") : sql`AND concealed = 0`
+        }`;
+        return words.trim().length >= TRIGRAM
+          ? sql`
+              SELECT source, parent, ${sql.literal(COLUMNS)} FROM entries
+              WHERE rowid IN (SELECT rowid FROM entry_words WHERE entry_words MATCH ${phrase(words)}) ${filters}
+              ORDER BY CASE instr(words, ${words}) WHEN 1 THEN 0 WHEN 0 THEN 2 ELSE 1 END, length(name), modified_at DESC
+              LIMIT ${limit}
+            `
+          : sql`
+              SELECT source, parent, ${sql.literal(COLUMNS)} FROM entries
+              WHERE words >= ${words} AND words < ${successor(words)} ${filters}
+              ORDER BY words
+              LIMIT ${limit}
+            `;
+      },
     });
 
     const remove = SqlSchema.findAll({
@@ -109,6 +147,7 @@ export const SqliteEntryStoreLive = Layer.effect(EntryStore)(
                 created_at: entry.createdAt,
                 modified_at: entry.modifiedAt,
                 hidden: entry.hidden ? 1 : 0,
+                words: wordsOf(entry.name),
                 file_id: entry.fileId,
               })),
             )}
@@ -121,19 +160,38 @@ export const SqliteEntryStoreLive = Layer.effect(EntryStore)(
               created_at = excluded.created_at,
               modified_at = excluded.modified_at,
               hidden = excluded.hidden,
+              words = excluded.words,
               file_id = COALESCE(entries.file_id, excluded.file_id)
           `;
-          return fileIds.length === 0
-            ? upsert
-            : Effect.andThen(
-                sql`
-                  DELETE FROM entries
-                  WHERE file_id IN ${sql.in(fileIds)}
-                  AND NOT (source = ${source} AND id IN ${sql.in(batch.map((entry) => entry.id))})
-                `,
-                upsert,
-              );
+          const ids = sql.in(batch.map((entry) => entry.id));
+          const relinked =
+            fileIds.length === 0
+              ? Effect.void
+              : sql`DELETE FROM entries WHERE file_id IN ${sql.in(fileIds)} AND NOT (source = ${source} AND id IN ${ids})`;
+          const concealed = sql`
+            UPDATE entries SET concealed = hidden OR COALESCE(
+              (SELECT concealed FROM entries AS above WHERE above.source = entries.source AND above.id = entries.parent),
+              0
+            )
+            WHERE source = ${source} AND id IN ${ids}
+          `;
+          const cascaded = sql`
+            WITH RECURSIVE below (id) AS (
+              SELECT id FROM entries WHERE source = ${source} AND id IN ${ids} AND concealed = 1 AND kind = 'directory'
+              UNION
+              SELECT entries.id FROM entries JOIN below ON entries.parent = below.id WHERE entries.source = ${source}
+            )
+            UPDATE entries SET concealed = 1 WHERE source = ${source} AND id IN (SELECT id FROM below)
+          `;
+          return Effect.andThen(relinked, Effect.andThen(upsert, Effect.andThen(concealed, cascaded)));
         }),
+      search: ({ text, ...query }) =>
+        search({ ...query, words: wordsOf(text) }).pipe(
+          Effect.map((rows) =>
+            rows.map((row) => ({ ...toEntry(row), source: row.source, parent: row.parent })),
+          ),
+          Effect.orDie,
+        ),
       remove: (source, ids, keep) =>
         sql
           .withTransaction(

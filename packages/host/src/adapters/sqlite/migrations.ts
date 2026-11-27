@@ -1,5 +1,6 @@
 import { Effect } from "effect";
 import { Migrator, SqlClient } from "effect/sql";
+import { wordsOf } from "./entry-words.ts";
 
 export const migrations = Migrator.fromRecord({
   "0001_init": Effect.gen(function* () {
@@ -178,5 +179,48 @@ export const migrations = Migrator.fromRecord({
       SELECT source, entry, parent, key, '', 'file', -1, -1, -1, 0, id FROM file_identities
     `;
     yield* sql`DROP TABLE file_identities`;
+  }),
+  "0013_entry_search": Effect.gen(function* () {
+    const sql = yield* SqlClient.SqlClient;
+    yield* sql`ALTER TABLE entries ADD COLUMN concealed INTEGER NOT NULL DEFAULT 0`;
+    yield* sql`
+      WITH RECURSIVE below (source, id) AS (
+        SELECT source, id FROM entries WHERE hidden = 1
+        UNION
+        SELECT entries.source, entries.id FROM entries JOIN below ON entries.source = below.source AND entries.parent = below.id
+      )
+      UPDATE entries SET concealed = 1 WHERE (source, id) IN (SELECT source, id FROM below)
+    `;
+    yield* sql`ALTER TABLE entries ADD COLUMN words TEXT NOT NULL DEFAULT ''`;
+    const named = yield* sql<{
+      readonly rowid: number;
+      readonly name: string;
+    }>`SELECT rowid, name FROM entries`;
+    yield* Effect.forEach(
+      named,
+      ({ rowid, name }) => sql`UPDATE entries SET words = ${wordsOf(name)} WHERE rowid = ${rowid}`,
+      { discard: true },
+    );
+    yield* sql`CREATE INDEX entries_by_words ON entries (words)`;
+    yield* sql`
+      CREATE VIRTUAL TABLE entry_words USING fts5 (words, content = 'entries', content_rowid = 'rowid', tokenize = 'trigram')
+    `;
+    yield* sql`INSERT INTO entry_words (entry_words) VALUES ('rebuild')`;
+    yield* sql`
+      CREATE TRIGGER entries_inserted AFTER INSERT ON entries BEGIN
+        INSERT INTO entry_words (rowid, words) VALUES (new.rowid, new.words);
+      END
+    `;
+    yield* sql`
+      CREATE TRIGGER entries_deleted AFTER DELETE ON entries BEGIN
+        INSERT INTO entry_words (entry_words, rowid, words) VALUES ('delete', old.rowid, old.words);
+      END
+    `;
+    yield* sql`
+      CREATE TRIGGER entries_renamed AFTER UPDATE OF words ON entries WHEN old.words IS NOT new.words BEGIN
+        INSERT INTO entry_words (entry_words, rowid, words) VALUES ('delete', old.rowid, old.words);
+        INSERT INTO entry_words (rowid, words) VALUES (new.rowid, new.words);
+      END
+    `;
   }),
 });

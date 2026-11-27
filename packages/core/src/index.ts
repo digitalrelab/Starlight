@@ -8,6 +8,7 @@ import { Files } from "./files.ts";
 import { IndexerLive } from "./indexer.ts";
 import { MediaLibrary } from "./media.ts";
 import { Projects } from "./projects.ts";
+import { EntrySearch } from "./search.ts";
 
 export * from "./agents.ts";
 export * from "./entry-index.ts";
@@ -18,6 +19,7 @@ export * from "./files.ts";
 export * from "./media.ts";
 export * from "./ports.ts";
 export * from "./projects.ts";
+export * from "./search.ts";
 
 export const CoreLive = Layer.mergeAll(
   Entries.layer,
@@ -25,6 +27,7 @@ export const CoreLive = Layer.mergeAll(
   MediaLibrary.layer,
   AgentProviders.layer,
   Chats.layer,
+  EntrySearch.layer,
   IndexerLive,
 ).pipe(
   Layer.provideMerge(Catalog.layer),

@@ -130,6 +130,18 @@ export interface StoredEntry extends SourceEntry {
   readonly fileId: FileId | null;
 }
 
+export interface FoundEntry extends StoredEntry {
+  readonly source: SourceId;
+  readonly parent: EntryId;
+}
+
+export interface EntryQuery {
+  readonly text: string;
+  readonly directories: boolean;
+  readonly hidden: boolean;
+  readonly limit: number;
+}
+
 export class EntryStore extends Context.Service<
   EntryStore,
   {
@@ -149,6 +161,7 @@ export class EntryStore extends Context.Service<
       ids: ReadonlyArray<EntryId>,
       keep: ReadonlyArray<EntryId>,
     ) => Effect.Effect<ReadonlyArray<FileId>>;
+    readonly search: (query: EntryQuery) => Effect.Effect<ReadonlyArray<FoundEntry>>;
   }
 >()("@starlight/core/EntryStore") {}
 
