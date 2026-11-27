@@ -1,6 +1,6 @@
 ---
 name: run-starlight
-description: Start, restart, stop, screenshot or drive the Starlight desktop app in development. Use whenever the app has to run, instead of launching Electron yourself.
+description: Start, restart, stop, screenshot or drive the Starlight desktop app in development. Use whenever the app has to run.
 ---
 
 - Start or restart: `bun run dev` from the checkout root, in the background. It replaces only this checkout's previous instance.

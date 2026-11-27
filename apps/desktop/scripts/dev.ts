@@ -1,7 +1,7 @@
 import { spawn, spawnSync } from "node:child_process";
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { type AddressInfo, createServer } from "node:net";
-import { dirname, join } from "node:path";
+import { join } from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
 
 const STOP_TIMEOUT_MS = 10_000;
@@ -9,8 +9,9 @@ const POLL_MS = 100;
 const FORWARDED_SIGNALS = ["SIGINT", "SIGTERM", "SIGHUP"] as const;
 
 const root = join(import.meta.dirname, "..");
-const pidFile = join(root, ".data", "dev.pid");
-const debuggingPortFile = join(root, ".data", "dev.port");
+const dataDir = join(root, ".data");
+const pidFile = join(dataDir, "dev.pid");
+const debuggingPortFile = join(dataDir, "dev.port");
 
 const signalGroup = (group: number, signal: NodeJS.Signals | 0) => {
   try {
@@ -72,7 +73,7 @@ if (!process.argv.includes("--stop")) {
   });
   const group = child.pid;
   if (group === undefined) throw new Error("electron-vite failed to start");
-  mkdirSync(dirname(pidFile), { recursive: true });
+  mkdirSync(dataDir, { recursive: true });
   writeFileSync(pidFile, String(group));
   writeFileSync(debuggingPortFile, String(debuggingPort));
 
