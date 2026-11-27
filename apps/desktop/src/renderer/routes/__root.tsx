@@ -2,11 +2,12 @@ import { Interface } from "@starlight/ui";
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
 import { colorScheme, cursor, useInterfaceZoom } from "#renderer/features/settings/appearance.ts";
 import type { RouterContext } from "#renderer/lib/context.ts";
+import { useStored } from "#renderer/lib/storage.ts";
 
 const Root = () => {
   useInterfaceZoom();
   return (
-    <Interface.Root colorScheme={colorScheme.useValue()} pointerCursors={cursor.useValue() === "pointer"}>
+    <Interface.Root colorScheme={useStored(colorScheme)} pointerCursors={useStored(cursor) === "pointer"}>
       <Outlet />
     </Interface.Root>
   );

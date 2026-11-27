@@ -52,16 +52,21 @@ export const defineStored = <Value extends string>(name: string, guard: Guard<Va
       write(key, next);
       update(next);
     },
-    useValue: () => useSyncExternalStore(subscribe, get),
+    subscribe,
   };
 };
+
+type Stored<Value extends string> = ReturnType<typeof defineStored<Value>>;
+
+export const useStored = <Value extends string>({ subscribe, get }: Stored<Value>) =>
+  useSyncExternalStore(subscribe, get);
 
 export const defineStoredFamily = <Value extends string>(
   nameOf: (id: string) => string,
   guard: Guard<Value>,
   fallback: Value,
 ) => {
-  const members = new Map<string, ReturnType<typeof defineStored<Value>>>();
+  const members = new Map<string, Stored<Value>>();
   return (id: string) => {
     const existing = members.get(id);
     if (existing) return existing;
