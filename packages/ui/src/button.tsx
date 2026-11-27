@@ -10,7 +10,7 @@ export const Button = ({ className, ...props }: ButtonProps) => (
   <BaseButton
     className={cn(
       "inline-flex h-control items-center gap-1.5 rounded-md px-2.5 text-base font-medium text-default select-none",
-      "transition-colors not-data-[disabled]:hover:bg-neutral-subtle-hovered data-[popup-open]:bg-neutral-subtle-hovered",
+      "transition-colors highlighted:bg-neutral-subtle-hovered",
       "focus-ring data-[disabled]:opacity-50",
       className,
     )}

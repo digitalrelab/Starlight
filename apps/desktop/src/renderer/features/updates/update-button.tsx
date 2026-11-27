@@ -57,7 +57,7 @@ export const UpdateButton = ({ className }: { readonly className?: string }) => 
         <IconButton
           icon={RefreshDotIcon}
           label={LABELS[update.status]}
-          className="text-brand hover:text-brand data-[popup-open]:text-brand"
+          className="text-brand highlighted:text-brand"
           render={<PopoverTrigger />}
         />
         {update.status === "downloading" ? (
