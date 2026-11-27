@@ -149,12 +149,12 @@ export class Entries extends Context.Service<
         rename: Effect.fn("Entries.rename")(function* (projectId, requested, name) {
           if (!isValidName(name)) return yield* new InvalidName({ name });
           const driver = yield* projects.driverFor(requested.source);
-          const parent = { source: requested.source, id: driver.parent(requested.id) };
-          const { directory } = yield* projects.locateDirectory(projectId, parent);
-          const { name: from } = yield* driver.stat(requested.id);
-          if (from === name) return requested;
-          const renamed = yield* driver.rename(directory.id, from, name).pipe(failIfTaken(name));
-          const ref = { source: directory.source, id: renamed.id };
+          yield* projects.locateDirectory(projectId, {
+            source: requested.source,
+            id: driver.parent(requested.id),
+          });
+          const renamed = yield* driver.rename(requested.id, name).pipe(failIfTaken(name));
+          const ref = { source: requested.source, id: renamed.id };
           yield* audit.record({
             actor: yield* CurrentActor,
             action: "RenameEntry",

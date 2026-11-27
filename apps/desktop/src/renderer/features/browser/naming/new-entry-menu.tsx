@@ -16,7 +16,7 @@ export const NewEntryItems = ({
   start,
   label,
 }: Props & {
-  readonly start: (begin: () => void) => () => void;
+  readonly start: ReturnType<typeof useNamingMenu>["start"];
   readonly label: (blueprint: Blueprint) => string;
 }) =>
   BLUEPRINTS.map((blueprint) => (

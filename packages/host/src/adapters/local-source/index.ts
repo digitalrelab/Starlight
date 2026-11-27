@@ -7,7 +7,7 @@ import type { SourceChange, SourceCrumb, SourceDriver, SourceEntry } from "@star
 import { Effect, Queue, Stream } from "effect";
 import type { Imaging } from "#adapters/imaging.ts";
 import { dimensionsExtractor, durationExtractor } from "./extractors.ts";
-import { toSourceError } from "./source-error.ts";
+import { sourceError, toSourceError } from "./source-error.ts";
 
 const resync: SourceChange = { _tag: "Resync" };
 
@@ -68,13 +68,10 @@ const lstatIfPresent = (path: string) =>
     throw error;
   });
 
-const renameWithin = async (from: string, to: string) => {
-  const [source, taken] = await Promise.all([lstat(from), lstatIfPresent(to)]);
-  if (taken && (taken.dev !== source.dev || taken.ino !== source.ino))
-    throw Object.assign(new Error(`Already exists: ${to}`), { code: "EEXIST" });
-  await rename(from, to);
-  return lstat(to);
-};
+const sameEntry = (a: Stats, b: Stats) => a.dev === b.dev && a.ino === b.ino;
+
+const attempt = <A>(id: EntryId, task: () => Promise<A>) =>
+  Effect.tryPromise({ try: task, catch: toSourceError(id) });
 
 const staleDirectories = (paths: ReadonlyArray<string>) =>
   [...new Set(paths.flatMap((path) => [dirname(path), path]))].map((path) => EntryId.make(path));
@@ -138,12 +135,17 @@ export const makeLocalSource = (imaging: Imaging["Service"]): SourceDriver => {
         Effect.map((s) => toEntry(id, s)),
       );
     },
-    rename: (parent, from, to) => {
-      const id = EntryId.make(join(parent, to));
-      return Effect.tryPromise({
-        try: () => renameWithin(join(parent, from), id),
-        catch: toSourceError(id),
-      }).pipe(Effect.map((s) => toEntry(id, s)));
+    rename: (id, name) => {
+      const target = EntryId.make(join(dirname(id), name));
+      return Effect.all([attempt(id, () => lstat(id)), attempt(target, () => lstatIfPresent(target))]).pipe(
+        Effect.filterOrFail(
+          ([entry, taken]) => taken === undefined || sameEntry(entry, taken),
+          () => sourceError(target, "AlreadyExists", `Already exists: ${target}`),
+        ),
+        Effect.andThen(attempt(target, () => rename(id, target))),
+        Effect.andThen(attempt(target, () => lstat(target))),
+        Effect.map((s) => toEntry(target, s)),
+      );
     },
     watch,
     extractors: { dimensions: dimensionsExtractor, duration: durationExtractor },
