@@ -2,9 +2,11 @@ import {
   type DirectoryError,
   DirectoryMissing,
   type EntryRef,
+  type FileError,
   type Mount,
   type MountError,
   NotADirectory,
+  NotAFile,
   OutsideWorkspace,
   type SourceId,
   SourceUnavailable,
@@ -13,7 +15,14 @@ import {
   WorkspaceNotFound,
 } from "@starlight/contracts";
 import { Context, Effect, Layer, Option } from "effect";
-import { AuditLog, CurrentActor, type SourceDriver, SourceDrivers, WorkspaceStore } from "./ports.ts";
+import {
+  AuditLog,
+  CurrentActor,
+  type SourceDriver,
+  SourceDrivers,
+  type SourceEntry,
+  WorkspaceStore,
+} from "./ports.ts";
 
 const RECENT_LIMIT = 20;
 
@@ -21,6 +30,12 @@ export interface LocatedDirectory {
   readonly mount: Mount;
   readonly driver: SourceDriver;
   readonly directory: EntryRef;
+}
+
+export interface LocatedFile {
+  readonly driver: SourceDriver;
+  readonly file: EntryRef;
+  readonly entry: SourceEntry;
 }
 
 export class Workspaces extends Context.Service<
@@ -38,6 +53,7 @@ export class Workspaces extends Context.Service<
       id: WorkspaceId,
       directory: EntryRef,
     ) => Effect.Effect<LocatedDirectory, DirectoryError>;
+    readonly locateFile: (id: WorkspaceId, file: EntryRef) => Effect.Effect<LocatedFile, FileError>;
   }
 >()("@starlight/core/Workspaces") {
   static readonly layer = Layer.effect(Workspaces)(
@@ -141,6 +157,17 @@ export class Workspaces extends Context.Service<
           const mount = mountOf(workspace, driver, directory);
           if (!mount) return yield* new OutsideWorkspace({ entry: requested });
           return { mount, driver, directory };
+        }),
+        locateFile: Effect.fn("Workspaces.locateFile")(function* (id, requested) {
+          const workspace = yield* get(id);
+          const driver = yield* driverFor(requested.source);
+          if (!mountOf(workspace, driver, requested))
+            return yield* new OutsideWorkspace({ entry: requested });
+          const file = { source: requested.source, id: yield* driver.canonicalize(requested.id) };
+          if (!mountOf(workspace, driver, file)) return yield* new OutsideWorkspace({ entry: requested });
+          const entry = yield* driver.stat(file.id);
+          if (entry.kind !== "file") return yield* new NotAFile({ entry: requested });
+          return { driver, file, entry };
         }),
       });
     }),

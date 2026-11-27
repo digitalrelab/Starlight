@@ -1,6 +1,13 @@
-import type { DirectoryError, EntryRef, Media, WorkspaceId } from "@starlight/contracts";
+import type {
+  DirectoryError,
+  EntryRef,
+  FileError,
+  FileSource,
+  Media,
+  WorkspaceId,
+} from "@starlight/contracts";
 import { Array as Arr, Context, Effect, Layer, Option } from "effect";
-import { ThumbnailTokens } from "./ports.ts";
+import { FileTokens } from "./ports.ts";
 import { Workspaces } from "./workspaces.ts";
 
 const PROBE_CONCURRENCY = 32;
@@ -12,12 +19,13 @@ export class MediaLibrary extends Context.Service<
       workspaceId: WorkspaceId,
       directory: EntryRef | null,
     ) => Effect.Effect<ReadonlyArray<Media>, DirectoryError>;
+    readonly source: (workspaceId: WorkspaceId, file: EntryRef) => Effect.Effect<FileSource, FileError>;
   }
 >()("@starlight/core/MediaLibrary") {
   static readonly layer = Layer.effect(MediaLibrary)(
     Effect.gen(function* () {
       const workspaces = yield* Workspaces;
-      const tokens = yield* ThumbnailTokens;
+      const tokens = yield* FileTokens;
 
       return MediaLibrary.of({
         list: Effect.fn("MediaLibrary.list")(function* (workspaceId, requested) {
@@ -33,7 +41,7 @@ export class MediaLibrary extends Context.Service<
                   Option.map((dimensions): Media => ({
                     ref,
                     ...dimensions,
-                    thumbnail: tokens.issue(ref, entry.modifiedAt),
+                    token: tokens.issue(ref, entry.modifiedAt),
                   })),
                 ),
               );
@@ -41,6 +49,11 @@ export class MediaLibrary extends Context.Service<
             { concurrency: PROBE_CONCURRENCY },
           );
           return Arr.getSomes(media);
+        }),
+        source: Effect.fn("MediaLibrary.source")(function* (workspaceId, requested) {
+          const { driver, file, entry } = yield* workspaces.locateFile(workspaceId, requested);
+          const dimensions = yield* driver.dimensions(entry);
+          return { token: tokens.issue(file, entry.modifiedAt), dimensions: Option.getOrNull(dimensions) };
         }),
       });
     }),

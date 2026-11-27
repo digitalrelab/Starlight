@@ -1,5 +1,5 @@
 import { type Entry, type EntryRef, entryKey } from "@starlight/client";
-import { type KeyboardEvent, Suspense, useCallback, useMemo, useState } from "react";
+import { type KeyboardEvent, Suspense, useCallback, useMemo } from "react";
 import { type LayoutId, layouts } from "./layouts/registry.ts";
 
 interface Props {
@@ -7,11 +7,20 @@ interface Props {
   readonly directory: EntryRef | null;
   readonly entries: ReadonlyArray<Entry>;
   readonly layout: LayoutId;
+  readonly selectedKey: string | undefined;
+  readonly onSelectKey: (key: string | undefined) => void;
   readonly onOpen: (entry: Entry) => void;
 }
 
-export const DirectoryView = ({ workspaceId, directory, entries, layout, onOpen }: Props) => {
-  const [selectedKey, setSelectedKey] = useState<string>();
+export const DirectoryView = ({
+  workspaceId,
+  directory,
+  entries,
+  layout,
+  selectedKey,
+  onSelectKey,
+  onOpen,
+}: Props) => {
   const selected = useMemo(
     () => entries.findIndex((entry) => entryKey(entry.ref) === selectedKey),
     [entries, selectedKey],
@@ -19,9 +28,9 @@ export const DirectoryView = ({ workspaceId, directory, entries, layout, onOpen 
   const onSelect = useCallback(
     (index: number) => {
       const entry = entries[Math.max(0, Math.min(entries.length - 1, index))];
-      setSelectedKey(entry && entryKey(entry.ref));
+      onSelectKey(entry && entryKey(entry.ref));
     },
-    [entries],
+    [entries, onSelectKey],
   );
 
   if (entries.length === 0) {

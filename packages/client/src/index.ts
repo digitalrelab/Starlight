@@ -3,6 +3,7 @@ export type {
   Crumb,
   Entry,
   EntryRef,
+  FileSource,
   Listing,
   Media,
   Update,
