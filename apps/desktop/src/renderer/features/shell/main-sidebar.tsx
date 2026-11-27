@@ -11,7 +11,7 @@ export const MainSidebar = () => {
     <>
       <div className="flex flex-col gap-1">
         <NavItem onClick={openWorkspace.run} disabled={openWorkspace.pending}>
-          <Icon icon={FolderOpenIcon} className="shrink-0" />
+          <Icon icon={FolderOpenIcon} />
           Open Folder…
         </NavItem>
         {openWorkspace.error ? (

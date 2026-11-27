@@ -24,7 +24,7 @@ export const RecentWorkspaces = () => {
             />
           }
         >
-          <Icon icon={FolderIcon} className="shrink-0" />
+          <Icon icon={FolderIcon} />
           <span className="truncate">{workspace.name}</span>
         </NavItem>
       ))}

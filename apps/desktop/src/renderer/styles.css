@@ -2,6 +2,10 @@
 @import "@starlight/ui/styles.css";
 @source "./";
 
+@theme {
+  --spacing-titlebar: 2.75rem;
+}
+
 @layer base {
   html,
   body,

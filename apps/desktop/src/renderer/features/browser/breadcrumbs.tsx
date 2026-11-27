@@ -19,7 +19,7 @@ export const Breadcrumbs = ({ workspace, path }: Props) => {
     <nav className="flex min-w-0 items-center gap-0.5">
       {crumbs.map((crumb, i) => (
         <span key={crumb.path} className="flex min-w-0 items-center gap-0.5">
-          {i > 0 ? <Icon icon={ArrowRight01Icon} size={12} className="shrink-0 text-subtle" /> : null}
+          {i > 0 ? <Icon icon={ArrowRight01Icon} size={12} className="text-subtle" /> : null}
           <Link
             to="/w/$workspaceId"
             params={{ workspaceId: workspace.id }}

@@ -67,7 +67,9 @@ export const EntryList = ({ entries, onOpen }: Props) => {
                 className={cn(
                   COLUMNS,
                   "absolute inset-x-2 items-center rounded-md px-2",
-                  row.index === selected ? "bg-selected" : "hover:bg-neutral-subtle-hovered",
+                  row.index === selected
+                    ? "bg-selected hover:bg-selected-hovered"
+                    : "hover:bg-neutral-subtle-hovered",
                   entry.hidden && "opacity-50",
                 )}
                 style={{ height: ROW_HEIGHT, transform: `translateY(${row.start}px)` }}
@@ -75,7 +77,7 @@ export const EntryList = ({ entries, onOpen }: Props) => {
                 <span className="flex min-w-0 items-center gap-2">
                   <Icon
                     icon={isDir ? FolderIcon : File01Icon}
-                    className={cn("shrink-0", isDir ? "text-brand" : "text-subtle")}
+                    className={isDir ? "text-brand" : "text-subtle"}
                   />
                   <span className="truncate">{entry.name}</span>
                 </span>
