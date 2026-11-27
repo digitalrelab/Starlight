@@ -49,7 +49,7 @@ export const Composer = ({ placeholder, disabled = false, autoFocus = false, act
               submit();
             }
           }}
-          className="max-h-64 min-h-12 resize-none bg-transparent px-1 font-chat text-chat outline-none field-sizing-content placeholder:text-subtlest"
+          className="max-h-64 min-h-12 resize-none bg-transparent px-1 chat-text outline-none field-sizing-content placeholder:text-subtlest"
         />
         <div className="flex items-center justify-end gap-1">
           {actions}

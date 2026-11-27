@@ -8,10 +8,10 @@
   --spacing-traffic-lights: calc(5rem / var(--interface-zoom, 1));
 }
 
-@theme inline {
-  --font-chat: var(--chat-font);
-  --text-chat: var(--chat-text-size);
-  --text-chat--line-height: 1.6;
+@utility chat-text {
+  font-family: var(--chat-font);
+  font-size: var(--chat-text-size);
+  line-height: 1.6;
 }
 
 [data-chat-font="sans"] {

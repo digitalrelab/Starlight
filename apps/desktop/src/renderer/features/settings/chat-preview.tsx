@@ -13,8 +13,8 @@ open notes.md
 
 export const ChatPreview = () => (
   <Item.Panel inert className="flex flex-col gap-6 bg-surface-sunken">
-    <Message role="user" text="What’s in this folder?" pending={false} />
-    <Message role="assistant" text={REPLY} pending={false} />
-    <Composer placeholder="Reply…" disabled onSubmit={() => Promise.resolve()} />
+    <Message role="user" text="What’s in this folder?" />
+    <Message role="assistant" text={REPLY} />
+    <Composer placeholder="Reply…" onSubmit={() => Promise.resolve()} />
   </Item.Panel>
 );
