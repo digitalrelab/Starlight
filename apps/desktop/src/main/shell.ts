@@ -1,6 +1,6 @@
 import { ShellRpcs } from "@starlight/contracts";
 import { serve } from "@starlight/host/transport";
-import { type BrowserWindow, dialog, type MessagePortMain } from "electron";
+import { type BrowserWindow, dialog, type MessagePortMain, nativeTheme } from "electron";
 import { Effect, Layer } from "effect";
 import { RpcServer } from "effect/rpc";
 
@@ -12,6 +12,10 @@ const ShellServerLive = (window: BrowserWindow) =>
           Effect.promise(() =>
             dialog.showOpenDialog(window, { properties: ["openDirectory", "createDirectory"] }),
           ).pipe(Effect.map((result) => (result.canceled ? null : (result.filePaths[0] ?? null)))),
+        SetTheme: ({ theme }) =>
+          Effect.sync(() => {
+            nativeTheme.themeSource = theme;
+          }),
       }),
     ),
   );

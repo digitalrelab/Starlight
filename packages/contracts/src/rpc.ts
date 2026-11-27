@@ -3,7 +3,7 @@ import { Rpc, RpcGroup } from "effect/rpc";
 import { Entry, EntryChange } from "./entry.ts";
 import { FileSystemError, NotADirectory, PathOutsideWorkspace, WorkspaceNotFound } from "./errors.ts";
 import { RelativePath, WorkspaceId } from "./ids.ts";
-import { Settings, SettingsPatch } from "./settings.ts";
+import { Settings, SettingsPatch, Theme } from "./settings.ts";
 import { Workspace } from "./workspace.ts";
 
 export class HostRpcs extends RpcGroup.make(
@@ -43,5 +43,8 @@ export class HostRpcs extends RpcGroup.make(
 export class ShellRpcs extends RpcGroup.make(
   Rpc.make("PickDirectory", {
     success: Schema.NullOr(Schema.String),
+  }),
+  Rpc.make("SetTheme", {
+    payload: { theme: Theme },
   }),
 ) {}

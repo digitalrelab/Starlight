@@ -1,5 +1,5 @@
 import { mutationOptions, queryOptions, type QueryClient } from "@tanstack/react-query";
-import type { SettingsPatch } from "@starlight/contracts";
+import type { SettingsPatch, Theme } from "@starlight/contracts";
 import type { StarlightClient } from "./client.ts";
 
 const entriesKey = (workspaceId: string) => ["entries", workspaceId] as const;
@@ -36,6 +36,8 @@ const createQueries = (client: StarlightClient) => ({
 
 const createMutations = (client: StarlightClient, queryClient: QueryClient, queries: Queries) => ({
   pickDirectory: () => mutationOptions({ mutationFn: () => client.shell.pickDirectory() }),
+
+  setNativeTheme: () => mutationOptions({ mutationFn: (theme: Theme) => client.shell.setTheme(theme) }),
 
   openWorkspace: () =>
     mutationOptions({

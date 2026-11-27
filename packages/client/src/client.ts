@@ -3,6 +3,7 @@ import {
   HostRpcs,
   type SettingsPatch,
   ShellRpcs,
+  type Theme,
   type WorkspaceId,
 } from "@starlight/contracts";
 import { Context, Effect, Layer, ManagedRuntime, Stream } from "effect";
@@ -57,6 +58,7 @@ export const createClient = (ports: PortSources) => {
     },
     shell: {
       pickDirectory: () => shell((c) => c.PickDirectory()),
+      setTheme: (theme: Theme) => shell((c) => c.SetTheme({ theme })),
     },
   };
 };
