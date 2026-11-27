@@ -1,8 +1,8 @@
-import { type Entry, entryKey, type Media } from "@starlight/client";
+import { type Entry, type EntryRef, entryKey, type Media } from "@starlight/client";
 import { ScrollArea } from "@starlight/ui";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { type KeyboardEvent, useEffect, useEffectEvent, useLayoutEffect, useMemo, useRef } from "react";
+import { type KeyboardEvent, useEffect, useEffectEvent, useLayoutEffect, useRef } from "react";
 import { useStarlight } from "#renderer/lib/context.ts";
 import { useElementWidth } from "#renderer/lib/use-element-width.ts";
 import { justify, nearestInRow, shelve, stack } from "./rows.ts";
@@ -33,6 +33,54 @@ const leadingFolders = (entries: ReadonlyArray<Entry>) => {
 const aspectOf = (media: Media | undefined) =>
   media ? Math.min(MAX_ASPECT, Math.max(MIN_ASPECT, media.width / media.height)) : ICON_TILE_ASPECT;
 
+const useMedia = (workspaceId: string, directory: EntryRef | null, entries: ReadonlyArray<Entry>) => {
+  const { queries, subscriptions } = useStarlight();
+  const { data } = useSuspenseQuery(queries.media(workspaceId, directory));
+  useEffect(
+    () => (directory ? subscriptions.media(workspaceId, directory) : undefined),
+    [subscriptions, workspaceId, directory, entries],
+  );
+  const byKey = indexByKey(data);
+  return { byKey, aspects: Float64Array.from(entries, (entry) => aspectOf(byKey.get(entryKey(entry.ref)))) };
+};
+
+const useGridLayout = (
+  entries: ReadonlyArray<Entry>,
+  { byKey, aspects }: ReturnType<typeof useMedia>,
+  width: number,
+) => {
+  const folderCount = leadingFolders(entries);
+  const inner = Math.max(0, width - GUTTER * 2);
+  const shelf = shelve(folderCount, {
+    width: inner,
+    minWidth: CHIP_MIN_WIDTH,
+    height: CHIP_HEIGHT,
+    gap: CHIP_GAP,
+  });
+  const tiles = justify(aspects.subarray(folderCount), {
+    width: inner + TILE_INSET * 2,
+    targetHeight: TARGET_ROW_HEIGHT,
+    maxHeight: MAX_ROW_HEIGHT,
+    gap: TILE_GAP,
+    chrome: TILE_CHROME,
+  });
+  const layout = {
+    ...stack(shelf, GUTTER, tiles, GUTTER - TILE_INSET, SECTION_GAP - TILE_INSET),
+    folderCount,
+    paddingStart: shelf.rows.length > 0 ? GUTTER : GUTTER - TILE_INSET,
+    paddingEnd: tiles.rows.length > 0 ? GUTTER - TILE_INSET : GUTTER,
+  };
+  usePreviewsAhead(
+    layout.rows.flatMap((row) =>
+      entries.slice(row.start, row.end).flatMap((entry, offset) => {
+        const found = byKey.get(entryKey(entry.ref));
+        return found ? [tilePreviewUrl(found, layout.width[row.start + offset] ?? 0, row.height)] : [];
+      }),
+    ),
+  );
+  return layout;
+};
+
 export const GridLayout = ({
   workspaceId,
   directory,
@@ -42,54 +90,10 @@ export const GridLayout = ({
   onHover,
   onOpen,
 }: LayoutProps) => {
-  const { queries, subscriptions } = useStarlight();
-  const { data } = useSuspenseQuery(queries.media(workspaceId, directory));
-  useEffect(
-    () => (directory ? subscriptions.media(workspaceId, directory) : undefined),
-    [subscriptions, workspaceId, directory, entries],
-  );
-  const media = useMemo(() => indexByKey(data), [data]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const width = useElementWidth(scrollRef);
-  const folderCount = useMemo(() => leadingFolders(entries), [entries]);
-
-  const aspects = useMemo(
-    () => Float64Array.from(entries.slice(folderCount), (entry) => aspectOf(media.get(entryKey(entry.ref)))),
-    [entries, folderCount, media],
-  );
-  const layout = useMemo(() => {
-    const inner = Math.max(0, width - GUTTER * 2);
-    const shelf = shelve(folderCount, {
-      width: inner,
-      minWidth: CHIP_MIN_WIDTH,
-      height: CHIP_HEIGHT,
-      gap: CHIP_GAP,
-    });
-    const tiles = justify(aspects, {
-      width: inner + TILE_INSET * 2,
-      targetHeight: TARGET_ROW_HEIGHT,
-      maxHeight: MAX_ROW_HEIGHT,
-      gap: TILE_GAP,
-      chrome: TILE_CHROME,
-    });
-    return {
-      ...stack(shelf, GUTTER, tiles, GUTTER - TILE_INSET, SECTION_GAP - TILE_INSET),
-      paddingStart: shelf.rows.length > 0 ? GUTTER : GUTTER - TILE_INSET,
-      paddingEnd: tiles.rows.length > 0 ? GUTTER - TILE_INSET : GUTTER,
-    };
-  }, [aspects, folderCount, width]);
-
-  const ahead = useMemo(
-    () =>
-      layout.rows.flatMap((row) =>
-        entries.slice(row.start, row.end).flatMap((entry, offset) => {
-          const found = media.get(entryKey(entry.ref));
-          return found ? [tilePreviewUrl(found, layout.width[row.start + offset] ?? 0, row.height)] : [];
-        }),
-      ),
-    [layout, entries, media],
-  );
-  usePreviewsAhead(ahead);
+  const media = useMedia(workspaceId, directory, entries);
+  const layout = useGridLayout(entries, media, width);
 
   const virtualizer = useVirtualizer({
     count: layout.rows.length,
@@ -164,10 +168,10 @@ export const GridLayout = ({
                   onHover,
                   onOpen,
                 };
-                return index < folderCount ? (
+                return index < layout.folderCount ? (
                   <FolderChip key={key} {...cell} />
                 ) : (
-                  <Tile key={key} {...cell} media={media.get(key)} visible={visible} />
+                  <Tile key={key} {...cell} media={media.byKey.get(key)} visible={visible} />
                 );
               })}
             </div>
