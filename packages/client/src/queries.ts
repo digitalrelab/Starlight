@@ -66,15 +66,15 @@ const createQueries = (client: StarlightClient) => ({
       queryFn: () => client.files.details(projectId, file),
     }),
 
+  entryLocation: (ref: EntryRef) =>
+    queryOptions({ queryKey: ["entryLocation", entryKey(ref)], queryFn: () => client.entries.locate(ref) }),
+
   referenceSearch: (query: string, projectId: string | null, includeHidden: boolean) =>
     queryOptions({
       queryKey: ["referenceSearch", query, projectId, includeHidden],
       queryFn: () => client.references.search(query, projectId, includeHidden),
       staleTime: 0,
     }),
-
-  entryLocation: (ref: EntryRef) =>
-    queryOptions({ queryKey: ["entryLocation", entryKey(ref)], queryFn: () => client.entries.locate(ref) }),
 
   agentProviders: () =>
     queryOptions({
