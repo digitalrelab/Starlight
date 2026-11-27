@@ -59,6 +59,7 @@ export interface SourceDriver {
   readonly trail: (root: EntryId, id: EntryId) => ReadonlyArray<SourceCrumb>;
   readonly stat: (id: EntryId) => Effect.Effect<SourceEntry, SourceError>;
   readonly list: (id: EntryId) => Effect.Effect<ReadonlyArray<SourceEntry>, SourceError>;
+  readonly write: (id: EntryId, content: Uint8Array) => Effect.Effect<SourceEntry, SourceError>;
   readonly watch: (root: EntryId) => Stream.Stream<SourceChange, SourceError>;
   readonly extractors: Extractors;
 }

@@ -1,12 +1,5 @@
-import type {
-  DirectoryError,
-  EntryRef,
-  FileError,
-  FileSource,
-  Media,
-  WorkspaceId,
-} from "@starlight/contracts";
-import { Context, Effect, Layer, Option } from "effect";
+import type { DirectoryError, EntryRef, Media, WorkspaceId } from "@starlight/contracts";
+import { Context, Effect, Layer } from "effect";
 import { Catalog } from "./catalog.ts";
 import { FileTokens } from "./ports.ts";
 import { Workspaces } from "./workspaces.ts";
@@ -18,7 +11,6 @@ export class MediaLibrary extends Context.Service<
       workspaceId: WorkspaceId,
       directory: EntryRef | null,
     ) => Effect.Effect<ReadonlyArray<Media>, DirectoryError>;
-    readonly source: (workspaceId: WorkspaceId, file: EntryRef) => Effect.Effect<FileSource, FileError>;
   }
 >()("@starlight/core/MediaLibrary") {
   static readonly layer = Layer.effect(MediaLibrary)(
@@ -39,11 +31,6 @@ export class MediaLibrary extends Context.Service<
             const ref = { source: directory.source, id: entry.id };
             return [{ ref, ...found, token: tokens.issue(ref, entry.modifiedAt) }];
           });
-        }),
-        source: Effect.fn("MediaLibrary.source")(function* (workspaceId, requested) {
-          const { driver, file, entry } = yield* workspaces.locateFile(workspaceId, requested);
-          const dimensions = yield* catalog.entry("dimensions", driver, file, entry);
-          return { token: tokens.issue(file, entry.modifiedAt), dimensions: Option.getOrNull(dimensions) };
         }),
       });
     }),
