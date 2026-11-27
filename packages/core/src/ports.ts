@@ -118,10 +118,11 @@ export class ConversationStore extends Context.Service<
     readonly list: Effect.Effect<ReadonlyArray<Conversation>>;
     readonly find: (id: ConversationId) => Effect.Effect<Option.Option<StoredConversation>>;
     readonly create: (input: Pick<Conversation, "provider" | "title">) => Effect.Effect<Conversation>;
-    readonly append: (
-      id: ConversationId,
-      message: Pick<ChatMessage, "role" | "text">,
-    ) => Effect.Effect<ChatMessage>;
+    readonly append: (id: ConversationId, message: ChatMessage) => Effect.Effect<void>;
     readonly saveSession: (id: ConversationId, session: string) => Effect.Effect<void>;
   }
 >()("@starlight/core/ConversationStore") {}
+
+export class IdGenerator extends Context.Service<IdGenerator, { readonly next: Effect.Effect<string> }>()(
+  "@starlight/core/IdGenerator",
+) {}

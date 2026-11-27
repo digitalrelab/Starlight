@@ -115,14 +115,16 @@ const createSubscriptions = (client: StarlightClient, queryClient: QueryClient, 
     return client.conversations.watch(id, (event) => {
       switch (event._tag) {
         case "Draft":
-          return update((detail) => ({ ...detail, draft: event.text, failure: null }));
+          return update((detail) => ({ ...detail, draft: event.draft, failure: null }));
         case "MessageAdded":
           void queryClient.invalidateQueries(queries.conversations());
-          return update((detail) =>
-            detail.messages.some((message) => message.id === event.message.id)
-              ? detail
-              : { ...detail, messages: [...detail.messages, event.message] },
-          );
+          return update((detail) => ({
+            ...detail,
+            messages: detail.messages.some((message) => message.id === event.message.id)
+              ? detail.messages
+              : [...detail.messages, event.message],
+            draft: detail.draft?.id === event.message.id ? null : detail.draft,
+          }));
         case "TurnFinished":
           return update((detail) => ({ ...detail, draft: null }));
         case "TurnFailed":

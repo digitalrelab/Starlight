@@ -90,15 +90,13 @@ export const SqliteConversationStoreLive = Layer.effect(ConversationStore)(
           `;
           return conversation;
         }).pipe(Effect.orDie),
-      append: (id, { role, text }) =>
+      append: (id, message) =>
         Effect.gen(function* () {
-          const message: ChatMessage = { id: randomUUID(), role, text, createdAt: Date.now() };
           yield* sql`
             INSERT INTO conversation_messages (id, conversation_id, role, text, created_at)
-            VALUES (${message.id}, ${id}, ${role}, ${text}, ${message.createdAt})
+            VALUES (${message.id}, ${id}, ${message.role}, ${message.text}, ${message.createdAt})
           `;
           yield* sql`UPDATE conversations SET updated_at = ${message.createdAt} WHERE id = ${id}`;
-          return message;
         }).pipe(Effect.orDie),
       saveSession: (id, session) =>
         sql`UPDATE conversations SET session = ${session} WHERE id = ${id}`.pipe(Effect.asVoid, Effect.orDie),

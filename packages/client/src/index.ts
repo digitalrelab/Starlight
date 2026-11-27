@@ -2,6 +2,7 @@ export type {
   AgentProvider,
   ChatMessage,
   Conversation,
+  Draft,
   Crumb,
   Entry,
   EntryRef,

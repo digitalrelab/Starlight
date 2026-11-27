@@ -21,16 +21,19 @@ export const ChatMessage = Schema.Struct({
 });
 export type ChatMessage = typeof ChatMessage.Type;
 
+export const Draft = Schema.Struct({ id: Schema.String, text: Schema.String });
+export type Draft = typeof Draft.Type;
+
 export const ConversationDetail = Schema.Struct({
   conversation: Conversation,
   messages: Schema.Array(ChatMessage),
-  draft: Schema.NullOr(Schema.String),
+  draft: Schema.NullOr(Draft),
   failure: Schema.NullOr(Schema.String),
 });
 export type ConversationDetail = typeof ConversationDetail.Type;
 
 export const ConversationEvent = Schema.Union([
-  Schema.TaggedStruct("Draft", { text: Schema.String }),
+  Schema.TaggedStruct("Draft", { draft: Draft }),
   Schema.TaggedStruct("MessageAdded", { message: ChatMessage }),
   Schema.TaggedStruct("TurnFinished", {}),
   Schema.TaggedStruct("TurnFailed", { message: Schema.String }),
