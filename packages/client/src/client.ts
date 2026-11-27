@@ -75,7 +75,7 @@ export const createClient = (ports: PortSources) => {
         watch("Entries", (c) => c.WatchEntries({ projectId: id(projectId) }), onChange),
       locate: (ref: EntryRef) => host((c) => c.LocateEntry({ ref })),
       ignorePatterns: () => host((c) => c.GetIgnorePatterns()),
-      ignore: (patterns: ReadonlyArray<string>) => host((c) => c.SetIgnorePatterns({ patterns })),
+      setIgnorePatterns: (patterns: ReadonlyArray<string>) => host((c) => c.SetIgnorePatterns({ patterns })),
     },
     references: {
       search: (query: string, projectId: string | null, includeHidden: boolean) =>

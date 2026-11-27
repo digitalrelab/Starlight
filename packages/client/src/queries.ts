@@ -138,9 +138,9 @@ const cacheProject = (queryClient: QueryClient, queries: Queries, project: Proje
 const createMutations = (client: StarlightClient, queryClient: QueryClient, queries: Queries) => ({
   pickDirectory: () => mutationOptions({ mutationFn: () => client.shell.pickDirectory() }),
 
-  ignore: () =>
+  setIgnorePatterns: () =>
     mutationOptions({
-      mutationFn: (patterns: ReadonlyArray<string>) => client.entries.ignore(patterns),
+      mutationFn: (patterns: ReadonlyArray<string>) => client.entries.setIgnorePatterns(patterns),
       onSuccess: (patterns) => queryClient.setQueryData(queries.ignorePatterns().queryKey, patterns),
     }),
 

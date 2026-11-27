@@ -13,12 +13,12 @@ const linesOf = (text: string) =>
 export const IgnorePatterns = () => {
   const { queries, mutations } = useStarlight();
   const { data: saved } = useSuspenseQuery(queries.ignorePatterns());
-  const ignore = useMutation(mutations.ignore());
+  const setPatterns = useMutation(mutations.setIgnorePatterns());
   const [draft, setDraft] = useState(() => saved.join("\n"));
   const invalid = linesOf(draft).filter((line) => !isIgnorePattern(line));
 
   const save = (patterns: ReadonlyArray<string>) => {
-    if (patterns.join("\n") !== saved.join("\n")) ignore.mutate(patterns);
+    if (patterns.join("\n") !== saved.join("\n")) setPatterns.mutate(patterns);
   };
 
   return (
