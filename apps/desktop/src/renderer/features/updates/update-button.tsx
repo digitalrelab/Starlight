@@ -1,4 +1,4 @@
-import { DownloadCircle01Icon } from "@hugeicons-pro/core-stroke-rounded";
+import { RefreshDotIcon } from "@hugeicons-pro/core-stroke-rounded";
 import { Button, cn, IconButton, Popover, PopoverContent, PopoverTrigger, Prose } from "@starlight/ui";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useStarlight } from "../../lib/context.ts";
@@ -12,7 +12,7 @@ export const UpdateButton = ({ className }: { readonly className?: string }) => 
   return (
     <Popover>
       <IconButton
-        icon={DownloadCircle01Icon}
+        icon={RefreshDotIcon}
         label="Update available"
         className={cn("text-accent hover:text-accent data-[popup-open]:text-accent", className)}
         render={<PopoverTrigger />}
