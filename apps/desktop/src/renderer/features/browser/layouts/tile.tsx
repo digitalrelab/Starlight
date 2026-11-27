@@ -112,7 +112,8 @@ interface PreviewProps {
   readonly visible: boolean;
 }
 
-const underImage = "transition-opacity duration-150 group-has-data-loaded/preview:opacity-0";
+const fade = "transition-opacity duration-150";
+const underImage = cn(fade, "group-has-data-loaded/preview:opacity-0");
 
 const Preview = ({ url, placeholder, visible }: PreviewProps) => {
   const { src, instant } = usePreview(url, visible);
@@ -138,7 +139,7 @@ const Preview = ({ url, placeholder, visible }: PreviewProps) => {
           draggable={false}
           data-loaded={instant ? "" : undefined}
           onLoad={reveal}
-          className="relative size-full object-cover opacity-0 transition-opacity duration-150 data-loaded:opacity-100"
+          className={cn(fade, "relative size-full object-cover opacity-0 data-loaded:opacity-100")}
         />
       )}
     </>
