@@ -48,7 +48,7 @@ export const usePlayerEngine = ({ src, autoPlay, hasPageShortcuts, onKey }: Engi
   const [echo] = useState(createEcho);
   const state = useMediaSnapshot(media);
   const { isFullscreen, toggleFullscreen } = useFullscreen();
-  const status = statusOf(state, media === null && autoPlay);
+  const status = statusOf(state);
 
   const acknowledge = (acknowledgement: Acknowledgement) => {
     if (!isOccupied(status)) echo.acknowledge(acknowledgement);

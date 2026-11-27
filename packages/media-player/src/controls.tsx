@@ -1,6 +1,6 @@
 import { PauseIcon, PlayIcon } from "@hugeicons-pro/core-solid-rounded";
 import { FullScreenIcon, MinimizeScreenIcon, RefreshCcwIcon } from "@hugeicons-pro/core-stroke-rounded";
-import { cn, IconButton, Select, Slider } from "@starlight/ui";
+import { Button, cn, IconButton, Select, Slider } from "@starlight/ui";
 import { type Ref, useLayoutEffect, useRef } from "react";
 import { usePlayer } from "./engine.tsx";
 import { formatDuration } from "./format.ts";
@@ -68,13 +68,7 @@ const Speed = ({ media, onOpenChange }: SpeedProps) => {
       onOpenChange={onOpenChange}
     >
       <Select.Trigger
-        render={
-          <button
-            type="button"
-            aria-label="Playback speed"
-            className="inline-flex h-control items-center rounded-md px-2 text-subtle tabular-nums focus-ring highlighted:bg-neutral-subtle-hovered highlighted:text-default"
-          />
-        }
+        render={<Button aria-label="Playback speed" className="px-2 text-subtle tabular-nums" />}
       >
         {rateLabel(rate)}
       </Select.Trigger>
