@@ -1,10 +1,15 @@
 import { FolderAddIcon } from "@hugeicons-pro/core-stroke-rounded";
 import { Button, Icon } from "@starlight/ui";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { PageHeader } from "#renderer/features/shell/page-header.tsx";
+import { byRecency, projectDestination } from "#renderer/features/projects/project-memory.ts";
 import { useCreateProject } from "#renderer/features/projects/use-create-project.ts";
 
 export const Route = createFileRoute("/_app/")({
+  loader: async ({ context: { queryClient, queries } }) => {
+    const [project] = byRecency(await queryClient.ensureQueryData(queries.projects()));
+    if (project) throw redirect({ ...projectDestination(project.id), replace: true });
+  },
   component: Home,
 });
 

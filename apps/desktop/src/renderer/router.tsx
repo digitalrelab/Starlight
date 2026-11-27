@@ -2,6 +2,7 @@ import { createClient, createQueryOptions } from "@starlight/client";
 import { QueryClient } from "@tanstack/react-query";
 import { createHashHistory, createRouter, Navigate } from "@tanstack/react-router";
 import { portSources } from "./lib/ports.ts";
+import { rememberLocation } from "./features/projects/project-memory.ts";
 import { anyString, defineStored } from "./lib/storage.ts";
 import { routeTree } from "./routeTree.gen.ts";
 
@@ -26,7 +27,20 @@ export const router = createRouter({
   defaultNotFoundComponent: () => <Navigate to="/" replace />,
 });
 
-router.subscribe("onResolved", ({ toLocation }) => lastLocation.set(toLocation.href));
+const resolvedProject = () => {
+  const params: { readonly projectId?: string; readonly chatId?: string } =
+    router.state.matches.at(-1)?.params ?? {};
+  const { projectId, chatId } = params;
+  if (projectId !== undefined) return projectId;
+  if (chatId === undefined) return null;
+  return queryClient.getQueryData(context.queries.chat(chatId).queryKey)?.chat.projectId ?? null;
+};
+
+router.subscribe("onResolved", ({ toLocation }) => {
+  lastLocation.set(toLocation.href);
+  const projectId = resolvedProject();
+  if (projectId !== null) rememberLocation(projectId, toLocation.href);
+});
 
 declare module "@tanstack/react-router" {
   interface Register {

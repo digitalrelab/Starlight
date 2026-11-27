@@ -17,19 +17,17 @@ interface FilterState {
 
 const FilterContext = createContext<FilterState>({ query: "", width: null, lock: () => {} });
 
-type OpenChange<Details> = (open: boolean, details: Details) => void;
+type Settle = (onOpenChangeComplete?: (open: boolean) => void) => (open: boolean) => void;
 
-type Track = <Details>(onOpenChange?: OpenChange<Details>) => OpenChange<Details>;
-
-const Filter = ({ children }: { readonly children: (track: Track) => ReactNode }) => {
+const Filter = ({ children }: { readonly children: (settle: Settle) => ReactNode }) => {
   const [query, setQuery] = useState("");
   const [width, setWidth] = useState<number | null>(null);
-  const track: Track = (onOpenChange) => (open, details) => {
-    if (open) {
+  const settle: Settle = (onOpenChangeComplete) => (open) => {
+    if (!open) {
       setQuery("");
       setWidth(null);
     }
-    onOpenChange?.(open, details);
+    onOpenChangeComplete?.(open);
   };
   return (
     <BaseMenu.FilterProvider
@@ -40,18 +38,27 @@ const Filter = ({ children }: { readonly children: (track: Track) => ReactNode }
       }}
     >
       <FilterContext value={{ query, width, lock: (next) => setWidth((current) => current ?? next) }}>
-        {children(track)}
+        {children(settle)}
       </FilterContext>
     </BaseMenu.FilterProvider>
   );
 };
 
-const Body = ({ children }: { readonly children: ReactNode }) => {
+interface BodyProps {
+  readonly className?: string | undefined;
+  readonly children: ReactNode;
+}
+
+const Body = ({ className, children }: BodyProps) => {
   const filter = use(FilterContext);
   const list = useRef<HTMLDivElement>(null);
   return (
     <BaseMenu.Popup
-      className={cn(popupSurface, "flex max-h-(--available-height) min-w-48 flex-col overflow-hidden")}
+      className={cn(
+        popupSurface,
+        "flex max-h-(--available-height) min-w-48 flex-col overflow-hidden",
+        className,
+      )}
     >
       <BaseMenu.Input
         aria-label="Filter"
@@ -75,14 +82,18 @@ const Body = ({ children }: { readonly children: ReactNode }) => {
   );
 };
 
-const Root = ({ onOpenChange, ...props }: ComponentProps<typeof BaseMenu.Root>) => (
-  <Filter>{(track) => <BaseMenu.Root modal={false} onOpenChange={track(onOpenChange)} {...props} />}</Filter>
+const Root = ({ onOpenChangeComplete, ...props }: ComponentProps<typeof BaseMenu.Root>) => (
+  <Filter>
+    {(settle) => (
+      <BaseMenu.Root modal={false} onOpenChangeComplete={settle(onOpenChangeComplete)} {...props} />
+    )}
+  </Filter>
 );
 
-const Popup = ({ children }: { readonly children: ReactNode }) => (
+const Popup = ({ className, children }: BodyProps) => (
   <BaseMenu.Portal>
     <BaseMenu.Positioner {...POSITIONING} className="z-overlay outline-none">
-      <Body>{children}</Body>
+      <Body className={className}>{children}</Body>
     </BaseMenu.Positioner>
   </BaseMenu.Portal>
 );
@@ -105,8 +116,10 @@ const Separator = () => (
   <BaseMenu.Separator className="-mx-1.5 my-1.5 border-t border-default group-data-[filtering]/list:hidden" />
 );
 
-const ContextRoot = ({ onOpenChange, ...props }: ComponentProps<typeof BaseContextMenu.Root>) => (
-  <Filter>{(track) => <BaseContextMenu.Root onOpenChange={track(onOpenChange)} {...props} />}</Filter>
+const ContextRoot = ({ onOpenChangeComplete, ...props }: ComponentProps<typeof BaseContextMenu.Root>) => (
+  <Filter>
+    {(settle) => <BaseContextMenu.Root onOpenChangeComplete={settle(onOpenChangeComplete)} {...props} />}
+  </Filter>
 );
 
 const ContextTrigger = ({ onContextMenu, ...props }: ComponentProps<typeof BaseContextMenu.Trigger>) => (
@@ -130,5 +143,12 @@ const ContextPopup = ({ children }: { readonly children: ReactNode }) => (
   </BaseContextMenu.Portal>
 );
 
-export const Menu = { Root, Trigger: BaseMenu.Trigger, Popup, Item, Separator };
+export const Menu = {
+  Root,
+  Trigger: BaseMenu.Trigger,
+  Popup,
+  Item,
+  Separator,
+  createHandle: BaseMenu.createHandle,
+};
 export const ContextMenu = { Root: ContextRoot, Trigger: ContextTrigger, Popup: ContextPopup };
