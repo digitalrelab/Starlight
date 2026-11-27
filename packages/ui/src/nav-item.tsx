@@ -22,7 +22,7 @@ export const NavItem = ({ icon, render, className, children, ...props }: NavItem
         ),
         children: (
           <>
-            <span className="flex text-subtle group-hover:text-inherit group-aria-[current=page]:text-inherit">
+            <span className="flex text-subtle group-highlighted:text-inherit group-aria-[current=page]:text-inherit">
               <Icon icon={icon} />
             </span>
             <span className="min-w-0 truncate text-left">{children}</span>
