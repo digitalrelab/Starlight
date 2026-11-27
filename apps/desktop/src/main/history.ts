@@ -44,7 +44,6 @@ export const watchHistory = (window: BrowserWindow) => {
       if (item) item.enabled = availability[direction];
     }
   };
-  webContents.on("did-navigate", publish);
   webContents.on("did-navigate-in-page", publish);
   webContents.ipc.on(Channel.historyRequest, publish);
   window.on("focus", publish);
