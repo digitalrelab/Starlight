@@ -7,7 +7,7 @@ import { useStarlight } from "#renderer/lib/context.ts";
 import { useElementWidth } from "#renderer/lib/use-element-width.ts";
 import { useRevealFocus } from "#renderer/features/browser/selection.ts";
 import { listProps, type Step } from "./events.ts";
-import { justify, nearestInRow, shelve, stack } from "./rows.ts";
+import { dropLeading, justify, nearestInRow, shelve, stack } from "./rows.ts";
 import { DraftChip, FolderChip, TILE_CHROME, TILE_INSET, Tile, tilePreviewUrl } from "./tile.tsx";
 import type { LayoutProps } from "./types.ts";
 import { usePreviewsAhead } from "./use-preview.ts";
@@ -54,8 +54,14 @@ const useGridLayout = (
 ) => {
   const folderCount = leadingFolders(entries);
   const inner = Math.max(0, width - GUTTER * 2);
-  const chips = { width: inner, minWidth: CHIP_MIN_WIDTH, height: CHIP_HEIGHT, gap: CHIP_GAP };
-  const shelf = shelve(folderCount, chips);
+  const lead = drafting ? 1 : 0;
+  const slots = shelve(folderCount + lead, {
+    width: inner,
+    minWidth: CHIP_MIN_WIDTH,
+    height: CHIP_HEIGHT,
+    gap: CHIP_GAP,
+  });
+  const shelf = dropLeading(slots, lead);
   const tiles = justify(aspects.subarray(folderCount), {
     width: inner + TILE_INSET * 2,
     targetHeight: TARGET_ROW_HEIGHT,
@@ -63,13 +69,15 @@ const useGridLayout = (
     gap: TILE_GAP,
     chrome: TILE_CHROME,
   });
+  const paddingStart = shelf.rows.length > 0 ? GUTTER : GUTTER - TILE_INSET;
   const layout = {
     ...stack(shelf, GUTTER, tiles, GUTTER - TILE_INSET, SECTION_GAP - TILE_INSET),
     folderCount,
-    chipWidth: shelve(1, chips).width[0] ?? 0,
-    paddingStart:
-      (shelf.rows.length > 0 ? GUTTER : GUTTER - TILE_INSET) +
-      (drafting ? CHIP_HEIGHT + (shelf.rows.length > 0 ? CHIP_GAP : SECTION_GAP) : 0),
+    draftSlot:
+      lead > 0 && slots.width.length > 0
+        ? { top: paddingStart, left: GUTTER + slots.left[0]!, width: slots.width[0]! }
+        : null,
+    paddingStart,
     paddingEnd: tiles.rows.length > 0 ? GUTTER - TILE_INSET : GUTTER,
   };
   usePreviewsAhead(
@@ -138,8 +146,8 @@ export const GridLayout = ({
   return (
     <ScrollArea ref={scrollRef} {...listProps({ entries, selection, onOpen }, step)} className="flex-1">
       <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
-        {draft ? (
-          <DraftChip top={GUTTER} left={GUTTER} width={layout.chipWidth} height={CHIP_HEIGHT}>
+        {draft && layout.draftSlot ? (
+          <DraftChip {...layout.draftSlot} height={CHIP_HEIGHT}>
             {draft}
           </DraftChip>
         ) : null}
