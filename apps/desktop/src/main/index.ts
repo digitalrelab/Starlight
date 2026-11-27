@@ -5,7 +5,7 @@ import { Channel } from "../shared/channels.ts";
 import { superviseHost } from "./host.ts";
 import { serveShell } from "./shell.ts";
 import { fileScheme, serveFiles } from "./files.ts";
-import { openPreviewCache, servePreviews, previewScheme } from "./previews.ts";
+import { openPreviewCache, previewScheme, servePreviews } from "./previews.ts";
 import { startUpdater } from "./updater.ts";
 import { createWindow } from "./window.ts";
 
