@@ -53,7 +53,7 @@ export const UpdateButton = ({ className }: { readonly className?: string }) => 
 
   return (
     <Popover>
-      <span className={cn("relative inline-flex text-brand", className)}>
+      <span className={cn("relative inline-flex", className)}>
         <IconButton
           icon={RefreshDotIcon}
           label={LABELS[update.status]}
@@ -64,7 +64,7 @@ export const UpdateButton = ({ className }: { readonly className?: string }) => 
           <ProgressRing
             value={update.progress}
             label={LABELS.downloading}
-            className="pointer-events-none absolute inset-0 size-full"
+            className="pointer-events-none absolute inset-0 size-full text-brand"
           />
         ) : null}
       </span>
