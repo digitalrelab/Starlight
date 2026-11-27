@@ -1,5 +1,5 @@
 import { FolderOpenIcon, Settings01Icon } from "@hugeicons-pro/core-stroke-rounded";
-import { Icon, NavItem } from "@starlight/ui";
+import { Icon, IconButton, NavItem } from "@starlight/ui";
 import { Link } from "@tanstack/react-router";
 import { RecentWorkspaces } from "../workspaces/recent-workspaces.tsx";
 import { useOpenWorkspace } from "../workspaces/use-open-workspace.ts";
@@ -19,10 +19,9 @@ export const MainSidebar = () => {
         ) : null}
       </div>
       <RecentWorkspaces />
-      <NavItem className="mt-auto" render={<Link to="/settings" />}>
-        <Icon icon={Settings01Icon} className="shrink-0" />
-        Settings
-      </NavItem>
+      <footer className="mt-auto flex items-center gap-1">
+        <IconButton icon={Settings01Icon} label="Settings" render={<Link to="/settings" />} />
+      </footer>
     </>
   );
 };

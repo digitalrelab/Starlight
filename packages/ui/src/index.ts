@@ -1,6 +1,8 @@
 export * from "./button.tsx";
 export { cn } from "cn";
 export * from "./icon.tsx";
+export * from "./icon-button.tsx";
 export * from "./nav-item.tsx";
 export * from "./nav-section.tsx";
 export * from "./switch.tsx";
+export * from "./tooltip.tsx";
