@@ -32,3 +32,7 @@ ipcRenderer.on(Channel.zoomStep, (_event, step) => {
 ipcRenderer.on(Channel.commandPalette, () => {
   window.postMessage({ type: Channel.commandPalette }, "*");
 });
+
+ipcRenderer.on(Channel.projectSwitcher, () => {
+  window.postMessage({ type: Channel.projectSwitcher }, "*");
+});

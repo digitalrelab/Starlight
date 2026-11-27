@@ -9,8 +9,10 @@ import type { Project } from "@starlight/client";
 import { Icon, Menu } from "@starlight/ui";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useNavigate, useRouter } from "@tanstack/react-router";
-import { useEffect, useEffectEvent, useState } from "react";
+import { useEffect, useState } from "react";
+import { Channel } from "#shared/channels.ts";
 import { useStarlight } from "#renderer/lib/context.ts";
+import { onMainMessage } from "#renderer/lib/main-messages.ts";
 import { byRecency, projectDestination } from "./project-memory.ts";
 import { useCreateProject } from "./use-create-project.ts";
 
@@ -22,16 +24,7 @@ export const ProjectSwitcher = ({ project }: { readonly project: Project | undef
   const navigate = useNavigate();
   const router = useRouter();
 
-  const onShortcut = useEffectEvent((event: KeyboardEvent) => {
-    if (!event.metaKey || event.shiftKey || event.altKey || event.key !== "o") return;
-    event.preventDefault();
-    setOpen(!open);
-  });
-
-  useEffect(() => {
-    window.addEventListener("keydown", onShortcut);
-    return () => window.removeEventListener("keydown", onShortcut);
-  }, []);
+  useEffect(() => onMainMessage(Channel.projectSwitcher, () => setOpen((current) => !current)), []);
 
   return (
     <div className="flex flex-col gap-1">
@@ -43,7 +36,7 @@ export const ProjectSwitcher = ({ project }: { readonly project: Project | undef
           if (projectId) void router.preloadRoute(projectDestination(projectId));
         }}
       >
-        <Menu.Trigger className="group flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-base text-default focus-ring highlighted:bg-neutral-subtle-hovered">
+        <Menu.Trigger className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-base text-default focus-ring highlighted:bg-neutral-subtle-hovered">
           <Icon icon={FolderIcon} className="shrink-0 text-subtle" />
           <span className="min-w-0 flex-1 truncate">{project?.name ?? "Choose a project"}</span>
           <Icon icon={UnfoldMoreIcon} size={14} className="shrink-0 text-subtlest" />
@@ -53,7 +46,6 @@ export const ProjectSwitcher = ({ project }: { readonly project: Project | undef
             <Menu.Item
               key={candidate.id}
               icon={FolderIcon}
-              label={candidate.name}
               data-project-id={candidate.id}
               onClick={() => void navigate(projectDestination(candidate.id))}
             >

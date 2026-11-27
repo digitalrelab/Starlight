@@ -4,7 +4,7 @@ import { anyString, defineStored, defineStoredFamily } from "#renderer/lib/stora
 
 const SEPARATOR = ",";
 
-const lastLocation = defineStoredFamily((projectId) => `project-location.${projectId}`, anyString, "");
+const locations = defineStoredFamily((projectId) => `project-location.${projectId}`, anyString, "");
 const recent = defineStored("recent-projects", anyString, "");
 
 const recentIds = () => recent.get().split(SEPARATOR).filter(Boolean);
@@ -12,7 +12,7 @@ const recentIds = () => recent.get().split(SEPARATOR).filter(Boolean);
 const setRecent = (ids: ReadonlyArray<string>) => recent.set(ids.join(SEPARATOR));
 
 export const projectDestination = (projectId: string) => {
-  const href = lastLocation(projectId).get();
+  const href = locations(projectId).get();
   return { ...linkOptions({ to: "/p/$projectId", params: { projectId } }), ...(href ? { href } : {}) };
 };
 
@@ -27,11 +27,11 @@ export const byRecency = (projects: ReadonlyArray<Project>) => {
 
 export const forgetProject = (projectId: string) => {
   setRecent(recentIds().filter((id) => id !== projectId));
-  lastLocation(projectId).set("");
+  locations(projectId).set("");
 };
 
 export const rememberLocation = (projectId: string, href: string) => {
-  lastLocation(projectId).set(href);
+  locations(projectId).set(href);
   const ids = recentIds();
   if (ids[0] !== projectId) setRecent([projectId, ...ids.filter((id) => id !== projectId)]);
 };

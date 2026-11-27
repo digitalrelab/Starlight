@@ -147,12 +147,5 @@ const ContextPopup = ({ finalFocus, children }: BodyProps) => (
   </BaseContextMenu.Portal>
 );
 
-export const Menu = {
-  Root,
-  Trigger: BaseMenu.Trigger,
-  Popup,
-  Item,
-  Separator,
-  createHandle: BaseMenu.createHandle,
-};
+export const Menu = { Root, Trigger: BaseMenu.Trigger, Popup, Item, Separator };
 export const ContextMenu = { Root: ContextRoot, Trigger: ContextTrigger, Popup: ContextPopup };
