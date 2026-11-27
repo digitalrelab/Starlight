@@ -15,6 +15,7 @@ export interface FileDocument<T> {
 export interface FileSessionState<T> {
   readonly document: FileDocument<T> | undefined;
   readonly status: FileSessionStatus;
+  readonly unsaved: boolean;
 }
 
 export interface FileSessionOptions<T> {
@@ -29,18 +30,21 @@ export const createFileSession = <T>(
   { workspaceId, file, codec, load }: FileSessionOptions<T>,
 ) => {
   const listeners = new Set<() => void>();
-  let state: FileSessionState<T> = { document: undefined, status: "loading" };
+  let state: FileSessionState<T> = { document: undefined, status: "loading", unsaved: false };
   let disk: FileSource | undefined;
   let base: FileVersion | undefined;
   const superseded = new Set<FileVersion>();
   let decoded: Decoded<T> | undefined;
   let read: (() => T) | undefined;
   let edits = 0;
+  let settled = 0;
   let loading: FileSource | undefined;
   let timer: ReturnType<typeof setTimeout> | undefined;
 
-  const update = (next: Partial<FileSessionState<T>>) => {
-    state = { ...state, ...next };
+  const unsaved = () => edits !== settled;
+
+  const update = (next: Partial<Omit<FileSessionState<T>, "unsaved">>) => {
+    state = { ...state, ...next, unsaved: unsaved() };
     for (const listener of listeners) listener();
   };
 
@@ -55,14 +59,13 @@ export const createFileSession = <T>(
     const diverged =
       read !== undefined && read() !== decoded.value && decoded.value === state.document?.value;
     read = undefined;
+    settled = edits;
     const revision = (state.document?.revision ?? 0) + (remount || diverged ? 1 : 0);
     update({
       document: { value: decoded.value, revision, editable: decoded.encode !== undefined },
       status: "saved",
     });
   };
-
-  const unsaved = () => state.status === "dirty" || (state.status === "failed" && read !== undefined);
 
   const reconcile = async (): Promise<void> => {
     const target = disk;
@@ -86,6 +89,7 @@ export const createFileSession = <T>(
     update({ status: "saving" });
     try {
       advance(await client.files.write(workspaceId, file, encode(read()), base));
+      settled = startedAt;
       update({ status: edits === startedAt ? "saved" : "dirty" });
       if (edits !== startedAt) schedule();
     } catch (error) {
@@ -120,7 +124,7 @@ export const createFileSession = <T>(
       if (timer !== undefined) void save();
     },
     retry: () => {
-      if (!read) return void reconcile();
+      if (!unsaved()) return void reconcile();
       update({ status: "dirty" });
       void save();
     },
