@@ -7,6 +7,7 @@ import { EditorView, keymap } from "@codemirror/view";
 import type { NodeType } from "@lezer/common";
 import { classHighlighter, type Highlighter, tagHighlighter, tags } from "@lezer/highlight";
 import { extensions } from "#dialect.ts";
+import { formattingKeymap } from "./formatting.ts";
 import { hangingIndents } from "./hanging.ts";
 import { highlighting } from "./highlighting.ts";
 import { WindowedParser } from "./windowed-parser.ts";
@@ -44,7 +45,7 @@ export const writing = [
   new LanguageSupport(language, support.support),
   highlighting(codeHighlighter, markupHighlighter),
   history(),
-  keymap.of([...defaultKeymap, ...historyKeymap]),
+  keymap.of([...formattingKeymap, ...defaultKeymap, ...historyKeymap]),
   EditorView.lineWrapping,
 ];
 
