@@ -1,47 +1,47 @@
 import { BrowserWindow, Menu, type MenuItemConstructorOptions, type WebContents } from "electron";
 import { Channel } from "#shared/channels.ts";
-import type { HistoryAvailability } from "#shared/history.ts";
+import {
+  HISTORY_DIRECTIONS,
+  type HistoryAvailability,
+  type HistoryDirection,
+  historyDirections,
+} from "#shared/history.ts";
 
-const STEPS = { back: -1, forward: 1 } as const;
-type Direction = keyof typeof STEPS;
+const canStep = ({ navigationHistory }: WebContents, direction: HistoryDirection) =>
+  navigationHistory.canGoToOffset(HISTORY_DIRECTIONS[direction].offset);
 
-const canStep = ({ navigationHistory }: WebContents, direction: Direction) =>
-  navigationHistory.canGoToOffset(STEPS[direction]);
-
-const step = (webContents: WebContents, direction: Direction) => {
-  if (canStep(webContents, direction)) webContents.navigationHistory.goToOffset(STEPS[direction]);
+const step = (webContents: WebContents, direction: HistoryDirection) => {
+  if (canStep(webContents, direction)) {
+    webContents.navigationHistory.goToOffset(HISTORY_DIRECTIONS[direction].offset);
+  }
 };
-
-const item = (direction: Direction, label: string, accelerator: string): MenuItemConstructorOptions => ({
-  id: direction,
-  label,
-  accelerator,
-  click: () => {
-    const window = BrowserWindow.getFocusedWindow();
-    if (window) step(window.webContents, direction);
-  },
-});
 
 export const historyMenu: MenuItemConstructorOptions = {
   label: "Go",
-  submenu: [item("back", "Back", "CommandOrControl+["), item("forward", "Forward", "CommandOrControl+]")],
+  submenu: historyDirections.map((direction) => ({
+    id: direction,
+    label: HISTORY_DIRECTIONS[direction].label,
+    accelerator: `CommandOrControl+${HISTORY_DIRECTIONS[direction].key}`,
+    click: () => {
+      const window = BrowserWindow.getFocusedWindow();
+      if (window) step(window.webContents, direction);
+    },
+  })),
 };
-
-const availabilityOf = (webContents: WebContents): HistoryAvailability => ({
-  back: canStep(webContents, "back"),
-  forward: canStep(webContents, "forward"),
-});
 
 export const watchHistory = (window: BrowserWindow) => {
   const { webContents } = window;
   const publish = () => {
-    const availability = availabilityOf(webContents);
+    const availability: HistoryAvailability = {
+      back: canStep(webContents, "back"),
+      forward: canStep(webContents, "forward"),
+    };
     webContents.send(Channel.history, availability);
     if (!window.isFocused()) return;
     const menu = Menu.getApplicationMenu();
-    for (const direction of Object.keys(STEPS) as Array<Direction>) {
-      const menuItem = menu?.getMenuItemById(direction);
-      if (menuItem) menuItem.enabled = availability[direction];
+    for (const direction of historyDirections) {
+      const item = menu?.getMenuItemById(direction);
+      if (item) item.enabled = availability[direction];
     }
   };
   webContents.on("did-navigate", publish);
