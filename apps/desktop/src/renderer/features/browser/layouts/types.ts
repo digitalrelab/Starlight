@@ -1,11 +1,11 @@
 import type { Entry, EntryRef } from "@starlight/client";
+import type { SelectionStore } from "#renderer/features/browser/selection.ts";
 
 export interface LayoutProps {
   readonly projectId: string;
   readonly directory: EntryRef | null;
   readonly entries: ReadonlyArray<Entry>;
-  readonly selected: number;
-  readonly onSelect: (index: number) => void;
+  readonly selection: SelectionStore;
   readonly onHover: (index: number | null) => void;
   readonly onOpen: (entry: Entry) => void;
 }

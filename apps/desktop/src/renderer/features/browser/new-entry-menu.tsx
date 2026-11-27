@@ -35,7 +35,7 @@ interface Props {
   readonly directory: EntryRef;
   readonly directoryName: string;
   readonly entries: ReadonlyArray<Entry>;
-  readonly onCreated: (ref: EntryRef, kind: CreatableKind) => void;
+  readonly onCreated: (created: { readonly ref: EntryRef; readonly kind: CreatableKind }) => void;
 }
 
 export const NewEntryMenu = ({ projectId, directory, directoryName, entries, onCreated }: Props) => {
@@ -64,7 +64,7 @@ export const NewEntryMenu = ({ projectId, directory, directoryName, entries, onC
       {
         onSuccess: (ref) => {
           setOpen(false);
-          onCreated(ref, kind);
+          onCreated({ ref, kind });
         },
       },
     );

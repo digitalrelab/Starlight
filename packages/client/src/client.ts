@@ -71,6 +71,7 @@ export const createClient = (ports: PortSources) => {
         host((c) => c.CreateEntry({ projectId: id(projectId), directory, name, kind })),
       watch: (projectId: string, onChange: (change: EntryChange) => void) =>
         watch("Entries", (c) => c.WatchEntries({ projectId: id(projectId) }), onChange),
+      locate: (ref: EntryRef) => host((c) => c.LocateEntry({ ref })),
     },
     media: {
       list: (projectId: string, directory: EntryRef | null) =>
@@ -92,6 +93,7 @@ export const createClient = (ports: PortSources) => {
     agents: {
       providers: () => host((c) => c.ListAgentProviders()),
       prepare: () => host((c) => c.PrepareAgentProviders()),
+      usage: () => host((c) => c.GetAgentUsage()),
     },
     chats: {
       list: (projectId: string | null) => host((c) => c.ListChats({ projectId: optionalId(projectId) })),

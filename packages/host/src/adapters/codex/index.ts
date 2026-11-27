@@ -5,6 +5,7 @@ import { AGENT_INSTRUCTIONS, asError, capitalized, effortLabel, notReady } from 
 import { output } from "#adapters/cli.ts";
 import type { Notification } from "./app-server.ts";
 import { type Connection, findExecutable, makeConnector } from "./connection.ts";
+import { makeUsage } from "./usage.ts";
 
 interface CodexModel {
   readonly model: string;
@@ -159,6 +160,7 @@ export const makeCodexDriver = (workingDirectory: string): AgentProviderDriver =
       ),
       Effect.orElseSucceed((): ReadonlyArray<AgentModel> => []),
     ),
+    usage: makeUsage(connect),
     prepare: Effect.sync(() => void connect().catch(() => {})),
     forget: (session) =>
       Effect.tryPromise(() =>

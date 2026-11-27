@@ -5,6 +5,7 @@ import {
   type QueryClient,
 } from "@tanstack/react-query";
 import type {
+  AgentProviderUsage,
   ChatDetail,
   CreatableKind,
   EntryRef,
@@ -23,6 +24,16 @@ const listingKey = (projectId: string, directory: string | null, facet: "entries
   [...directoryKey(projectId), directory, facet] as const;
 
 const chatsKey = ["chats"] as const;
+
+const untilNextReset = (usage: ReadonlyArray<AgentProviderUsage> | undefined) => {
+  const now = Date.now();
+  const resets = (usage ?? []).flatMap(({ usage }) =>
+    usage._tag === "Metered"
+      ? usage.windows.flatMap(({ resetsAt }) => (resetsAt !== null && resetsAt > now ? [resetsAt] : []))
+      : [],
+  );
+  return resets.length > 0 ? Math.min(...resets) - now : false;
+};
 const chatKey = ["chat"] as const;
 
 const createQueries = (client: StarlightClient) => ({
@@ -55,6 +66,9 @@ const createQueries = (client: StarlightClient) => ({
       queryFn: () => client.files.details(projectId, file),
     }),
 
+  entryLocation: (ref: EntryRef) =>
+    queryOptions({ queryKey: ["entryLocation", entryKey(ref)], queryFn: () => client.entries.locate(ref) }),
+
   agentProviders: () =>
     queryOptions({
       queryKey: ["agentProviders"],
@@ -62,6 +76,14 @@ const createQueries = (client: StarlightClient) => ({
       gcTime: Infinity,
       refetchOnMount: "always",
       refetchOnWindowFocus: "always",
+    }),
+
+  agentUsage: () =>
+    queryOptions({
+      queryKey: ["agentUsage"],
+      queryFn: () => client.agents.usage(),
+      refetchOnWindowFocus: true,
+      refetchInterval: ({ state }) => untilNextReset(state.data),
     }),
 
   chats: (projectId: string | null) =>

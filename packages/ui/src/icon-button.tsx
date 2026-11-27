@@ -34,8 +34,10 @@ export const IconButton = ({
         className: cn(
           "inline-flex items-center justify-center rounded-full text-subtle focus-ring",
           sizes[size],
-          "highlighted:bg-neutral-subtle-hovered highlighted:text-default aria-[current=page]:text-default",
-          pressedIcon ? "aria-pressed:text-default" : "aria-pressed:bg-neutral aria-pressed:text-default",
+          "highlighted:bg-neutral-subtle-hovered not-aria-pressed:highlighted:text-default aria-[current=page]:text-default",
+          pressedIcon
+            ? "aria-pressed:text-default"
+            : "aria-pressed:bg-selected aria-pressed:text-selected aria-pressed:highlighted:bg-selected-hovered",
           className,
         ),
         children: <Icon icon={pressedIcon && props["aria-pressed"] === true ? pressedIcon : icon} />,

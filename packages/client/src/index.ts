@@ -2,6 +2,8 @@ export type {
   AgentEffort,
   AgentModel,
   AgentProvider,
+  AgentProviderUsage,
+  AgentUsage,
   Chat,
   ChatMessage,
   CreatableKind,
@@ -9,6 +11,7 @@ export type {
   DiskUsage,
   Draft,
   Entry,
+  EntryLocation,
   EntryRef,
   FileDetails,
   FileKind,
@@ -18,9 +21,11 @@ export type {
   ModelChoice,
   Project,
   Property,
+  Reference,
   Swatch,
   Update,
   UpdaterState,
+  UsageWindow,
 } from "@starlight/contracts";
 export {
   ClaudeCodeProvider,
@@ -31,6 +36,8 @@ export {
   fileKindOf,
   InvalidName,
   mediaTypeOf,
+  referenceOf,
+  referenceUrl,
 } from "@starlight/contracts";
 export * from "./client.ts";
 export * from "./codecs.ts";

@@ -1,8 +1,9 @@
 import { Schema } from "effect";
 import { Rpc, RpcGroup } from "effect/rpc";
-import { AgentProvider, ModelChoice } from "./agent.ts";
+import { AgentProvider, AgentProviderUsage, ModelChoice } from "./agent.ts";
 import { Chat, ChatBusy, ChatDetail, ChatEvent, ChatId, ChatNotFound, ModelUnavailable } from "./chat.ts";
 import { DiskUsage } from "./disk.ts";
+import { EntryLocation } from "./reference.ts";
 import { CreatableKind, EntryChange, Listing } from "./entry.ts";
 import {
   CreateError,
@@ -80,6 +81,11 @@ export class HostRpcs extends RpcGroup.make(
     success: FileSource,
     error: FileError,
   }),
+  Rpc.make("LocateEntry", {
+    payload: { ref: EntryRef },
+    success: EntryLocation,
+    error: Schema.Union([SourceUnavailable, SourceError]),
+  }),
   Rpc.make("GetFileDetails", {
     payload: { projectId: ProjectId, file: EntryRef },
     success: FileDetails,
@@ -100,6 +106,9 @@ export class HostRpcs extends RpcGroup.make(
     success: Schema.Array(AgentProvider),
   }),
   Rpc.make("PrepareAgentProviders"),
+  Rpc.make("GetAgentUsage", {
+    success: Schema.Array(AgentProviderUsage),
+  }),
   Rpc.make("ListChats", {
     payload: { projectId: Schema.NullOr(ProjectId) },
     success: Schema.Array(Chat),

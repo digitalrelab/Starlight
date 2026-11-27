@@ -1,7 +1,7 @@
-import { type CreatableKind, DirectoryMissing, type Entry, type EntryRef, entryKey } from "@starlight/client";
+import { DirectoryMissing, type Entry, type EntryRef, entryKey } from "@starlight/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, type ErrorComponentProps, Navigate, useRouter } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { DirectoryBreadcrumbs } from "#renderer/features/browser/directory-breadcrumbs.tsx";
 import {
   parseDirectorySearch,
@@ -24,11 +24,6 @@ import { AddMountButton } from "#renderer/features/projects/add-mount-button.tsx
 import { useStarlight } from "#renderer/lib/context.ts";
 import { useStore } from "#renderer/lib/store.ts";
 
-interface Selection {
-  readonly directory: string;
-  readonly key: string | undefined;
-}
-
 export const Route = createFileRoute("/_app/p/$projectId/")({
   validateSearch: parseDirectorySearch,
   loaderDeps: ({ search }) => ({ directory: toDirectory(search) }),
@@ -47,7 +42,6 @@ function Browser() {
   const { projectId } = Route.useParams();
   const { directory } = Route.useLoaderDeps();
   const file = toFile(Route.useSearch());
-  const fileKey = file ? entryKey(file) : undefined;
   const navigate = Route.useNavigate();
   const router = useRouter();
   const { queries, subscriptions } = useStarlight();
@@ -61,24 +55,14 @@ function Browser() {
   useEffect(() => subscriptions.entries(projectId), [subscriptions, projectId]);
 
   const directoryKey = directory ? entryKey(directory) : "";
-  const [selection, setSelection] = useState<Selection>({ directory: directoryKey, key: undefined });
-  const select = (key: string | undefined) => setSelection({ directory: directoryKey, key });
-  if (fileKey && (selection.directory !== directoryKey || selection.key !== fileKey)) select(fileKey);
-  const selectedKey = selection.directory === directoryKey ? selection.key : undefined;
 
   const showFile = (shown: EntryRef) => {
     if (directory) void navigate({ search: toFileSearch(directory, shown), replace: true, state: true });
   };
-  const openFile = (shown: EntryRef) => {
-    if (directory) void navigate({ search: toFileSearch(directory, shown), state: { fromDirectory: true } });
-  };
-  const onOpen = (entry: Entry) => {
-    if (entry.kind === "directory") void navigate({ search: toDirectorySearch(entry.ref) });
-    else if (entry.kind === "file") openFile(entry.ref);
-  };
-  const onCreated = (created: EntryRef, kind: CreatableKind) => {
-    if (kind === "file") openFile(created);
-    else select(entryKey(created));
+  const onOpen = ({ ref, kind }: Pick<Entry, "ref" | "kind">) => {
+    if (kind === "directory") void navigate({ search: toDirectorySearch(ref) });
+    else if (kind === "file" && directory)
+      void navigate({ search: toFileSearch(directory, ref), state: { fromDirectory: true } });
   };
   const preloadFolder = (folder: EntryRef) =>
     router.preloadRoute({
@@ -108,7 +92,7 @@ function Browser() {
                 directory={directory}
                 directoryName={directoryName}
                 entries={listing.entries}
-                onCreated={onCreated}
+                onCreated={onOpen}
               />
             ) : null}
             <AddMountButton projectId={projectId} />
@@ -124,8 +108,7 @@ function Browser() {
         directory={directory}
         entries={entries}
         layout={layout}
-        selectedKey={selectedKey}
-        onSelectKey={select}
+        shown={file}
         onOpen={onOpen}
         onIntent={prefetch}
       />

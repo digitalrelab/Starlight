@@ -19,6 +19,7 @@ import { Route as SettingsDiskRouteImport } from './routes/settings.disk'
 import { Route as SettingsFilesRouteImport } from './routes/settings.files'
 import { Route as SettingsProvidersRouteImport } from './routes/settings.providers'
 import { Route as SettingsUpdatesRouteImport } from './routes/settings.updates'
+import { Route as SettingsUsageRouteImport } from './routes/settings.usage'
 import { Route as AppChatsChatIdRouteImport } from './routes/_app.chats.$chatId'
 import { Route as AppPProjectIdRouteImport } from './routes/_app.p.$projectId'
 import { Route as AppPProjectIdIndexRouteImport } from './routes/_app.p.$projectId.index'
@@ -74,6 +75,11 @@ const SettingsUpdatesRoute = SettingsUpdatesRouteImport.update({
   path: '/updates',
   getParentRoute: () => SettingsRoute,
 } as any)
+const SettingsUsageRoute = SettingsUsageRouteImport.update({
+  id: '/usage',
+  path: '/usage',
+  getParentRoute: () => SettingsRoute,
+} as any)
 const AppChatsChatIdRoute = AppChatsChatIdRouteImport.update({
   id: '/chats/$chatId',
   path: '/chats/$chatId',
@@ -109,6 +115,7 @@ export interface FileRoutesByFullPath {
   '/settings/files': typeof SettingsFilesRoute
   '/settings/providers': typeof SettingsProvidersRoute
   '/settings/updates': typeof SettingsUpdatesRoute
+  '/settings/usage': typeof SettingsUsageRoute
   '/settings/': typeof SettingsIndexRoute
   '/chats/$chatId': typeof AppChatsChatIdRoute
   '/p/$projectId': typeof AppPProjectIdRouteWithChildren
@@ -123,6 +130,7 @@ export interface FileRoutesByTo {
   '/settings/files': typeof SettingsFilesRoute
   '/settings/providers': typeof SettingsProvidersRoute
   '/settings/updates': typeof SettingsUpdatesRoute
+  '/settings/usage': typeof SettingsUsageRoute
   '/': typeof AppIndexRoute
   '/settings': typeof SettingsIndexRoute
   '/chats/$chatId': typeof AppChatsChatIdRoute
@@ -140,6 +148,7 @@ export interface FileRoutesById {
   '/settings/files': typeof SettingsFilesRoute
   '/settings/providers': typeof SettingsProvidersRoute
   '/settings/updates': typeof SettingsUpdatesRoute
+  '/settings/usage': typeof SettingsUsageRoute
   '/_app/': typeof AppIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/_app/chats/$chatId': typeof AppChatsChatIdRoute
@@ -159,6 +168,7 @@ export interface FileRouteTypes {
     | '/settings/files'
     | '/settings/providers'
     | '/settings/updates'
+    | '/settings/usage'
     | '/settings/'
     | '/chats/$chatId'
     | '/p/$projectId'
@@ -173,6 +183,7 @@ export interface FileRouteTypes {
     | '/settings/files'
     | '/settings/providers'
     | '/settings/updates'
+    | '/settings/usage'
     | '/'
     | '/settings'
     | '/chats/$chatId'
@@ -189,6 +200,7 @@ export interface FileRouteTypes {
     | '/settings/files'
     | '/settings/providers'
     | '/settings/updates'
+    | '/settings/usage'
     | '/_app/'
     | '/settings/'
     | '/_app/chats/$chatId'
@@ -275,6 +287,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsUpdatesRouteImport
       parentRoute: typeof SettingsRoute
     }
+    '/settings/usage': {
+      id: '/settings/usage'
+      path: '/usage'
+      fullPath: '/settings/usage'
+      preLoaderRoute: typeof SettingsUsageRouteImport
+      parentRoute: typeof SettingsRoute
+    }
     '/_app/chats/$chatId': {
       id: '/_app/chats/$chatId'
       path: '/chats/$chatId'
@@ -351,6 +370,7 @@ interface SettingsRouteChildren {
   SettingsFilesRoute: typeof SettingsFilesRoute
   SettingsProvidersRoute: typeof SettingsProvidersRoute
   SettingsUpdatesRoute: typeof SettingsUpdatesRoute
+  SettingsUsageRoute: typeof SettingsUsageRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
 }
 
@@ -360,6 +380,7 @@ const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsFilesRoute: SettingsFilesRoute,
   SettingsProvidersRoute: SettingsProvidersRoute,
   SettingsUpdatesRoute: SettingsUpdatesRoute,
+  SettingsUsageRoute: SettingsUsageRoute,
   SettingsIndexRoute: SettingsIndexRoute,
 }
 

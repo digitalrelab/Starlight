@@ -9,6 +9,7 @@ import {
   useInterfaceZoom,
   useNativeColorScheme,
 } from "#renderer/features/settings/appearance.ts";
+import { useHiddenFilesToggle } from "#renderer/features/settings/files.ts";
 import type { RouterContext } from "#renderer/lib/context.ts";
 import { useStore } from "#renderer/lib/store.ts";
 import { useWindowReady } from "#renderer/lib/use-window-ready.ts";
@@ -19,6 +20,7 @@ const Root = () => {
   useChatAppearance();
   useWindowReady();
   useMouseHistory();
+  useHiddenFilesToggle();
   return (
     <Interface.Root colorScheme={useStore(colorScheme)} pointerCursors={useStore(cursor) === "pointer"}>
       <Outlet />
