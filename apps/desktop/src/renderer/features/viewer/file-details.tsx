@@ -5,9 +5,11 @@ import { useStarlight } from "#renderer/lib/context.ts";
 import { presentationOf } from "./presentation.ts";
 
 const PROPERTY_LABELS: Readonly<Record<string, string>> = {
-  transparent: "Transparent",
-  monochrome: "Monochrome",
+  "pixels.transparent": "Transparent",
+  "pixels.monochrome": "Monochrome",
 };
+
+const propertyName = ({ namespace, key }: Property) => `${namespace}.${key}`;
 
 const shareFormat = new Intl.NumberFormat(undefined, { style: "percent", maximumFractionDigits: 0 });
 
@@ -18,7 +20,7 @@ const PaletteSwatch = ({ swatch }: { readonly swatch: Swatch }) => (
 );
 
 const PropertyBadge = ({ property }: { readonly property: Property }) => (
-  <Badge>{PROPERTY_LABELS[property.key] ?? property.key}</Badge>
+  <Badge>{PROPERTY_LABELS[propertyName(property)] ?? property.key}</Badge>
 );
 
 interface Props {
@@ -37,7 +39,7 @@ export const FileDetails = ({ projectId, directory, entry }: Props) => {
   return (
     <div className="flex items-center gap-3">
       {source.properties.map((property) => (
-        <PropertyBadge key={`${property.namespace}.${property.key}`} property={property} />
+        <PropertyBadge key={propertyName(property)} property={property} />
       ))}
       <div className="flex items-center gap-1">
         {source.palette.map((swatch) => (
