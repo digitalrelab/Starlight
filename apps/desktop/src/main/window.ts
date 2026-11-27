@@ -1,5 +1,7 @@
 import { join } from "node:path";
-import { BrowserWindow, nativeTheme } from "electron";
+import { BrowserWindow, nativeTheme, shell } from "electron";
+
+const EXTERNAL_URL = /^(?:https?|mailto):/i;
 
 export const createWindow = () => {
   const window = new BrowserWindow({
@@ -20,7 +22,10 @@ export const createWindow = () => {
   });
 
   window.once("ready-to-show", () => window.show());
-  window.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
+  window.webContents.setWindowOpenHandler(({ url }) => {
+    if (EXTERNAL_URL.test(url)) void shell.openExternal(url);
+    return { action: "deny" };
+  });
   window.webContents.on("will-navigate", (event) => event.preventDefault());
 
   const devUrl = process.env["ELECTRON_RENDERER_URL"];
